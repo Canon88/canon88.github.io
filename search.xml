@@ -1,6 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Elasticsearch-alias与reindex的使用场景</title>
+    <url>/2020/03/29/Elasticsearch-alias%E4%B8%8Ereindex%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF/</url>
+    <content><![CDATA[<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><ul>
+<li><strong><a href="https://javasgl.github.io/elastic-search-reindex/">使用 reindex 来修改 elasticsearch 索引mapping</a></strong></li>
+<li><strong><a href="https://javasgl.github.io/use-alias-migrate-index/">使用 Elasticsearch alias 功能切换 index</a></strong></li>
+<li><strong><a href="https://blog.csdn.net/mlljava1111/article/details/51218868">Elasticsearch更改mapping(不停服务重建索引)</a></strong></li>
+<li><strong><a href="https://www.cnblogs.com/jajian/p/10152681.html">Elasticsearch 技术分析（三）： 索引别名Aliases问题</a></strong></li>
+<li><strong><a href="https://www.jianshu.com/p/f67b046b4d3f">Elasticsearch 实战案例（索引切分、模板、别名、数据迁移）</a></strong></li>
+<li><strong><a href="http://abusehub-reindex.py/">abusehub-reindex.py/</a></strong></li>
+</ul>
+<h4 id="reindex"><a href="#reindex" class="headerlink" title="reindex"></a>reindex</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> elasticsearch <span class="keyword">import</span> Elasticsearch</span><br><span class="line"><span class="keyword">from</span> elasticsearch <span class="keyword">import</span> helpers</span><br><span class="line"></span><br><span class="line">host = [<span class="string">&#x27;es_host1&#x27;</span>, <span class="string">&#x27;es_host2&#x27;</span>, <span class="string">&#x27;es_host3&#x27;</span>]</span><br><span class="line">port = <span class="number">9200</span></span><br><span class="line">timeout = <span class="number">600</span></span><br><span class="line">auth_user = <span class="string">&#x27;elastic&#x27;</span></span><br><span class="line">auth_password = <span class="string">&#x27;hello world&#x27;</span></span><br><span class="line">use_ssl = <span class="literal">True</span></span><br><span class="line">ca_certs = <span class="string">&#x27;/opt/certs/ca/ca.crt&#x27;</span></span><br><span class="line"></span><br><span class="line">es = Elasticsearch(host, port=port, timeout=timeout, http_auth=(auth_user, auth_password), verify_certs=<span class="literal">True</span>, use_ssl=use_ssl, ca_certs=ca_certs)</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="按照指定日期重建索引"><a href="#按照指定日期重建索引" class="headerlink" title="按照指定日期重建索引"></a>按照指定日期重建索引</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> datetime</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line">begin_date = (datetime.datetime.now() - datetime.timedelta(days = <span class="number">10</span>)).strftime(<span class="string">&quot;%Y.%m.%d&quot;</span>)</span><br><span class="line">begin_date = datetime.datetime.strptime(begin_date, <span class="string">&quot;%Y.%m.%d&quot;</span>)</span><br><span class="line">end_date = (datetime.datetime.now() - datetime.timedelta(days = <span class="number">1</span>)).strftime(<span class="string">&quot;%Y.%m.%d&quot;</span>)</span><br><span class="line">end_date = datetime.datetime.strptime(end_date, <span class="string">&quot;%Y.%m.%d&quot;</span>)</span><br><span class="line"></span><br><span class="line">date_list = []</span><br><span class="line"><span class="keyword">while</span> begin_date &lt;= end_date:</span><br><span class="line">    date_str = begin_date.strftime(<span class="string">&quot;%Y.%m.%d&quot;</span>)</span><br><span class="line">    date_list.append(date_str)</span><br><span class="line">    begin_date += datetime.timedelta(days=<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">date_list</span><br><span class="line">[<span class="string">&#x27;2020.03.19&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.20&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.21&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.22&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.23&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.24&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.25&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.26&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.27&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.28&#x27;</span>]</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">chunk_size = <span class="number">10000</span></span><br><span class="line"><span class="keyword">for</span> day <span class="keyword">in</span> date_list:</span><br><span class="line">    source_index = <span class="string">&#x27;wazuh-alerts-3.x-&#x27;</span> + day</span><br><span class="line">    target_index = <span class="string">&#x27;siem-alerts-&#x27;</span> + day</span><br><span class="line">    helpers.reindex(</span><br><span class="line">        client=es, source_index=source_index, target_index=target_index, </span><br><span class="line">        target_client=es, chunk_size=chunk_size</span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(source_index + <span class="string">&#x27; -&gt; &#x27;</span> + target_index + <span class="string">&#x27; fin.&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <tags>
+        <tag>ElasticSearch</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Logstash Event API</title>
     <url>/2019/12/30/Logstash-Event-API/</url>
     <content><![CDATA[<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>​        由于项目需要, 用到了<code>Ruby</code>对Logstash进行一些定制化的配置。翻遍了整个Logstash的官方文档, 对于Ruby API的介绍就写了两个方法。<code>get</code> 与 <code>set</code> 也是醉了😂, 幸好谷歌一下…</p>
@@ -29,32 +55,6 @@
       </categories>
       <tags>
         <tag>Logstash</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Elasticsearch-alias与reindex的使用场景</title>
-    <url>/2020/03/29/Elasticsearch-alias%E4%B8%8Ereindex%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF/</url>
-    <content><![CDATA[<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><ul>
-<li><strong><a href="https://javasgl.github.io/elastic-search-reindex/">使用 reindex 来修改 elasticsearch 索引mapping</a></strong></li>
-<li><strong><a href="https://javasgl.github.io/use-alias-migrate-index/">使用 Elasticsearch alias 功能切换 index</a></strong></li>
-<li><strong><a href="https://blog.csdn.net/mlljava1111/article/details/51218868">Elasticsearch更改mapping(不停服务重建索引)</a></strong></li>
-<li><strong><a href="https://www.cnblogs.com/jajian/p/10152681.html">Elasticsearch 技术分析（三）： 索引别名Aliases问题</a></strong></li>
-<li><strong><a href="https://www.jianshu.com/p/f67b046b4d3f">Elasticsearch 实战案例（索引切分、模板、别名、数据迁移）</a></strong></li>
-<li><strong><a href="http://abusehub-reindex.py/">abusehub-reindex.py/</a></strong></li>
-</ul>
-<h4 id="reindex"><a href="#reindex" class="headerlink" title="reindex"></a>reindex</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> elasticsearch <span class="keyword">import</span> Elasticsearch</span><br><span class="line"><span class="keyword">from</span> elasticsearch <span class="keyword">import</span> helpers</span><br><span class="line"></span><br><span class="line">host = [<span class="string">&#x27;es_host1&#x27;</span>, <span class="string">&#x27;es_host2&#x27;</span>, <span class="string">&#x27;es_host3&#x27;</span>]</span><br><span class="line">port = <span class="number">9200</span></span><br><span class="line">timeout = <span class="number">600</span></span><br><span class="line">auth_user = <span class="string">&#x27;elastic&#x27;</span></span><br><span class="line">auth_password = <span class="string">&#x27;hello world&#x27;</span></span><br><span class="line">use_ssl = <span class="literal">True</span></span><br><span class="line">ca_certs = <span class="string">&#x27;/opt/certs/ca/ca.crt&#x27;</span></span><br><span class="line"></span><br><span class="line">es = Elasticsearch(host, port=port, timeout=timeout, http_auth=(auth_user, auth_password), verify_certs=<span class="literal">True</span>, use_ssl=use_ssl, ca_certs=ca_certs)</span><br></pre></td></tr></table></figure>
-
-
-
-<h5 id="按照指定日期重建索引"><a href="#按照指定日期重建索引" class="headerlink" title="按照指定日期重建索引"></a>按照指定日期重建索引</h5><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> datetime</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line">begin_date = (datetime.datetime.now() - datetime.timedelta(days = <span class="number">10</span>)).strftime(<span class="string">&quot;%Y.%m.%d&quot;</span>)</span><br><span class="line">begin_date = datetime.datetime.strptime(begin_date, <span class="string">&quot;%Y.%m.%d&quot;</span>)</span><br><span class="line">end_date = (datetime.datetime.now() - datetime.timedelta(days = <span class="number">1</span>)).strftime(<span class="string">&quot;%Y.%m.%d&quot;</span>)</span><br><span class="line">end_date = datetime.datetime.strptime(end_date, <span class="string">&quot;%Y.%m.%d&quot;</span>)</span><br><span class="line"></span><br><span class="line">date_list = []</span><br><span class="line"><span class="keyword">while</span> begin_date &lt;= end_date:</span><br><span class="line">    date_str = begin_date.strftime(<span class="string">&quot;%Y.%m.%d&quot;</span>)</span><br><span class="line">    date_list.append(date_str)</span><br><span class="line">    begin_date += datetime.timedelta(days=<span class="number">1</span>)</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">date_list</span><br><span class="line">[<span class="string">&#x27;2020.03.19&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.20&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.21&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.22&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.23&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.24&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.25&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.26&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.27&#x27;</span>,</span><br><span class="line"> <span class="string">&#x27;2020.03.28&#x27;</span>]</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">chunk_size = <span class="number">10000</span></span><br><span class="line"><span class="keyword">for</span> day <span class="keyword">in</span> date_list:</span><br><span class="line">    source_index = <span class="string">&#x27;wazuh-alerts-3.x-&#x27;</span> + day</span><br><span class="line">    target_index = <span class="string">&#x27;siem-alerts-&#x27;</span> + day</span><br><span class="line">    helpers.reindex(</span><br><span class="line">        client=es, source_index=source_index, target_index=target_index, </span><br><span class="line">        target_client=es, chunk_size=chunk_size</span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(source_index + <span class="string">&#x27; -&gt; &#x27;</span> + target_index + <span class="string">&#x27; fin.&#x27;</span>)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <tags>
-        <tag>ElasticSearch</tag>
       </tags>
   </entry>
   <entry>
@@ -127,6 +127,46 @@
       </tags>
   </entry>
   <entry>
+    <title>Redis Key 过期事件订阅</title>
+    <url>/2019/12/24/Redis-Key-%E8%BF%87%E6%9C%9F%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85/</url>
+    <content><![CDATA[<h3 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h3><p>​        在自建企业内部威胁情报的过程中, 需要通过<strong>Redis</strong>统一管理过期时间的<strong>Key</strong>。因此需要对过期的<strong>Key</strong>进行实时监听, 并进行回调处理。</p>
+<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>​        在 <strong>Redis</strong> 的 <strong>2.8.0</strong> 版本之后，其推出了一个新的特性——键空间消息（Redis Keyspace Notifications），它配合 2.0.0 版本之后的 SUBSCRIBE 就能完成这个定时任务的操作了。</p>
+<p><strong>Redis 的键空间通知支持 订阅指定 Key 的所有事件 与 订阅指定事件 两种方式。</strong></p>
+<blockquote>
+<p>Keyspace notifications are implemented sending two distinct type of events for every operation affecting the Redis data space. For instance a DEL operation targeting the key named mykey in database 0 will trigger the delivering of two messages, exactly equivalent to the following two PUBLISH commands:</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PUBLISH __keyspace@0__:mykey del</span><br><span class="line">PUBLISH __keyevent@0__:del mykey</span><br></pre></td></tr></table></figure>
+
+<p><strong>通过 Redis 的键空间通知（keyspace notification）可以做到：将IoC数据写入Redis，设置过期时间10分钟，利用 Redis 键过期回调提醒，如果未被消费，则进行处理。</strong></p>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><h4 id="1-修改-redis-conf-开启redis-key过期提醒"><a href="#1-修改-redis-conf-开启redis-key过期提醒" class="headerlink" title="1. 修改 redis.conf 开启redis key过期提醒"></a>1. 修改 redis.conf 开启redis key过期提醒</h4><blockquote>
+<p>By default keyspace events notifications are disabled because while not very sensible the feature uses some CPU power. Notifications are enabled using the notify-keyspace-events of redis.conf or via the CONFIG SET.</p>
+</blockquote>
+<p>由于键空间通知比较耗CPU, 所以 Redis默认是关闭键空间事件通知的， 需要手动开启 <code>notify-keyspace-events </code>后才启作用。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">K：keyspace事件，事件以__keyspace@&lt;db&gt;__为前缀进行发布；        </span><br><span class="line">E：keyevent事件，事件以__keyevent@&lt;db&gt;__为前缀进行发布；        </span><br><span class="line">g：一般性的，非特定类型的命令，比如del，expire，rename等；       </span><br><span class="line">$：String 特定命令；        </span><br><span class="line">l：List 特定命令；        </span><br><span class="line">s：Set 特定命令；        </span><br><span class="line">h：Hash 特定命令；        </span><br><span class="line">z：Sorted 特定命令；        </span><br><span class="line">x：过期事件，当某个键过期并删除时会产生该事件；        </span><br><span class="line">e：驱逐事件，当某个键因maxmemore策略而被删除时，产生该事件；        </span><br><span class="line">A：g<span class="variable">$lshzxe</span>的别名，因此”AKE”意味着所有事件。</span><br></pre></td></tr></table></figure>
+
+<p><strong><code>notify-keyspace-events Ex</code> 表示开启键过期事件提醒</strong></p>
+<p><strong>redis.conf</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># RDB Config</span></span><br><span class="line">databases 16</span><br><span class="line">save 900 1</span><br><span class="line">save 300 10</span><br><span class="line">save 60 10000</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line">rdbcompression yes</span><br><span class="line">rdbchecksum no</span><br><span class="line">dir ./</span><br><span class="line"><span class="comment"># AOF Config</span></span><br><span class="line">appendonly yes</span><br><span class="line">appendfilename <span class="string">&quot;appendonly.aof&quot;</span></span><br><span class="line">appendfsync everysec</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line">auto-aof-rewrite-percentage 100</span><br><span class="line">auto-aof-rewrite-min-size 64mb</span><br><span class="line"><span class="comment"># set Password</span></span><br><span class="line">requirepass %&#123;mypassword&#125;</span><br><span class="line"><span class="comment"># set notify-keyspace-events</span></span><br><span class="line">notify-keyspace-events Ex</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-RedisHelper"><a href="#2-RedisHelper" class="headerlink" title="2. RedisHelper"></a>2. RedisHelper</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># Author: Canon</span></span><br><span class="line"><span class="comment"># Date: 2019-12-27</span></span><br><span class="line"><span class="comment"># Version: 0.2</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> redis</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RedisHelper</span>():</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="comment"># 连接Redis</span></span><br><span class="line">        self.__conn = redis.Redis(host=<span class="string">&#x27;127.0.0.1&#x27;</span>, port=<span class="number">6379</span>, password=<span class="string">&#x27;mypassword&#x27;</span>, db=<span class="number">0</span>)</span><br><span class="line">        <span class="comment"># 定义keyevent, 此处0为indexdb</span></span><br><span class="line">        self.keyevent = <span class="string">&#x27;__keyevent@0__:expired&#x27;</span></span><br><span class="line">        </span><br><span class="line">    <span class="comment"># 发布方法</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">publish</span>(<span class="params">self, key, msg</span>):</span></span><br><span class="line">        ttl = <span class="number">10</span></span><br><span class="line">        self.__conn.setex(key, msg, ttl)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 订阅方法</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">subscribe</span>(<span class="params">self</span>):</span></span><br><span class="line">        sub = self.__conn.pubsub()</span><br><span class="line">        sub.subscribe(self.keyevent)</span><br><span class="line">        <span class="keyword">for</span> msg <span class="keyword">in</span> sub.listen():</span><br><span class="line">            <span class="keyword">if</span> msg[<span class="string">&#x27;type&#x27;</span>] == <span class="string">&#x27;message&#x27;</span>:</span><br><span class="line">                ex_key = msg[<span class="string">&#x27;data&#x27;</span>].decode()</span><br><span class="line">                <span class="built_in">print</span>(ex_key)</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ul>
+<li><p><strong><a href="https://crazyfzw.github.io/2019/03/26/redis-keyspace-notifications/">订阅 Redis 的 key 过期事件实现动态定时任务</a></strong></p>
+</li>
+<li><p><strong><a href="https://segmentfault.com/a/1190000016898228">python开发-实现redis中的发布订阅功能</a></strong></p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Redis</category>
+      </categories>
+      <tags>
+        <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Scrapy + Splash 实现动态网页爬取</title>
     <url>/2019/10/08/Scrapy%20+%20Splash%20%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E7%BD%91%E9%A1%B5%E7%88%AC%E5%8F%96/</url>
     <content><![CDATA[<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>​        这是一个撞库事件的后续, 通过之前编写的脚本<strong>Suricata - login_audit</strong>脚本成功审计到了所有登录网站的账号。这里需要对经过分析后存在可疑行为的账号进行反向查询, 主要判断该账号是否已被标记为泄露账号。</p>
@@ -181,46 +221,6 @@
       </categories>
       <tags>
         <tag>Scrapy</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Redis Key 过期事件订阅</title>
-    <url>/2019/12/24/Redis-Key-%E8%BF%87%E6%9C%9F%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85/</url>
-    <content><![CDATA[<h3 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h3><p>​        在自建企业内部威胁情报的过程中, 需要通过<strong>Redis</strong>统一管理过期时间的<strong>Key</strong>。因此需要对过期的<strong>Key</strong>进行实时监听, 并进行回调处理。</p>
-<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>​        在 <strong>Redis</strong> 的 <strong>2.8.0</strong> 版本之后，其推出了一个新的特性——键空间消息（Redis Keyspace Notifications），它配合 2.0.0 版本之后的 SUBSCRIBE 就能完成这个定时任务的操作了。</p>
-<p><strong>Redis 的键空间通知支持 订阅指定 Key 的所有事件 与 订阅指定事件 两种方式。</strong></p>
-<blockquote>
-<p>Keyspace notifications are implemented sending two distinct type of events for every operation affecting the Redis data space. For instance a DEL operation targeting the key named mykey in database 0 will trigger the delivering of two messages, exactly equivalent to the following two PUBLISH commands:</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PUBLISH __keyspace@0__:mykey del</span><br><span class="line">PUBLISH __keyevent@0__:del mykey</span><br></pre></td></tr></table></figure>
-
-<p><strong>通过 Redis 的键空间通知（keyspace notification）可以做到：将IoC数据写入Redis，设置过期时间10分钟，利用 Redis 键过期回调提醒，如果未被消费，则进行处理。</strong></p>
-<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><h4 id="1-修改-redis-conf-开启redis-key过期提醒"><a href="#1-修改-redis-conf-开启redis-key过期提醒" class="headerlink" title="1. 修改 redis.conf 开启redis key过期提醒"></a>1. 修改 redis.conf 开启redis key过期提醒</h4><blockquote>
-<p>By default keyspace events notifications are disabled because while not very sensible the feature uses some CPU power. Notifications are enabled using the notify-keyspace-events of redis.conf or via the CONFIG SET.</p>
-</blockquote>
-<p>由于键空间通知比较耗CPU, 所以 Redis默认是关闭键空间事件通知的， 需要手动开启 <code>notify-keyspace-events </code>后才启作用。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">K：keyspace事件，事件以__keyspace@&lt;db&gt;__为前缀进行发布；        </span><br><span class="line">E：keyevent事件，事件以__keyevent@&lt;db&gt;__为前缀进行发布；        </span><br><span class="line">g：一般性的，非特定类型的命令，比如del，expire，rename等；       </span><br><span class="line">$：String 特定命令；        </span><br><span class="line">l：List 特定命令；        </span><br><span class="line">s：Set 特定命令；        </span><br><span class="line">h：Hash 特定命令；        </span><br><span class="line">z：Sorted 特定命令；        </span><br><span class="line">x：过期事件，当某个键过期并删除时会产生该事件；        </span><br><span class="line">e：驱逐事件，当某个键因maxmemore策略而被删除时，产生该事件；        </span><br><span class="line">A：g<span class="variable">$lshzxe</span>的别名，因此”AKE”意味着所有事件。</span><br></pre></td></tr></table></figure>
-
-<p><strong><code>notify-keyspace-events Ex</code> 表示开启键过期事件提醒</strong></p>
-<p><strong>redis.conf</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># RDB Config</span></span><br><span class="line">databases 16</span><br><span class="line">save 900 1</span><br><span class="line">save 300 10</span><br><span class="line">save 60 10000</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line">rdbcompression yes</span><br><span class="line">rdbchecksum no</span><br><span class="line">dir ./</span><br><span class="line"><span class="comment"># AOF Config</span></span><br><span class="line">appendonly yes</span><br><span class="line">appendfilename <span class="string">&quot;appendonly.aof&quot;</span></span><br><span class="line">appendfsync everysec</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line">auto-aof-rewrite-percentage 100</span><br><span class="line">auto-aof-rewrite-min-size 64mb</span><br><span class="line"><span class="comment"># set Password</span></span><br><span class="line">requirepass %&#123;mypassword&#125;</span><br><span class="line"><span class="comment"># set notify-keyspace-events</span></span><br><span class="line">notify-keyspace-events Ex</span><br></pre></td></tr></table></figure>
-
-<h4 id="2-RedisHelper"><a href="#2-RedisHelper" class="headerlink" title="2. RedisHelper"></a>2. RedisHelper</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># Author: Canon</span></span><br><span class="line"><span class="comment"># Date: 2019-12-27</span></span><br><span class="line"><span class="comment"># Version: 0.2</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> redis</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RedisHelper</span>():</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="comment"># 连接Redis</span></span><br><span class="line">        self.__conn = redis.Redis(host=<span class="string">&#x27;127.0.0.1&#x27;</span>, port=<span class="number">6379</span>, password=<span class="string">&#x27;mypassword&#x27;</span>, db=<span class="number">0</span>)</span><br><span class="line">        <span class="comment"># 定义keyevent, 此处0为indexdb</span></span><br><span class="line">        self.keyevent = <span class="string">&#x27;__keyevent@0__:expired&#x27;</span></span><br><span class="line">        </span><br><span class="line">    <span class="comment"># 发布方法</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">publish</span>(<span class="params">self, key, msg</span>):</span></span><br><span class="line">        ttl = <span class="number">10</span></span><br><span class="line">        self.__conn.setex(key, msg, ttl)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 订阅方法</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">subscribe</span>(<span class="params">self</span>):</span></span><br><span class="line">        sub = self.__conn.pubsub()</span><br><span class="line">        sub.subscribe(self.keyevent)</span><br><span class="line">        <span class="keyword">for</span> msg <span class="keyword">in</span> sub.listen():</span><br><span class="line">            <span class="keyword">if</span> msg[<span class="string">&#x27;type&#x27;</span>] == <span class="string">&#x27;message&#x27;</span>:</span><br><span class="line">                ex_key = msg[<span class="string">&#x27;data&#x27;</span>].decode()</span><br><span class="line">                <span class="built_in">print</span>(ex_key)</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ul>
-<li><p><strong><a href="https://crazyfzw.github.io/2019/03/26/redis-keyspace-notifications/">订阅 Redis 的 key 过期事件实现动态定时任务</a></strong></p>
-</li>
-<li><p><strong><a href="https://segmentfault.com/a/1190000016898228">python开发-实现redis中的发布订阅功能</a></strong></p>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Redis</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
       </tags>
   </entry>
   <entry>
@@ -326,19 +326,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Suricata Custom Rules</title>
-    <url>/2019/10/31/Suricata%20-%20Rules/</url>
-    <content><![CDATA[<h1 id="Solr-RCE-CVE-2019-0193"><a href="#Solr-RCE-CVE-2019-0193" class="headerlink" title="Solr RCE CVE-2019-0193"></a>Solr RCE CVE-2019-0193</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Solr POST RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.post.request; content:<span class="string">&quot;POST&quot;</span>; http_method; fast_pattern; content:<span class="string">&quot;/solr&quot;</span>; http_uri; content:<span class="string">&quot;/config&quot;</span>; http_uri; content:<span class="string">&quot;params.resource.loader.enabled&quot;</span>; http_client_body; classtype:shellcode-detect; sid:3020016; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.post.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020017; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Solr GET RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.get.request; content:<span class="string">&quot;GET&quot;</span>; http_method; content:<span class="string">&quot;/solr&quot;</span>; http_uri; fast_pattern; content:<span class="string">&quot;/select?&quot;</span>; http_uri; content:<span class="string">&quot;wt=velocity&quot;</span>; http_uri; content:<span class="string">&quot;java.lang.Runtime&quot;</span>; http_uri; content:<span class="string">&quot;getRuntime().exec&quot;</span>; http_uri; classtype:shellcode-detect; sid:3020018; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.get.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020019; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>NIDS</category>
-      </categories>
-      <tags>
-        <tag>Suricata</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Suricata - Lua Output Script</title>
     <url>/2019/10/14/Suricata%20-%20Lua%20Output/</url>
     <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>​    由于近期网站遭受大量撞库攻击, 想监控一下登录接口中的异常行为。通过<strong>alert</strong>并不能起到很好的效果, 所以采用<strong>Lua</strong>脚本进行扩展, 写了一个审计登录接口的脚本。通过登录接口事件, 再配合<strong>Wazuh</strong>进行一些简单的关联告警,  效果还是不错的。</p>
@@ -350,6 +337,19 @@
 
 <hr>
 <h1 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h1><figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;src_port&quot;</span>: <span class="number">34963</span>,</span><br><span class="line">    <span class="attr">&quot;event_type&quot;</span>: <span class="string">&quot;lua&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;proto&quot;</span>: <span class="string">&quot;TCP&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;flow_id&quot;</span>: <span class="string">&quot;471693756052529&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;timestamp&quot;</span>: <span class="string">&quot;2019-10-07T13:51:01.560556+0000&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;event_name&quot;</span>: <span class="string">&quot;login_audit&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;dest_port&quot;</span>: <span class="number">3007</span>,</span><br><span class="line">    <span class="attr">&quot;http&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;response_content_length&quot;</span>: <span class="string">&quot;446&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;response_content_type&quot;</span>: <span class="string">&quot;application/json; charset=utf-8&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept_encoding&quot;</span>: <span class="string">&quot;gzip&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept&quot;</span>: <span class="string">&quot;*/*&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;server&quot;</span>: <span class="string">&quot;nginx&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;results_code&quot;</span>: <span class="number">0</span>,</span><br><span class="line">        <span class="attr">&quot;vary&quot;</span>: <span class="string">&quot;Accept-Encoding&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;password&quot;</span>: <span class="string">&quot;420ce28ef813a2dc05e52a7e24eb0d5c&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;date&quot;</span>: <span class="string">&quot;Mon, 07 Oct 2019 13:51:01 GMT&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;request_content_type&quot;</span>: <span class="string">&quot;application/x-www-form-urlencoded; charset=UTF-8&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept_language&quot;</span>: <span class="string">&quot;en-US,en;q=0.9&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;url&quot;</span>: <span class="string">&quot;/login&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;x_requested_with&quot;</span>: <span class="string">&quot;XMLHttpRequest&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;x_forwarded_proto&quot;</span>: <span class="string">&quot;https&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;user_agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;https://www.canon.com&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;response_token&quot;</span>: <span class="string">&quot;4f5f386aec34e877ce63fce7ddd3f15f&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;pragma&quot;</span>: <span class="string">&quot;no-cache&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;connection&quot;</span>: <span class="string">&quot;close&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;status&quot;</span>: <span class="number">200</span>,</span><br><span class="line">        <span class="attr">&quot;protocol&quot;</span>: <span class="string">&quot;HTTP/1.1&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;hostname&quot;</span>: <span class="string">&quot;www.canon.com&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;url_path&quot;</span>: <span class="string">&quot;/login&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;cache_control&quot;</span>: <span class="string">&quot;no-cache, max-age=0, no-store, must-revalidate&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;method&quot;</span>: <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;email&quot;</span>: <span class="string">&quot;admin@canon.com&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;request_token&quot;</span>: <span class="string">&quot;109464370570b23fa9768078ab1ac8a9&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;member_id&quot;</span>: <span class="number">123456</span>,</span><br><span class="line">        <span class="attr">&quot;results&quot;</span>: <span class="string">&quot;success&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;request_content_length&quot;</span>: <span class="string">&quot;49&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;src_ip&quot;</span>: <span class="string">&quot;77.99.22.17&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;dest_ip&quot;</span>: <span class="string">&quot;1.1.1.1&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;app_type&quot;</span>: <span class="string">&quot;web&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>NIDS</category>
+      </categories>
+      <tags>
+        <tag>Suricata</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Suricata Custom Rules</title>
+    <url>/2019/10/31/Suricata%20-%20Rules/</url>
+    <content><![CDATA[<h1 id="Solr-RCE-CVE-2019-0193"><a href="#Solr-RCE-CVE-2019-0193" class="headerlink" title="Solr RCE CVE-2019-0193"></a>Solr RCE CVE-2019-0193</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Solr POST RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.post.request; content:<span class="string">&quot;POST&quot;</span>; http_method; fast_pattern; content:<span class="string">&quot;/solr&quot;</span>; http_uri; content:<span class="string">&quot;/config&quot;</span>; http_uri; content:<span class="string">&quot;params.resource.loader.enabled&quot;</span>; http_client_body; classtype:shellcode-detect; sid:3020016; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.post.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020017; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Solr GET RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.get.request; content:<span class="string">&quot;GET&quot;</span>; http_method; content:<span class="string">&quot;/solr&quot;</span>; http_uri; fast_pattern; content:<span class="string">&quot;/select?&quot;</span>; http_uri; content:<span class="string">&quot;wt=velocity&quot;</span>; http_uri; content:<span class="string">&quot;java.lang.Runtime&quot;</span>; http_uri; content:<span class="string">&quot;getRuntime().exec&quot;</span>; http_uri; classtype:shellcode-detect; sid:3020018; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.get.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020019; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <categories>
@@ -418,11 +418,11 @@
 <ul>
 <li>启用CJson模块之前的监控图</li>
 </ul>
-<p><img src="/.com//image-20191104103020962.png" alt="image-20191104103020962"></p>
+<p><img src="Suricata+Lua%E5%AE%9E%E7%8E%B0%E6%9C%AC%E5%9C%B0%E6%83%85%E6%8A%A5%E5%AF%B9%E6%8E%A5/image-20191104103020962.png" alt="image-20191104103020962"></p>
 <ul>
 <li>启用CJson模块之后的监控图</li>
 </ul>
-<p><img src="/.com//image-20191104103557884.png" alt="image-20191104103557884"></p>
+<p><img src="Suricata+Lua%E5%AE%9E%E7%8E%B0%E6%9C%AC%E5%9C%B0%E6%83%85%E6%8A%A5%E5%AF%B9%E6%8E%A5/image-20191104103557884.png" alt="image-20191104103557884"></p>
 <ol>
 <li>下载CJson模块</li>
 </ol>
@@ -526,31 +526,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Zeek - 集群部署模式</title>
-    <url>/2021/03/02/Zeek-%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%A8%A1%E5%BC%8F/</url>
-    <content><![CDATA[<h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><p><strong><a href="https://software.opensuse.org/download.html?project=security:zeek&package=zeek">在线安装</a></strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">&#x27;deb http://download.opensuse.org/repositories/security:/zeek/Debian_10/ /&#x27;</span> | sudo tee /etc/apt/sources.list.d/security:zeek.list</span><br><span class="line">$ curl -fsSL https://download.opensuse.org/repositories/security:zeek/Debian_10/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg &gt; /dev/null</span><br><span class="line">$ sudo apt update</span><br><span class="line">$ sudo apt install zeek</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h4 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h4><p><img src="https://docs.zeek.org/en/master/_images/deployment.png" alt="_images / deployment.png"></p>
-<p><strong>Manager -&gt; Worker</strong></p>
-<ol>
-<li>在设置集群时，必须在所有主机上设置Zeek用户，并且该用户必须能够从管理器中对集群中的所有机器进行ssh访问，并且必须在不被提示密码/口令的情况下工作（例如，使用ssh公钥认证）。另外，在工作节点上，该用户必须能够以混杂模式访问目标网络接口。</li>
-<li>存储必须在同一路径下的所有主机上可用。</li>
-</ol>
-<h5 id="Manager"><a href="#Manager" class="headerlink" title="Manager"></a>Manager</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装Zeek 略过</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成SSH Key</span></span><br><span class="line">$ ssh-keygen</span><br><span class="line"></span><br><span class="line"><span class="comment"># 记得Worker节点需要创建.ssh目录</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 复制ssh pub到Zeek Worker</span></span><br><span class="line">$ scp /root/.ssh/id_rsa.pub root@Zeek-Worker1:~/.ssh/authorized_keys2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置Manager node.cfg</span></span><br><span class="line">$ vim /opt/zeek/etc/node.cfg</span><br><span class="line">[logger-1]</span><br><span class="line"><span class="built_in">type</span>=logger</span><br><span class="line">host=Zeek-Manager</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">[manager]</span><br><span class="line"><span class="built_in">type</span>=manager</span><br><span class="line">host=Zeek-Manager</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">[proxy-1]</span><br><span class="line"><span class="built_in">type</span>=proxy</span><br><span class="line">host=Zeek-Manager</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">[worker-1]</span><br><span class="line"><span class="built_in">type</span>=worker</span><br><span class="line">host=Zeek-Worker1</span><br><span class="line">interface=ens224</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">[worker-2]</span><br><span class="line"><span class="built_in">type</span>=worker</span><br><span class="line">host=Zeek-Worker2</span><br><span class="line">interface=ens224</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查Zeek</span></span><br><span class="line">$ zeekctl</span><br><span class="line">[ZeekControl] &gt; check</span><br><span class="line">logger-1 scripts are ok.</span><br><span class="line">manager scripts are ok.</span><br><span class="line">proxy-1 scripts are ok.</span><br><span class="line">worker-1 scripts are ok.</span><br><span class="line">worker-2 scripts are ok.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动Zeek</span></span><br><span class="line">$ zeekctl</span><br><span class="line">[ZeekControl] &gt; start</span><br><span class="line">starting logger ...</span><br><span class="line">starting manager ...</span><br><span class="line">starting proxy ...</span><br><span class="line">starting workers ...</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="集群中性能是否对于单台有优化待测试"><a href="#集群中性能是否对于单台有优化待测试" class="headerlink" title="集群中性能是否对于单台有优化待测试"></a>集群中性能是否对于单台有优化待测试</h4>]]></content>
-      <tags>
-        <tag>Zeek</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Wazuh - 利用CDB list过滤私网IP地址</title>
     <url>/2020/01/31/Wazuh-%E5%88%A9%E7%94%A8CDB-list%E8%BF%87%E6%BB%A4%E7%A7%81%E7%BD%91IP%E5%9C%B0%E5%9D%80/</url>
     <content><![CDATA[<h4 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h4><p>​        目前平台接入了<strong>Suricata</strong>的告警规则, 由于镜像源的关系部分规则产生了**’误’**告警, 因此需要针对这部分规则进行IP地址的过滤。</p>
@@ -636,7 +611,7 @@
 </li>
 </ol>
 <p><strong>workflow:</strong></p>
-<p><img src="/.com//image-20200303215020561.png" alt="image-20200303215020561"></p>
+<p><img src="Wazuh-%E5%A6%82%E4%BD%95%E5%AF%B9%E5%BC%82%E6%9E%84%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E5%85%B3%E8%81%94%E5%91%8A%E8%AD%A6/image-20200303215020561.png" alt="image-20200303215020561"></p>
 <hr>
 <h5 id="Filebeat配置"><a href="#Filebeat配置" class="headerlink" title="Filebeat配置"></a>Filebeat配置</h5><ul>
 <li><h6 id="filebeat-yaml"><a href="#filebeat-yaml" class="headerlink" title="filebeat.yaml"></a>filebeat.yaml</h6></li>
@@ -747,6 +722,31 @@
       </tags>
   </entry>
   <entry>
+    <title>Zeek - 集群部署模式</title>
+    <url>/2021/03/02/Zeek-%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%A8%A1%E5%BC%8F/</url>
+    <content><![CDATA[<h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><p><strong><a href="https://software.opensuse.org/download.html?project=security:zeek&package=zeek">在线安装</a></strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">echo</span> <span class="string">&#x27;deb http://download.opensuse.org/repositories/security:/zeek/Debian_10/ /&#x27;</span> | sudo tee /etc/apt/sources.list.d/security:zeek.list</span><br><span class="line">$ curl -fsSL https://download.opensuse.org/repositories/security:zeek/Debian_10/Release.key | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg &gt; /dev/null</span><br><span class="line">$ sudo apt update</span><br><span class="line">$ sudo apt install zeek</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h4 id="架构图"><a href="#架构图" class="headerlink" title="架构图"></a>架构图</h4><p><img src="https://docs.zeek.org/en/master/_images/deployment.png" alt="_images / deployment.png"></p>
+<p><strong>Manager -&gt; Worker</strong></p>
+<ol>
+<li>在设置集群时，必须在所有主机上设置Zeek用户，并且该用户必须能够从管理器中对集群中的所有机器进行ssh访问，并且必须在不被提示密码/口令的情况下工作（例如，使用ssh公钥认证）。另外，在工作节点上，该用户必须能够以混杂模式访问目标网络接口。</li>
+<li>存储必须在同一路径下的所有主机上可用。</li>
+</ol>
+<h5 id="Manager"><a href="#Manager" class="headerlink" title="Manager"></a>Manager</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装Zeek 略过</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 生成SSH Key</span></span><br><span class="line">$ ssh-keygen</span><br><span class="line"></span><br><span class="line"><span class="comment"># 记得Worker节点需要创建.ssh目录</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 复制ssh pub到Zeek Worker</span></span><br><span class="line">$ scp /root/.ssh/id_rsa.pub root@Zeek-Worker1:~/.ssh/authorized_keys2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置Manager node.cfg</span></span><br><span class="line">$ vim /opt/zeek/etc/node.cfg</span><br><span class="line">[logger-1]</span><br><span class="line"><span class="built_in">type</span>=logger</span><br><span class="line">host=Zeek-Manager</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">[manager]</span><br><span class="line"><span class="built_in">type</span>=manager</span><br><span class="line">host=Zeek-Manager</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">[proxy-1]</span><br><span class="line"><span class="built_in">type</span>=proxy</span><br><span class="line">host=Zeek-Manager</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">[worker-1]</span><br><span class="line"><span class="built_in">type</span>=worker</span><br><span class="line">host=Zeek-Worker1</span><br><span class="line">interface=ens224</span><br><span class="line"><span class="comment">#</span></span><br><span class="line">[worker-2]</span><br><span class="line"><span class="built_in">type</span>=worker</span><br><span class="line">host=Zeek-Worker2</span><br><span class="line">interface=ens224</span><br><span class="line"></span><br><span class="line"><span class="comment"># 检查Zeek</span></span><br><span class="line">$ zeekctl</span><br><span class="line">[ZeekControl] &gt; check</span><br><span class="line">logger-1 scripts are ok.</span><br><span class="line">manager scripts are ok.</span><br><span class="line">proxy-1 scripts are ok.</span><br><span class="line">worker-1 scripts are ok.</span><br><span class="line">worker-2 scripts are ok.</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动Zeek</span></span><br><span class="line">$ zeekctl</span><br><span class="line">[ZeekControl] &gt; start</span><br><span class="line">starting logger ...</span><br><span class="line">starting manager ...</span><br><span class="line">starting proxy ...</span><br><span class="line">starting workers ...</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="集群中性能是否对于单台有优化待测试"><a href="#集群中性能是否对于单台有优化待测试" class="headerlink" title="集群中性能是否对于单台有优化待测试"></a>集群中性能是否对于单台有优化待测试</h4>]]></content>
+      <tags>
+        <tag>Zeek</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Zeek - 高度定制化的 DNS事件 + 文件还原</title>
     <url>/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/</url>
     <content><![CDATA[<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><ol>
@@ -779,11 +779,11 @@
 <ul>
 <li>Zeek DNS （query + answer）</li>
 </ul>
-<p><img src="/.com//Zeek-DNS-1.png" alt="image-20200511135508651"></p>
+<p><img src="./Zeek%E5%AE%9E%E6%88%98-1/Zeek-DNS-1.png" alt="image-20200511135508651"></p>
 <ul>
 <li>Suricata DNS （query）</li>
 </ul>
-<p><img src="/.com//Suricata-DNS-1.png" alt="image-20200511140015791"></p>
+<p><img src="./Zeek%E5%AE%9E%E6%88%98-1/Suricata-DNS-1.png" alt="image-20200511140015791"></p>
 <hr>
 <h5 id="2-更灵活的文件还原与提取文件HASH"><a href="#2-更灵活的文件还原与提取文件HASH" class="headerlink" title="2. 更灵活的文件还原与提取文件HASH"></a>2. 更灵活的文件还原与提取文件HASH</h5><h6 id="文件还原脚本"><a href="#文件还原脚本" class="headerlink" title="文件还原脚本"></a>文件还原脚本</h6><p><strong>file_extraction.zeek</strong> </p>
 <p><strong>Demo脚本，语法并不是很优雅，切勿纠结。</strong></p>
@@ -798,7 +798,7 @@
 
 
 <h6 id="文件还原"><a href="#文件还原" class="headerlink" title="文件还原"></a>文件还原</h6><p><strong>这是其中一个包含恶意Payload还原出的图片样例</strong></p>
-<p><img src="/.com//Payload-pic.png" alt="image-20200511150738194"></p>
+<p><img src="./Zeek%E5%AE%9E%E6%88%98-1/Payload-pic.png" alt="image-20200511150738194"></p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ll /data/logs/zeek/extracted_files/</span><br><span class="line">total 89916</span><br><span class="line">drwxr-xr-x 10 root root      150 May 11 06:14 ./</span><br><span class="line">drwxr-xr-x  4 root root       67 May 11 06:00 ../</span><br><span class="line">drwxr-xr-x  2 root root       50 May  5 07:54 2020-05-04/</span><br><span class="line">drwxr-xr-x  2 root root     4096 May  5 23:51 2020-05-05/</span><br><span class="line">drwxr-xr-x  2 root root   671744 May  6 23:41 2020-05-06/</span><br><span class="line">drwxr-xr-x  2 root root     4096 May  7 22:44 2020-05-07/</span><br><span class="line">drwxr-xr-x  2 root root   741376 May  8 23:59 2020-05-08/</span><br><span class="line">drwxr-xr-x  2 root root 23425024 May  9 23:59 2020-05-09/</span><br><span class="line">drwxr-xr-x  2 root root 25047040 May 10 23:59 2020-05-10/</span><br><span class="line">drwxr-xr-x  2 root root 24846336 May 11 06:14 2020-05-11/</span><br><span class="line"></span><br><span class="line">$ xxd /data/logs/zeek/extracted_files/2020-05-07/884d9474180e5b49f851643cb2442bce.jpg</span><br><span class="line">00000000: 8950 4e47 0d0a 1a0a 0000 000d 4948 4452  .PNG........IHDR</span><br><span class="line">00000010: 0000 003c 0000 003c 0806 0000 003a fcd9  ...&lt;...&lt;.....:..</span><br><span class="line">00000020: 7200 0000 1974 4558 7453 6f66 7477 6172  r....tEXtSoftwar</span><br><span class="line">00000030: 6500 4164 6f62 6520 496d 6167 6552 6561  e.Adobe ImageRea</span><br><span class="line">00000040: 6479 71c9 653c 0000 0320 6954 5874 584d  dyq.e&lt;... iTXtXM</span><br><span class="line">00000050: 4c3a 636f 6d2e 6164 6f62 652e 786d 7000  L:com.adobe.xmp.</span><br><span class="line">..........</span><br><span class="line">00001030: 8916 ce5f 7480 2f38 c073 69f1 5c14 83fb  ..._t./8.si.\...</span><br><span class="line">00001040: aa9d 42a3 8f4b ff05 e012 e04b 802f 01be  ..B..K.....K./..</span><br><span class="line">00001050: 04b8 91c7 ff04 1800 bcae 819f d1da 1896  ................</span><br><span class="line">00001060: 0000 0000 4945 4e44 ae42 6082 3c3f 7068  ....IEND.B`.&lt;?ph</span><br><span class="line">00001070: 7020 7068 7069 6e66 6f28 293b 3f3e 1a    p phpinfo();?&gt;.</span><br></pre></td></tr></table></figure>
 
 <h6 id="总结：-1"><a href="#总结：-1" class="headerlink" title="总结："></a>总结：</h6><p>通过Zeek脚本扩展后，可以<strong>“随意所欲”</strong>的获取各种类型文件的Hash以及定制化的进行文件还原。</p>
@@ -816,7 +816,7 @@
 <figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;ts&quot;</span>: <span class="number">1589158812.471443</span>,</span><br><span class="line">  <span class="attr">&quot;fuid&quot;</span>: <span class="string">&quot;FBkqzM2AFg0jrioji6&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;tx_hosts&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;1.1.1.1&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;rx_hosts&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;2.2.2.2&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;conn_uids&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;CcOyQo2ziEuoLBNIb9&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;source&quot;</span>: <span class="string">&quot;HTTP&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;depth&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;analyzers&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;SHA1&quot;</span>,</span><br><span class="line">    <span class="string">&quot;EXTRACT&quot;</span>,</span><br><span class="line">    <span class="string">&quot;MD5&quot;</span>,</span><br><span class="line">    <span class="string">&quot;DATA_EVENT&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;mime_type&quot;</span>: <span class="string">&quot;text/plain&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;duration&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;local_orig&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">&quot;is_orig&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">&quot;seen_bytes&quot;</span>: <span class="number">31</span>,</span><br><span class="line">  <span class="attr">&quot;total_bytes&quot;</span>: <span class="number">31</span>,</span><br><span class="line">  <span class="attr">&quot;missing_bytes&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;overflow_bytes&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;timedout&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">&quot;md5&quot;</span>: <span class="string">&quot;37a74f452f1c49854a2951fd605687c5&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;extracted&quot;</span>: <span class="string">&quot;/data/logs/zeek/extracted_files/2020-05-11/37a74f452f1c49854a2951fd605687c5.txt&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;extracted_cutoff&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">&quot;hostname&quot;</span>: <span class="string">&quot;canon88.github.io&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;proxied&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;X-FORWARDED-FOR -&gt; 3.3.3.3&quot;</span>,</span><br><span class="line">    <span class="string">&quot;TRUE-CLIENT-IP -&gt; 4.4.4.4&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;url&quot;</span>: <span class="string">&quot;/index.php&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;method&quot;</span>: <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;true_client_ip&quot;</span>: <span class="string">&quot;4.4.4.4&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;logs&quot;</span>: <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p><strong>b. Wazuh 事件</strong></p>
-<p><img src="/.com//Wazuh-Hash-1.png" alt="image-20200511144805354"></p>
+<p><img src="./Zeek%E5%AE%9E%E6%88%98-1/Wazuh-Hash-1.png" alt="image-20200511144805354"></p>
 ]]></content>
       <categories>
         <category>NIDS</category>
@@ -825,6 +825,24 @@
         <tag>Zeek</tag>
         <tag>NTA</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2019/10/04/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/deployment.html">Deployment</a></p>
+]]></content>
   </entry>
   <entry>
     <title>我在&#39;云&#39;上的日子 - Suricata(部署)</title>
@@ -922,24 +940,6 @@
       <tags>
         <tag>Suricata</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2019/10/04/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/deployment.html">Deployment</a></p>
-]]></content>
   </entry>
   <entry>
     <title>我在&#39;云&#39;上的日子 - Zeek(部署)</title>
@@ -1065,21 +1065,21 @@
 <li>接收流量镜像的目标端, 也就是我们常说的流量分析引擎端是有接收限制的。</li>
 </ol>
 <p>​       如果你是在一个非专用实例上部署的Suricata、Zeek。那么你只能最多同时接收10个源的流量镜像, 也就是你只能接收10个网卡的数据。很不巧的是我们碰上了这个问题, 解决方案也很简单, 使用专用实例(<strong>Dedicated instance</strong>) 或者 使用AWS的网络负载均衡(<strong>Network Load Balancer</strong>)。前者可以将Limit提升到<strong>100</strong>, 后者将<strong>不受限</strong>。如图:</p>
-<p><img src="/.com//image-20191016164935291.png" alt="image-20191016164935291"></p>
+<p><img src="%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016164935291.png" alt="image-20191016164935291"></p>
 <hr>
 <ol start="2">
 <li>C5与C4实例的差异</li>
 </ol>
 <p>​        就我目前使用的实例而言, 分别测试过C5 与 C4两种实例。他们的网卡驱动有所区别的, 如图:</p>
-<p><img src="/.com//image-20191016160923628.png" alt="image-20191016160923628"></p>
+<p><img src="%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016160923628.png" alt="image-20191016160923628"></p>
 <p>​        我这使用下来最直观的区别, 在C4实例上若不使用PF_RING捕包模式的话, Suricata丢包率感人, 0.5 Gbps就开始丢包。测试的机器配置: 32C 60G的机器, 切换到PF_RING捕包模式无此问题。反之C5实例就不存在这个问题, AF-PACKET直接上到2 Gbps的纯HTTP流量都没有丢包。硬件配置: 16C 32G的机器。</p>
 <hr>
 <ol start="3">
 <li>超过<strong>MTU: 9001</strong>数据包被截断</li>
 </ol>
 <p>​      这几天在排查安全事件时, 发现监控的同一台Nginx上解析出的流量(HTTP事件)与日志(HTTP事件)数量相差较大。经过两天的排查终于定位了问题, Suricata kernel 并没有丢包, 所以怀疑是不是Suricata HTTP解析出错导致。最终通过抓包发现导致该问题的”罪魁祸首”就是<strong>VXLAN</strong>, 由于AWS在流量镜像时采用了<strong>VXLAN</strong>协议进行封装, 导致在原有<strong>MTU</strong>的基础上<strong>增加了50个字节</strong>, 造成数据包被截断, 无法还原出HTTP事件。以下截图就是一个无法被正确还原HTTP事件的数据包, 我用Suricata载入数据包后, 只还原出了长度<strong>9015</strong>数据包之前的HTTP信息, 长度<strong>9015</strong>数据包之后的所有事件均无法被还原。</p>
-<p><img src="/.com//image-20191014095249725.png" alt="image-20191014095249725"></p>
-<p><img src="/.com//image-20191014094741753.png" alt="image-20191014094741753"></p>
+<p><img src="%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191014095249725.png" alt="image-20191014095249725"></p>
+<p><img src="%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191014094741753.png" alt="image-20191014094741753"></p>
 <p><strong>官方描述:</strong></p>
 <p>​        For example, if an 8996 byte packet is mirrored, and the traffic mirror target MTU value is 9001 bytes, the mirror encapsulation results in the mirrored packet being greater than the MTU value. In this case, the mirror packet is truncated. To prevent mirror packets from being truncated, set the traffic mirror source interface MTU value to 54 bytes less than the traffic mirror target MTU value. For more information about configuring the network MTU value, see Network Maximum Transmission Unit (MTU) for Your EC2 Instance in the <em>Amazon EC2 User Guide for Linux Instances</em>.</p>
 <p>​        例如，如果对8996字节的数据包进行了镜像，并且流量镜像目标MTU值为9001字节，则镜像封装会导致镜像的数据包大于MTU值。在这种情况下，镜像数据包将被截断。为防止镜像数据包被截断，请将流量镜像源接口的MTU值设置为比流量镜像目标MTU值小54个字节。有关配置网络MTU值的更多信息，请参阅Amazon EC2 Linux实例用户指南中的EC2实例的网络最大传输单位（MTU）。</p>
@@ -1114,10 +1114,10 @@
 <li>非镜像流量的数据包详情:</li>
 </ul>
 <p>可以看到从数据包<strong>20</strong>到数据包<strong>6126</strong>之间都是在进行<strong>10MB</strong>文件(<strong>10mb_exist_files</strong>)的传输过程。</p>
-<p><img src="/.com//image-20191016103409831.png" alt="image-20191016103409831"></p>
+<p><img src="%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016103409831.png" alt="image-20191016103409831"></p>
 <hr>
 <p>从http数据包中可以看出, 这里请求包与响应包都可以正常被还原出来。</p>
-<p><img src="/.com//image-20191016104502919.png" alt="image-20191016104502919"></p>
+<p><img src="%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016104502919.png" alt="image-20191016104502919"></p>
 <hr>
 <p>数据包在Suricata上的解析结果:</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ cat http-2019-10-16.json | wc -l</span><br><span class="line">14</span><br></pre></td></tr></table></figure>
@@ -1129,12 +1129,12 @@
 <li><strong>镜像流量的数据包详情:</strong>(也就是<strong>VXLAN</strong>封装后的数据包)</li>
 </ul>
 <p>同样可以看到从数据包<strong>26</strong>到数据包<strong>6170</strong>之间都是在进行<strong>10MB</strong>文件(<strong>10mb_exist_files</strong>)的传输过程。但是在第<strong>34</strong>个数据包中可以看到, 已经标注了数据超出了最大长度。</p>
-<p><img src="/.com//image-20191016105636906.png" alt="image-20191016105636906"></p>
+<p><img src="%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016105636906.png" alt="image-20191016105636906"></p>
 <hr>
 <p>超出长度的数据将会被截断, 标注: <strong>50 bytes missing in capture file</strong>。</p>
-<p><img src="/.com//image-20191016150322620.png" alt="image-20191016150322620"></p>
+<p><img src="%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016150322620.png" alt="image-20191016150322620"></p>
 <p>从HTTP数据包中可以看出, 这里只有请求包, 由于后续的响应包超出了<strong>MTU: 9001</strong>,  因此并没有响应包。</p>
-<p><img src="/.com//image-20191016105948606.png" alt="image-20191016105948606"></p>
+<p><img src="%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016105948606.png" alt="image-20191016105948606"></p>
 <hr>
 <p>数据包在Suricata上的解析结果:</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ cat http-2019-10-16.json | wc -l</span><br><span class="line">4</span><br></pre></td></tr></table></figure>
@@ -1150,8 +1150,8 @@
 <p><strong>MTU:1500</strong></p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ip link show eth0</span><br><span class="line">2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 9001 qdisc mq state UP mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 02:8a:2d:87:02:8e brd ff:ff:ff:ff:ff:ff</span><br><span class="line"></span><br><span class="line">$ sudo ip link <span class="built_in">set</span> dev eth0 mtu 1500</span><br><span class="line"></span><br><span class="line">$ ip link show eth0</span><br><span class="line">2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc mq state UP mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 02:8a:2d:87:02:8e brd ff:ff:ff:ff:ff:ff</span><br></pre></td></tr></table></figure>
 
-<p><img src="/.com//image-20191016154823748.png" alt="image-20191016154823748"></p>
-<p><img src="/.com//image-20191016155112376.png" alt="image-20191016155112376"></p>
+<p><img src="%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016154823748.png" alt="image-20191016154823748"></p>
+<p><img src="%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016155112376.png" alt="image-20191016155112376"></p>
 <p>数据包在Suricata上的解析结果:</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ cat http-2019-10-16.json | wc -l</span><br><span class="line">14</span><br></pre></td></tr></table></figure>
 
@@ -1206,9 +1206,9 @@
 
 
 
-<p><img src="/.com//%E5%91%A8%E6%9C%9F%E6%80%A7DNS%E8%AF%B7%E6%B1%82%E6%88%AA%E5%9B%BE-1.png" alt="image-20200603113849810"></p>
+<p><img src="./Elastalert-%E6%96%B0%E5%A2%9E%E5%91%A8%E6%9C%9F%E6%80%A7%E6%A3%80%E6%B5%8B%E8%A7%84%E5%88%99/%E5%91%A8%E6%9C%9F%E6%80%A7DNS%E8%AF%B7%E6%B1%82%E6%88%AA%E5%9B%BE-1.png" alt="image-20200603113849810"></p>
 <h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>​        1小时内，IP: 54.160.169.250 总共访问了该接口164次且cookieid参数更换了133次，占到总请求量的81%。并更换了47个不同的user_agent。</p>
-<p><img src="/.com//%E5%BC%82%E5%B8%B8%E8%AE%BF%E9%97%AE%E6%88%AA%E5%9B%BE-1.png" alt="image-20200602114610615"></p>
+<p><img src="./Elastalert-%E6%96%B0%E5%A2%9E%E5%91%A8%E6%9C%9F%E6%80%A7%E6%A3%80%E6%B5%8B%E8%A7%84%E5%88%99/%E5%BC%82%E5%B8%B8%E8%AE%BF%E9%97%AE%E6%88%AA%E5%9B%BE-1.png" alt="image-20200602114610615"></p>
 <h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p><strong><a href="https://github.com/austin-taylor/flare">Flare</a></strong></p>
 <p><strong><a href="https://github.com/Yelp/elastalert">ElastAlert</a></strong></p>
 ]]></content>
@@ -1224,7 +1224,7 @@
     <title>致我心中的 “散装”（开源）SIEM（一）</title>
     <url>/2021/02/02/SIEM%EF%BC%88%E4%B8%80%EF%BC%89/</url>
     <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>​        由于工作比较忙，有段时间没有更了，快到年底了，就当是总结了。今年主要精力都是在围绕着安全运营这一块的工作，随着工作的开展发现自己<strong>“组装”</strong>的SIEM用起来不是很“<strong>舒服</strong>”。这是我之前写的一篇《<a href="https://canon88.github.io/2020/02/25/Wazuh-%E5%A6%82%E4%BD%95%E5%AF%B9%E5%BC%82%E6%9E%84%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E5%85%B3%E8%81%94%E5%91%8A%E8%AD%A6/"><strong>Wazuh-如何对异构数据进行关联告警</strong></a>》的文章，当时规划的数据流的Workflow如下图所示。</p>
-<p><img src="/.com//image-20200303215020561.png" alt="image-20200303215020561"></p>
+<p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/image-20200303215020561.png" alt="image-20200303215020561"></p>
 <p>​        <strong>“散装”SIEM</strong>主要是建立在ELK的框架之上，告警模块分别采用了Wazuh与Elastalert。早期为了使Wazuh能够消费异构数据<strong>（WAF、NTA、EDR）</strong>并进行关联告警，我在数据入库之前利用Logstash对异构数据进行了标准化，同时Wazuh对标准化后的数据进行关联。例如：Suricata通过Filebeat将告警事件发出，由Logstash统一进行标准化处理并同时输出到Elastic以及Wazuh。其中Elastic为告警的元数据，推送到Wazuh上的为标准化后的安全事件。</p>
 <hr>
 <h1 id="“散装”SIEM-v0-1的不足与改进措施"><a href="#“散装”SIEM-v0-1的不足与改进措施" class="headerlink" title="“散装”SIEM v0.1的不足与改进措施"></a>“散装”SIEM v0.1的不足与改进措施</h1><h2 id="1-数据标准化"><a href="#1-数据标准化" class="headerlink" title="1. 数据标准化"></a>1. 数据标准化</h2><p>​        由于前期的标准化未采用**<a href="https://www.elastic.co/guide/en/ecs/current/ecs-reference.html">ECS</a>**(<strong>Elastic Common Schema</strong>)，导致后期沿用Elastic生态的时候出现了使用上的不便。大家都知道ES在7.X的版本推出了SIEM这个功能，如果想使用Elastic SIEM进行分析的话，那么ECS是首选。这里为了后期与开源生态更好的进行融合，需要将原先的标准化转为ECS的格式。</p>
@@ -1278,9 +1278,9 @@
 </ul>
 <hr>
 <h1 id="“进化”-“散装”SIEM-v0-2"><a href="#“进化”-“散装”SIEM-v0-2" class="headerlink" title="“进化” - “散装”SIEM v0.2"></a>“进化” - “散装”SIEM v0.2</h1><h2 id="1-Workflow"><a href="#1-Workflow" class="headerlink" title="1. Workflow"></a>1. Workflow</h2><p>​        这是重新调整之后的<strong>“散装”SIEM v0.2</strong>的workflow😁。如下图所示，数据源采集端这里就不展开来说了，都是现成的工具发就完事儿了。下面主要说一下Logstash中对数据处理的部分：</p>
-<p><img src="/.com//SIEM-v0.2.jpg" alt="SIEM-v0.2"></p>
+<p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/SIEM-v0.2.jpg" alt="SIEM-v0.2"></p>
 <hr>
-<h2 id="2-数据处理"><a href="#2-数据处理" class="headerlink" title="2. 数据处理"></a>2. 数据处理</h2><h3 id="1-Normalized"><a href="#1-Normalized" class="headerlink" title="1. Normalized"></a>1. Normalized</h3><p><img src="/.com//normalized-04.png" alt="image-20201208110506481"></p>
+<h2 id="2-数据处理"><a href="#2-数据处理" class="headerlink" title="2. 数据处理"></a>2. 数据处理</h2><h3 id="1-Normalized"><a href="#1-Normalized" class="headerlink" title="1. Normalized"></a>1. Normalized</h3><p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/normalized-04.png" alt="image-20201208110506481"></p>
 <hr>
 <h4 id="1-1-normalized-alert-to-siem"><a href="#1-1-normalized-alert-to-siem" class="headerlink" title="1.1 normalized-alert_to_siem"></a>1.1 normalized-alert_to_siem</h4><p>​        针对alert事件进行标准化，也就是安全设备发出的数据。参考上图中蓝色线所示部分</p>
 <p>​        官方已支持Suricata数据的ECS，我们可直接启用filebeat的Suricata模块。<strong>但是</strong>，这里需要注意一点，默认Suricata的模块中有一些标准化是交由Elastic来做的。由于我们需要利用Logstash做后续的ETL部分，所以现在的整个数据流是：<strong>Filebeat -&gt; Logstash -&gt; Elastic</strong>。那么，这一部分的标准化，需要我们在Logstash层面来实现。具体涉及到的配置如下：</p>
@@ -1355,7 +1355,7 @@
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">filter &#123;</span><br><span class="line">    date &#123;</span><br><span class="line">        match =&gt; [<span class="string">&quot;timestamp&quot;</span>, <span class="string">&quot;ISO8601&quot;</span>]</span><br><span class="line">        target =&gt; <span class="string">&quot;timestamp&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    mutate &#123;</span><br><span class="line">        rename =&gt; &#123;</span><br><span class="line">            <span class="string">&quot;[data][source]&quot;</span> =&gt; <span class="string">&quot;source&quot;</span></span><br><span class="line">            <span class="string">&quot;[data][destination]&quot;</span> =&gt; <span class="string">&quot;destination&quot;</span></span><br><span class="line">            <span class="string">&quot;[data][network]&quot;</span> =&gt; <span class="string">&quot;network&quot;</span></span><br><span class="line">            </span><br><span class="line">            <span class="string">&quot;[data][event]&quot;</span> =&gt; <span class="string">&quot;event&quot;</span></span><br><span class="line">            <span class="string">&quot;[data][fileset]&quot;</span> =&gt; <span class="string">&quot;fileset&quot;</span></span><br><span class="line">            </span><br><span class="line">            <span class="string">&quot;[data][http]&quot;</span> =&gt; <span class="string">&quot;http&quot;</span></span><br><span class="line">            <span class="string">&quot;[data][url]&quot;</span> =&gt; <span class="string">&quot;url&quot;</span></span><br><span class="line">            <span class="string">&quot;[data][user_agent]&quot;</span> =&gt; <span class="string">&quot;user_agent&quot;</span></span><br><span class="line"></span><br><span class="line">            <span class="string">&quot;[data][related]&quot;</span> =&gt; <span class="string">&quot;related&quot;</span></span><br><span class="line">            <span class="string">&quot;[data][threat]&quot;</span> =&gt; <span class="string">&quot;threat&quot;</span></span><br><span class="line"></span><br><span class="line">            <span class="string">&quot;[rule][groups]&quot;</span> =&gt; <span class="string">&quot;[rule][ruleset]&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        convert =&gt; &#123;</span><br><span class="line">            <span class="comment">#&quot;[agent][id]&quot; =&gt; &quot;integer&quot;</span></span><br><span class="line"></span><br><span class="line">            <span class="string">&quot;[event][severity]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line"></span><br><span class="line">            <span class="string">&quot;[rule][id]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line"></span><br><span class="line">            <span class="string">&quot;[related][rule][id]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line"></span><br><span class="line">            <span class="string">&quot;[network][bytes]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line">            <span class="string">&quot;[network][packets]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line"></span><br><span class="line">            <span class="string">&quot;[source][port]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line">            <span class="string">&quot;[source][bytes]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line">            <span class="string">&quot;[source][packets]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line"></span><br><span class="line">            <span class="string">&quot;[destination][port]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line">            <span class="string">&quot;[destination][bytes]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line">            <span class="string">&quot;[destination][packets]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line"></span><br><span class="line">            <span class="string">&quot;[http][response][status_code]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line">            <span class="string">&quot;[http][response][body][bytes]&quot;</span> =&gt; <span class="string">&quot;integer&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        remove_field =&gt; [</span><br><span class="line">            <span class="string">&quot;beat&quot;</span>, <span class="string">&quot;input_type&quot;</span>, <span class="string">&quot;tags&quot;</span>, <span class="string">&quot;count&quot;</span>, <span class="string">&quot;@version&quot;</span>,</span><br><span class="line">            <span class="string">&quot;ecs&quot;</span>, <span class="string">&quot;log&quot;</span>, <span class="string">&quot;offset&quot;</span>, <span class="string">&quot;type&quot;</span>, <span class="string">&quot;host&quot;</span>, <span class="string">&quot;predecoder&quot;</span>,</span><br><span class="line">            <span class="string">&quot;decoder&quot;</span>, <span class="string">&quot;[data][rule]&quot;</span></span><br><span class="line">        ]</span><br><span class="line"></span><br><span class="line">        copy =&gt; &#123;</span><br><span class="line">            <span class="string">&quot;[rule][description]&quot;</span> =&gt; <span class="string">&quot;[rule][name]&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> [event][kind] == <span class="string">&quot;alarm&quot;</span> &#123;</span><br><span class="line">        mutate &#123;</span><br><span class="line">            rename =&gt; &#123;</span><br><span class="line">                <span class="string">&quot;previous_output&quot;</span> =&gt; <span class="string">&quot;[related][event][log]&quot;</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        ruby &#123;</span><br><span class="line">            code =&gt; <span class="string">&quot;</span></span><br><span class="line"><span class="string">                src_ip = event.get(&#x27;[source][ip]&#x27;)</span></span><br><span class="line"><span class="string">                dst_ip = event.get(&#x27;[destination][ip]&#x27;)</span></span><br><span class="line"><span class="string">                src_port = event.get(&#x27;[source][port]&#x27;).to_s</span></span><br><span class="line"><span class="string">                dst_port = event.get(&#x27;[destination][port]&#x27;).to_s</span></span><br><span class="line"><span class="string">                rule_name = event.get(&#x27;[related][rule][name]&#x27;)[0].to_s</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">                rule_description = src_ip + &#x27;:&#x27; + src_port + &#x27; -&gt; &#x27; + dst_ip + &#x27;:&#x27; + dst_port + &#x27; -&gt; &#x27; + rule_name</span></span><br><span class="line"><span class="string">                event.set(&#x27;[rule][description]&#x27;, rule_description)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">                if event.get(&#x27;[related][rule][id]&#x27;) then</span></span><br><span class="line"><span class="string">                    sid = event.get(&#x27;[related][rule][id]&#x27;)[0]</span></span><br><span class="line"><span class="string">                    event.set(&#x27;[rule][uuid]&#x27;, sid)</span></span><br><span class="line"><span class="string">                end</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">                event.set(&#x27;[rule][category]&#x27;, &#x27;Frequency&#x27;)</span></span><br><span class="line"><span class="string">            &quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <hr>
-<h3 id="2-Enrichment"><a href="#2-Enrichment" class="headerlink" title="2. Enrichment"></a>2. Enrichment</h3><p><img src="/.com//enrichment-0.1.png" alt="image-20201208110506481"></p>
+<h3 id="2-Enrichment"><a href="#2-Enrichment" class="headerlink" title="2. Enrichment"></a>2. Enrichment</h3><p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/enrichment-0.1.png" alt="image-20201208110506481"></p>
 <hr>
 <h4 id="2-1-enrichment-alert-to-siem"><a href="#2-1-enrichment-alert-to-siem" class="headerlink" title="2.1 enrichment_alert_to_siem"></a>2.1 enrichment_alert_to_siem</h4><p>​        针对alert事件进行丰富化，也就是安全设备发出的原始安全事件。参考上图中蓝色线所示部分</p>
 <h5 id="2-1-1-enrichment-alert-direction-for-suricata"><a href="#2-1-1-enrichment-alert-direction-for-suricata" class="headerlink" title="2.1.1 enrichment-alert_direction_for_suricata"></a>2.1.1 enrichment-alert_direction_for_suricata</h5><p>​        由于一些特殊原因，我不得不将<strong>suricata.yaml</strong>配置文件中的<code>EXTERNAL_NET = any</code>。这也导致了部分Suricata告警的误报，毕竟放开了规则的方向这个收敛条件。所以，我利用了Logstash 在数据入库到SIEM之前做了一层过滤。</p>
@@ -1397,8 +1397,8 @@
 </ul>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">&#x27;192.168.199.\d+&#x27;</span><span class="string">:</span> <span class="string">&#x27;&#123;&quot;number&quot;:4134,&quot;organization.name&quot;:&quot;CHINANET-BACKBONE&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
 
-<h6 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a><strong>示例</strong></h6><p><img src="/.com//add-geo_ip-2.png" alt="image-20201209110617996"></p>
-<p><img src="/.com//add-geo_ip-1.png" alt="image-20201208153642680"></p>
+<h6 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a><strong>示例</strong></h6><p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/add-geo_ip-2.png" alt="image-20201209110617996"></p>
+<p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/add-geo_ip-1.png" alt="image-20201208153642680"></p>
 <hr>
 <h5 id="2-1-4-add-geo-public-ip"><a href="#2-1-4-add-geo-public-ip" class="headerlink" title="2.1.4 add_geo-public_ip"></a>2.1.4 add_geo-public_ip</h5><p>​    外网IP就比较好搞定了直接加载GeoIP数据即可。</p>
 <h6 id="Logstash-Conifg-1"><a href="#Logstash-Conifg-1" class="headerlink" title="Logstash Conifg"></a><strong>Logstash Conifg</strong></h6><ul>
@@ -1420,10 +1420,10 @@
 <figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line"><span class="keyword">require</span> <span class="string">&quot;json&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">register</span><span class="params">(params)</span></span></span><br><span class="line">    <span class="variable">@pattern</span> = <span class="regexp">/(?:\\n)?\w+ \d+ \d+:\d+:\d+ logstash NORMALIZED\[-\]: /</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">filter</span><span class="params">(event)</span></span></span><br><span class="line">    event_id = []</span><br><span class="line">    rule_id = []</span><br><span class="line">    rule_name = []</span><br><span class="line">    event_log = event.get(<span class="string">&#x27;[related][event][log]&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    atomic_rules = event_log.split(<span class="variable">@pattern</span>)[<span class="number">1</span> .. -<span class="number">1</span>]</span><br><span class="line">    <span class="keyword">for</span> atomic <span class="keyword">in</span> atomic_rules <span class="keyword">do</span></span><br><span class="line">        e_id = JSON.parse(atomic)[<span class="string">&#x27;event&#x27;</span>][<span class="string">&#x27;id&#x27;</span>]</span><br><span class="line">        r_id = JSON.parse(atomic)[<span class="string">&#x27;rule&#x27;</span>][<span class="string">&#x27;id&#x27;</span>]</span><br><span class="line">        r_name = JSON.parse(atomic)[<span class="string">&#x27;rule&#x27;</span>][<span class="string">&#x27;name&#x27;</span>]</span><br><span class="line"></span><br><span class="line">        event_id.push(e_id)</span><br><span class="line">        rule_id.push(r_id)</span><br><span class="line">        rule_name.push(r_name)</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    event.set(<span class="string">&#x27;[related][event][id]&#x27;</span>, event_id)</span><br><span class="line">    event.set(<span class="string">&#x27;[related][rule][id]&#x27;</span>, rule_id)</span><br><span class="line">    event.set(<span class="string">&#x27;[related][rule][name]&#x27;</span>, rule_name)</span><br><span class="line">    event.remove(<span class="string">&#x27;[related][event][log]&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> [event]</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
 
 <h6 id="示例-2"><a href="#示例-2" class="headerlink" title="示例"></a><strong>示例</strong></h6><p>​        以下是一个Wazuh聚合告警，分析人员通过点击<code>threat.hunting.event.id</code>字段即可溯源出触发该聚合规则的底层alert事件。</p>
-<p><img src="/.com//hunting-alarm.png" alt="image-20201204175051910"></p>
-<p><img src="/.com//hunting-alert.png" alt="image-20201204175244182"></p>
+<p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/hunting-alarm.png" alt="image-20201204175051910"></p>
+<p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/hunting-alert.png" alt="image-20201204175244182"></p>
 <hr>
-<h3 id="3-Threat-Intelligence"><a href="#3-Threat-Intelligence" class="headerlink" title="3. Threat Intelligence"></a>3. Threat Intelligence</h3><p><img src="/.com//threat-intelligence.png" alt="threat-intelligence"></p>
+<h3 id="3-Threat-Intelligence"><a href="#3-Threat-Intelligence" class="headerlink" title="3. Threat Intelligence"></a>3. Threat Intelligence</h3><p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/threat-intelligence.png" alt="threat-intelligence"></p>
 <h4 id="3-1-threatIntel-alert-to-siem"><a href="#3-1-threatIntel-alert-to-siem" class="headerlink" title="3.1 threatIntel_alert_to_siem"></a>3.1 threatIntel_alert_to_siem</h4><p>​        通过Logstash加载Ruby脚本，将IoC推送至Redis。为了避免重复推送，每个IoC都会设置超时时间（默认7天）。如上图中蓝色线所示部分；</p>
 <h5 id="3-1-1-add-ti-shodan"><a href="#3-1-1-add-ti-shodan" class="headerlink" title="3.1.1 add-ti_shodan"></a>3.1.1 add-ti_shodan</h5><p>​        对于攻击过我们的IP地址我们都会利用<strong>Shodan</strong>进行反向探测，收集一波攻击者（肉鸡）的资产信息，留给后面分析人员用。由于已经设置了IoC超时时间，所以在超时之前IoC不会重复推送。当然，单个Key调用API频率还是要控制一下的，不过你可以选择多个Key哦。<strong>你懂的</strong>😈😈😈</p>
 <h6 id="Logstash-Config-11"><a href="#Logstash-Config-11" class="headerlink" title="Logstash Config"></a><strong>Logstash Config</strong></h6><ul>
@@ -1451,8 +1451,8 @@
 
 <h6 id="示例-3"><a href="#示例-3" class="headerlink" title="示例"></a><strong>示例</strong></h6><figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;hunting&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;vulns&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;CVE-2019-0220&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2019-0197&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2019-0196&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2018-1302&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2019-0211&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2017-15710&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2018-1301&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2018-1283&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2018-1303&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2017-15715&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2018-1333&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2018-17199&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2018-11763&quot;</span>,</span><br><span class="line">                <span class="string">&quot;CVE-2018-1312&quot;</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;domains&quot;</span>: [],</span><br><span class="line">            <span class="attr">&quot;ports&quot;</span>: [</span><br><span class="line">                <span class="number">8888</span>,</span><br><span class="line">                <span class="number">80</span>,</span><br><span class="line">                <span class="number">8080</span>,</span><br><span class="line">                <span class="number">8090</span>,</span><br><span class="line">                <span class="number">22</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;details&quot;</span>: <span class="string">&quot;&#123;\&quot;tcp\&quot;:[&#123;\&quot;http-simple-new\&quot;:8888,\&quot;Apache httpd\&quot;:\&quot;2.4.29\&quot;&#125;,&#123;\&quot;http\&quot;:80,\&quot;Apache httpd\&quot;:\&quot;2.4.29\&quot;&#125;,&#123;\&quot;http\&quot;:8080,\&quot;Apache httpd\&quot;:\&quot;2.4.29\&quot;&#125;,&#123;\&quot;http-simple-new\&quot;:8090&#125;,&#123;\&quot;ssh\&quot;:22,\&quot;OpenSSH\&quot;:\&quot;7.6p1 Ubuntu-4ubuntu0.3\&quot;&#125;],\&quot;udp\&quot;:[]&#125;&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;hostnames&quot;</span>: [],</span><br><span class="line">            <span class="attr">&quot;services&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;http-simple-new&quot;</span>,</span><br><span class="line">                <span class="string">&quot;ssh&quot;</span>,</span><br><span class="line">                <span class="string">&quot;http&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p><img src="/.com//threat.hunting.shodan-1.png" alt="image-20201205151011258"></p>
-<p><img src="/.com//threat.hunting.shodan-2.png" alt="image-20201205150744102"></p>
+<p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/threat.hunting.shodan-1.png" alt="image-20201205151011258"></p>
+<p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/threat.hunting.shodan-2.png" alt="image-20201205150744102"></p>
 <h5 id="3-2-2-add-ti-tags"><a href="#3-2-2-add-ti-tags" class="headerlink" title="3.2.2 add-ti_tags"></a>3.2.2 add-ti_tags</h5><p>​    这部分通常是对接的自有情报（<em>我们会收集攻击过我们的IP，建立适用于自己的内部情报。</em>）以及开源情报。原则上SIEM产生的alarm事件并不会很多，所以这边直接从Elastic获取了情报数据进行告警的丰富化。如果alarm事件很多的话，建议也是放在Redis或者再考虑其他方案。近期准备采购商业情报，后期将会有一个商业情报的对接过程。</p>
 <h6 id="Logstash-Config-13"><a href="#Logstash-Config-13" class="headerlink" title="Logstash Config"></a><strong>Logstash Config</strong></h6><ul>
 <li><strong><a href="https://github.com/Canon88/suricata-scripts/blob/master/Suricata_ECS/logstash/conf.d/from_siem_to_es/80_add-ti_tags.conf">add-ti_tags.conf</a></strong></li>
@@ -1464,10 +1464,10 @@
 </ul>
 <figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line"><span class="keyword">require</span> <span class="string">&#x27;json&#x27;</span></span><br><span class="line"><span class="keyword">require</span> <span class="string">&#x27;elasticsearch&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">register</span><span class="params">(params)</span></span></span><br><span class="line">    <span class="variable">@urls</span> = params[<span class="string">&quot;urls&quot;</span>]</span><br><span class="line">    <span class="variable">@index</span> = params[<span class="string">&quot;index&quot;</span>]</span><br><span class="line">    <span class="variable">@ca</span> = params[<span class="string">&quot;ca&quot;</span>]</span><br><span class="line">    <span class="variable">@client</span> = Elasticsearch::Client.new <span class="symbol">urls:</span> <span class="variable">@urls</span>, <span class="symbol">transport_options:</span> &#123; <span class="symbol">ssl:</span> &#123; <span class="symbol">ca_file:</span> <span class="variable">@ca</span> &#125; &#125;</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">filter</span><span class="params">(event)</span></span></span><br><span class="line">    ioc = event.get(<span class="string">&#x27;[source][ip]&#x27;</span>)</span><br><span class="line">    query = &#123;</span><br><span class="line">        <span class="string">&quot;_source&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;includes&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;threat.tags&quot;</span>,</span><br><span class="line">                <span class="string">&quot;threat.provider&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">&quot;query&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;bool&quot;</span>: &#123;</span><br><span class="line">                <span class="string">&quot;must&quot;</span>: [</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="string">&quot;terms&quot;</span>: &#123;</span><br><span class="line">                            <span class="string">&quot;threat.type&quot;</span>: [</span><br><span class="line">                                <span class="string">&quot;ipv4&quot;</span>,</span><br><span class="line">                                <span class="string">&quot;ip&quot;</span></span><br><span class="line">                            ]</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="string">&quot;term&quot;</span>: &#123;</span><br><span class="line">                            <span class="string">&quot;threat.ioc&quot;</span>: ioc</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                ],</span><br><span class="line">                <span class="string">&quot;filter&quot;</span>: [</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="string">&quot;range&quot;</span>: &#123;</span><br><span class="line">                            <span class="string">&quot;threat.creation_time&quot;</span>: &#123;</span><br><span class="line">                                <span class="string">&quot;gte&quot;</span>: <span class="string">&quot;now-7d&quot;</span></span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                ]</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="string">&quot;size&quot;</span>: <span class="number">10</span></span><br><span class="line">    &#125;</span><br><span class="line">    response = <span class="variable">@client</span>.search <span class="symbol">index:</span> <span class="variable">@index</span>, <span class="symbol">body:</span> query.to_json</span><br><span class="line"></span><br><span class="line">    tags = []</span><br><span class="line">    providers = []</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> response[<span class="string">&#x27;hits&#x27;</span>][<span class="string">&#x27;hits&#x27;</span>].empty? <span class="keyword">then</span></span><br><span class="line">        response[<span class="string">&#x27;hits&#x27;</span>][<span class="string">&#x27;hits&#x27;</span>].each <span class="keyword">do</span> <span class="params">|result|</span></span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> providers.<span class="keyword">include</span>?(result[<span class="string">&quot;_source&quot;</span>][<span class="string">&quot;threat&quot;</span>][<span class="string">&quot;provider&quot;</span>])</span><br><span class="line">                providers.push(result[<span class="string">&quot;_source&quot;</span>][<span class="string">&quot;threat&quot;</span>][<span class="string">&quot;provider&quot;</span>])</span><br><span class="line">            <span class="keyword">end</span></span><br><span class="line">            tags = tags - result[<span class="string">&quot;_source&quot;</span>][<span class="string">&quot;threat&quot;</span>][<span class="string">&quot;tags&quot;</span>]</span><br><span class="line">            tags = tags + result[<span class="string">&quot;_source&quot;</span>][<span class="string">&quot;threat&quot;</span>][<span class="string">&quot;tags&quot;</span>]</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    event.set(<span class="string">&#x27;[threat][intelligence][tags]&#x27;</span>, tags)</span><br><span class="line">    event.set(<span class="string">&#x27;[threat][intelligence][providers]&#x27;</span>, providers)</span><br><span class="line">    <span class="keyword">return</span> [event]</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
 
-<h6 id="示例-4"><a href="#示例-4" class="headerlink" title="示例"></a><strong>示例</strong></h6><p><img src="/.com//threat.hunting.shodan-3.png" alt="image-20201208144650226"></p>
+<h6 id="示例-4"><a href="#示例-4" class="headerlink" title="示例"></a><strong>示例</strong></h6><p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/threat.hunting.shodan-3.png" alt="image-20201208144650226"></p>
 <figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;intelligence&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;providers&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;NTA&quot;</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;tags&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;WebAttack&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="4-Filter"><a href="#4-Filter" class="headerlink" title="4. Filter"></a>4. Filter</h3><p><img src="/.com//blacklist-1.png" alt="image-20201207153152332"></p>
+<h3 id="4-Filter"><a href="#4-Filter" class="headerlink" title="4. Filter"></a>4. Filter</h3><p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/blacklist-1.png" alt="image-20201207153152332"></p>
 <h4 id="4-1-alert-to-siem"><a href="#4-1-alert-to-siem" class="headerlink" title="4.1 alert_to_siem"></a>4.1 alert_to_siem</h4><h5 id="4-1-1-filter-ip-from-alert"><a href="#4-1-1-filter-ip-from-alert" class="headerlink" title="4.1.1 filter_ip_from_alert"></a>4.1.1 filter_ip_from_alert</h5><p>​        实际使用场景中需要对一些白名单IP、特定签名规则进行过滤。这么做也是为了保证SIEM的性能以及告警的可靠性。这部分数据依旧会发送到Elastic作为历史数据留存，但不会被SIEM消费并产生告警。</p>
 <h6 id="Logstash-Config-14"><a href="#Logstash-Config-14" class="headerlink" title="Logstash Config"></a><strong>Logstash Config</strong></h6><p>​    利用<strong>Clone</strong>插件，将需要被SIEM消费的数据经由脚本过滤。</p>
 <ul>
@@ -1503,11 +1503,11 @@
 </ul>
 <figure class="highlight ruby"><table><tr><td class="code"><pre><span class="line"><span class="keyword">require</span> <span class="string">&quot;redis&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">register</span><span class="params">(params)</span></span></span><br><span class="line">    <span class="keyword">begin</span></span><br><span class="line">        <span class="variable">@siem_action_db</span> = Redis.new(<span class="symbol">host:</span>params[<span class="string">&quot;host&quot;</span>], <span class="symbol">port:</span>params[<span class="string">&quot;port&quot;</span>], <span class="symbol">password:</span>params[<span class="string">&quot;password&quot;</span>], <span class="symbol">db:</span>params[<span class="string">&quot;siem_action_db&quot;</span>])</span><br><span class="line">    <span class="keyword">rescue</span></span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">filter</span><span class="params">(event)</span></span></span><br><span class="line">    rule_id = event.get(<span class="string">&quot;[rule][id]&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> <span class="variable">@siem_action_db</span>.exists?(rule_id) <span class="keyword">then</span></span><br><span class="line">        event.set(<span class="string">&quot;[event][action]&quot;</span>, <span class="string">&quot;block&quot;</span>)</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> [event]</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
 
-<h6 id="示例："><a href="#示例：" class="headerlink" title="示例："></a><strong>示例：</strong></h6><p><img src="/.com//update_action-0.1.png" alt="image-20201207111416997"></p>
+<h6 id="示例："><a href="#示例：" class="headerlink" title="示例："></a><strong>示例：</strong></h6><p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/update_action-0.1.png" alt="image-20201207111416997"></p>
 <hr>
-<h2 id="3-仪表盘"><a href="#3-仪表盘" class="headerlink" title="3. 仪表盘"></a>3. 仪表盘</h2><h3 id="SIEM的告警仪表盘"><a href="#SIEM的告警仪表盘" class="headerlink" title="SIEM的告警仪表盘"></a>SIEM的告警仪表盘</h3><p><img src="/.com//SIEM-Alarm.png" alt="SIEM-Alarm"></p>
-<h3 id="安全事件仪表盘-安全溯源"><a href="#安全事件仪表盘-安全溯源" class="headerlink" title="安全事件仪表盘 (安全溯源)"></a>安全事件仪表盘 (安全溯源)</h3><p><img src="/.com//SIEM-Alert.png" alt="SIEM Alert"></p>
-<h3 id="敏感接口监控"><a href="#敏感接口监控" class="headerlink" title="敏感接口监控"></a>敏感接口监控</h3><p><img src="/.com//login_audit.png" alt="image-20201214112856076"></p>
+<h2 id="3-仪表盘"><a href="#3-仪表盘" class="headerlink" title="3. 仪表盘"></a>3. 仪表盘</h2><h3 id="SIEM的告警仪表盘"><a href="#SIEM的告警仪表盘" class="headerlink" title="SIEM的告警仪表盘"></a>SIEM的告警仪表盘</h3><p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/SIEM-Alarm.png" alt="SIEM-Alarm"></p>
+<h3 id="安全事件仪表盘-安全溯源"><a href="#安全事件仪表盘-安全溯源" class="headerlink" title="安全事件仪表盘 (安全溯源)"></a>安全事件仪表盘 (安全溯源)</h3><p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/SIEM-Alert.png" alt="SIEM Alert"></p>
+<h3 id="敏感接口监控"><a href="#敏感接口监控" class="headerlink" title="敏感接口监控"></a>敏感接口监控</h3><p><img src="./SIEM%EF%BC%88%E4%B8%80%EF%BC%89/login_audit.png" alt="image-20201214112856076"></p>
 ]]></content>
       <categories>
         <category>SIEM</category>
@@ -1638,11 +1638,11 @@
 <ul>
 <li>登录<em>Minio</em> <strong><a href="http://minio1:9100/">http://minio1:9100</a></strong></li>
 </ul>
-<p><img src="/.com//Minio-1.png" alt="Minio-1"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/Minio-1.png" alt="Minio-1"></p>
 <ul>
 <li>创建<em>bucket</em></li>
 </ul>
-<p><img src="/.com//Minio-2.png" alt="Minio-2"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/Minio-2.png" alt="Minio-2"></p>
 </li>
 <li><p>修改<em>TheHive</em>配置文件 <code> /etc/thehive/application.conf</code></p>
 </li>
@@ -1762,7 +1762,7 @@
 <ul>
 <li><em>ThreatBook - Analyzers</em></li>
 </ul>
-<p><img src="/.com//Analyzers.png" alt="Analyzers"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/Analyzers.png" alt="Analyzers"></p>
 </li>
 <li><p><em>Responders</em></p>
 <ul>
@@ -1772,29 +1772,29 @@
 <ul>
 <li><em>Mail - Responders</em></li>
 </ul>
-<p><img src="/.com//Responders.png" alt="Responders"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/Responders.png" alt="Responders"></p>
 </li>
 </ul>
 <h1 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h1><p>​    下面来说一下我们都用<em>TheHive</em>做了哪些，刚开始使用场景其实并不多，还需要后期的摸索。</p>
-<p><img src="/.com//workflow.png" alt="workflow"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/workflow.png" alt="workflow"></p>
 <p>提前创建好模板，例如：按照Playbook的形式提前创建好。便于后期快速引用</p>
 <ul>
 <li><p>分析周报模板</p>
 <p>按照周为单位创建Case，以天为单位创建Task。</p>
-<p><img src="/.com//%E5%91%A8%E6%8A%A5%E6%A8%A1%E6%9D%BF.png" alt="周报模板"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%91%A8%E6%8A%A5%E6%A8%A1%E6%9D%BF.png" alt="周报模板"></p>
 </li>
 <li><p>应急响应模板</p>
 <p>可以参照应急响应阶段来创建</p>
-<p><img src="/.com//%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E6%A8%A1%E6%9D%BF.png" alt="应急响应"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E6%A8%A1%E6%9D%BF.png" alt="应急响应"></p>
 </li>
 <li><p>引用模板</p>
-<p><img src="/.com//%E5%BC%95%E7%94%A8%E6%A8%A1%E6%9D%BF.png" alt="引用模板"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%BC%95%E7%94%A8%E6%A8%A1%E6%9D%BF.png" alt="引用模板"></p>
 </li>
 <li><p>事件运营：<em>SIEM</em>（<em>Alarm</em>） -&gt; <em>TheHive</em>（<em>Alert</em>）</p>
 <p><em>TheHive</em>与<em>SIEM</em>做了对接，主要将两种类型的告警自动化的推送到了<em>TheHive</em>上。</p>
 <ul>
 <li><p>第一种：需要研判的安全事件。例如：基于内-&gt;外的<em>NetFlow</em>告警事件（异常端口访问，周期性请求等等）、敏感信息泄漏告警事件（黑客论坛监控、<em>GitHub</em>监控）。通常这类事件需要进行二次确认的，所以会选择通过<em>TheHive</em>来记录整个事件的处理过程。</p>
-<p><img src="/.com//%E4%BA%BA%E5%B7%A5%E7%A0%94%E5%88%A4%E4%BA%8B%E4%BB%B6-1.png" alt="人工研判事件-1"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E4%BA%BA%E5%B7%A5%E7%A0%94%E5%88%A4%E4%BA%8B%E4%BB%B6-1.png" alt="人工研判事件-1"></p>
 </li>
 <li><p>第二种：需要重点关注的安全事件。例如：<em>EDR</em>上的告警事件，命中C2指标的情报告警，通常这类事件需要第一时间去响应。</p>
 <ul>
@@ -1811,17 +1811,17 @@
 <ul>
 <li>通过<em>SIEM</em>推送至<em>TheHive</em>，并通知分析人员进行规则优化。</li>
 </ul>
-<p><img src="/.com//%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-4.png" alt="规则运营-4"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-4.png" alt="规则运营-4"></p>
 <ul>
 <li>提交Case并邮件通知</li>
 </ul>
-<p><img src="/.com//%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-5.png" alt="规则运营-5"></p>
-<p><img src="/.com//%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-6.png" alt="规则运营-6"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-5.png" alt="规则运营-5"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-6.png" alt="规则运营-6"></p>
 <ul>
 <li>TheHive</li>
 </ul>
-<p><img src="/.com//%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-7.png" alt="规则运营-7"></p>
-<p><img src="/.com//%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-8.png" alt="规则运营-8"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-7.png" alt="规则运营-7"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-8.png" alt="规则运营-8"></p>
 </li>
 <li><p>日常事项：</p>
 <ul>
@@ -1829,23 +1829,23 @@
 <ul>
 <li>以周为单位创建<em>Case</em></li>
 </ul>
-<p><img src="/.com//%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A501.png" alt="安全分析周报01"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A501.png" alt="安全分析周报01"></p>
 <ul>
 <li>以天为单位创建<em>Task</em></li>
 </ul>
-<p><img src="/.com//%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A503.png" alt="安全分析周报03"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A503.png" alt="安全分析周报03"></p>
 <ul>
 <li>告警与<em>Case</em>相关联</li>
 </ul>
-<p><img src="/.com//%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A505.png" alt="安全分析周报05"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A505.png" alt="安全分析周报05"></p>
 <ul>
 <li>批量分析<em>IoC</em></li>
 </ul>
-<p><img src="/.com//%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A502.png" alt="安全分析周报02"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A502.png" alt="安全分析周报02"></p>
 <ul>
 <li>分享给需要关注的小组</li>
 </ul>
-<p><img src="/.com//%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A504.png" alt="安全分析周报04"></p>
+<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A504.png" alt="安全分析周报04"></p>
 </li>
 </ul>
 </li>
