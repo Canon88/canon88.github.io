@@ -827,6 +827,103 @@
       </tags>
   </entry>
   <entry>
+    <title>我在&#39;云&#39;上的日子 - Suricata(部署)</title>
+    <url>/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90%20-%20Suricata%E9%83%A8%E7%BD%B2/</url>
+    <content><![CDATA[<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="PF-RING"><a href="#PF-RING" class="headerlink" title="PF_RING"></a>PF_RING</h2><p><strong>1. pf_ring</strong></p>
+<ul>
+<li> <strong>二进制安装</strong></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 18.04 LTS</span></span><br><span class="line">$ apt-get install software-properties-common wget</span><br><span class="line">$ add-apt-repository universe [ unless you have <span class="keyword">done</span> it previously ]</span><br><span class="line">$ wget http://apt-stable.ntop.org/18.04/all/apt-ntop-stable.deb</span><br><span class="line">$ apt install ./apt-ntop-stable.deb</span><br><span class="line"></span><br><span class="line">$ apt-get clean all</span><br><span class="line">$ apt-get update</span><br><span class="line">$ apt-get install pfring</span><br></pre></td></tr></table></figure>
+
+<hr>
+<ul>
+<li><strong>编译安装</strong></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ apt install git make gcc libelf-dev build-essential subversion flex libnuma-dev bison pkg-config libtool rustc cargo libjansson-dev ethtool autoconf autogen liblzma-dev libpcre3-dev libyaml-dev libpcap-dev zlib1g-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/ntop/PF_RING.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/kernel</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载 pf_ring.ko</span></span><br><span class="line">$ sudo insmod pf_ring.ko min_num_slots=65536 transparent_mode=2 enable_tx_capture=0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 pf_ring 信息</span></span><br><span class="line">$ cat /proc/net/pf_ring/info</span><br><span class="line">PF_RING Version          : 7.5.0 (dev:14f62e0edb2b54cd614ab9d1f6467ccb8c6c9c32)</span><br><span class="line">Total rings              : 0</span><br><span class="line"></span><br><span class="line">Standard (non ZC) Options</span><br><span class="line">Ring slots               : 65536</span><br><span class="line">Slot version             : 17</span><br><span class="line">Capture TX               : No [RX only]</span><br><span class="line">IP Defragment            : No</span><br><span class="line">Socket Mode              : Standard</span><br><span class="line">Cluster Fragment Queue   : 0</span><br><span class="line">Cluster Fragment Discard : 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载 pf_ring.ko</span></span><br><span class="line">$ sudo rmmod pf_ring</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>2. libpfring、libpcap</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/lib</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ../libpcap</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/examples</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 接收数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# ./pfcount -i ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Capturing from ens33 [mac: 00:0C:29:D5:B9:8F][if_index: 2][speed: 0Mb/s]</span><br><span class="line"><span class="meta">#</span><span class="bash"> Device RX channels: 1</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Polling threads:    1</span></span><br><span class="line">Dumping statistics on /proc/net/pf_ring/stats/51441-ens33.3</span><br><span class="line">=========================</span><br><span class="line">Absolute Stats: [2 pkts total][0 pkts dropped][0.0% dropped]</span><br><span class="line">[2 pkts rcvd][424 bytes rcvd]</span><br><span class="line">=========================</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 发送数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# sudo ./pfsend -f 64byte_packets.pcap -n 0 -i ens33 -r 5</span><br><span class="line">Sending packets on ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Estimated CPU freq: 2429795000 Hz</span><br><span class="line">Unable to open file 64byte_packets.pcap</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>3. tcpdump</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/userland/tcpdump/</span><br><span class="line">$ ./configure &amp;&amp; make</span><br><span class="line">$ sudo make install</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>参考:</strong></p>
+<ul>
+<li><p><strong><a href="https://www.ntop.org/guides/pf_ring/get_started/git_installation.html">PF_RING</a></strong></p>
+</li>
+<li><p><a href="http://packages.ntop.org/apt-stable/">http://packages.ntop.org/apt-stable/</a></p>
+</li>
+<li><p><a href="https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html">https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html</a></p>
+</li>
+<li><p><a href="https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html">https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html</a></p>
+</li>
+</ul>
+<h2 id="LuaJIT"><a href="#LuaJIT" class="headerlink" title="LuaJIT"></a>LuaJIT</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget http://luajit.org/download/LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -zxf LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> LuaJIT-2.0.5/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make &amp;&amp; make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep lua</span></span><br><span class="line">	liblua5.1.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so.0</span><br><span class="line">	liblua5.1.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so</span><br><span class="line">	liblua5.1-c++.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so.0</span><br><span class="line">	liblua5.1-c++.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Hyperscan"><a href="#Hyperscan" class="headerlink" title="Hyperscan"></a>Hyperscan</h2><p><strong>1. boost</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 依赖</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> apt install cmake</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 下载</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget https://dl.bintray.com/boostorg/release/1.69.0/<span class="built_in">source</span>/boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -xvf boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> boost_1_69_0/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./bootstrap.sh</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo ./b2 --with-iostreams --with-random install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>2. ragle</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt-get install autoconf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget http://www.colm.net/files/ragel/ragel-6.10.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar zxvf ragel-6.10.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> ragel-6.10</span><br><span class="line">$ ./configure</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. hyperscan</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt install libpcap-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget https://github.com/intel/hyperscan/archive/v5.1.0.tar.gz -O hyperscan-5.1.0.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar -zxvf hyperscan-5.1.0.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> hyperscan-5.1.0</span><br><span class="line">$ mkdir cmake-build</span><br><span class="line">$ <span class="built_in">cd</span> cmake-build</span><br><span class="line">$ cmake -DBUILD_SHARED_LIBS=on -DCMAKE_BUILD_TYPE=Release ..</span><br><span class="line">$ make -j8</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+<p><strong>4. 验证</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep hs</span></span><br><span class="line">	libhs_runtime.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so.5</span><br><span class="line">	libhs_runtime.so (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so</span><br><span class="line">	libhs.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs.so.5</span><br><span class="line">	libhs.so (libc6,x86-64) =&gt; /usr/local/lib/libhs.so</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>参考:</strong></p>
+<ul>
+<li><a href="http://www.manongjc.com/article/110977.html"><strong>Hyperscan - 5.1.0 安装</strong></a></li>
+</ul>
+<h2 id="Suricata"><a href="#Suricata" class="headerlink" title="Suricata"></a><strong>Suricata</strong></h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> apt-get install libpcre3 libpcre3-dbg libpcre3-dev build-essential libpcap-dev   \</span></span><br><span class="line"><span class="bash">                libnet1-dev libyaml-0-2 libyaml-dev pkg-config zlib1g zlib1g-dev \</span></span><br><span class="line"><span class="bash">                libcap-ng-dev libcap-ng0 make libmagic-dev libjansson-dev        \</span></span><br><span class="line"><span class="bash">                libnss3-dev libgeoip-dev libhiredis-dev libevent-dev \</span></span><br><span class="line"><span class="bash">                python-yaml rustc cargo libmaxminddb-dev liblzma-dev \</span></span><br><span class="line"><span class="bash">                python3-distutils liblz4-dev</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="安装方式-2选1"><a href="#安装方式-2选1" class="headerlink" title="安装方式: 2选1"></a>安装方式: 2选1</h3><h4 id="release"><a href="#release" class="headerlink" title="release"></a>release</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ wget https://www.openinfosecfoundation.org/download/suricata-5.0.2.tar.gz</span><br><span class="line">$ tar zxvf suricata-5.0.2.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+<h4 id="git-clone"><a href="#git-clone" class="headerlink" title="git clone"></a>git clone</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ mkdir suricata</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ git <span class="built_in">clone</span> git://phalanx.openinfosecfoundation.org/oisf.git</span><br><span class="line">$ <span class="built_in">cd</span> oisf</span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/OISF/libhtp.git</span><br><span class="line">$ ./autogen.sh</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h1 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h1><p><strong>1. PF_RING</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep PF_RING</span></span><br><span class="line">Features: PCAP_SET_BUFF PF_RING AF_PACKET HAVE_PACKET_FANOUT LIBCAP_NG LIBNET1.1 HAVE_HTP_URI_NORMALIZE_HOOK PCRE_JIT HAVE_NSS HAVE_LUA HAVE_LUAJIT HAVE_LIBJANSSON PROFILING TLS MAGIC RUST</span><br><span class="line">  PF_RING support:                         yes</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. LuaJit</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep lua</span></span><br><span class="line">  LUA support:                             yes, through luajit</span><br><span class="line">  libluajit:                               yes</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. Hyperscan</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep Hyperscan</span></span><br><span class="line">  Hyperscan support:                       yes</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a><strong>启动</strong></h1><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --pfring-int=ens6 --pfring-cluster-id=99 --pfring-cluster-type=cluster_flow -c /etc/suricata/suricata.yaml</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="规则管理"><a href="#规则管理" class="headerlink" title="规则管理"></a>规则管理</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ pip install --upgrade suricata-update</span><br></pre></td></tr></table></figure>
+
+<p><strong>定时更新</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> crontab -l</span></span><br><span class="line">10 0 * * * /usr/bin/suricata-update --no-test &amp;&amp; /usr/bin/suricatasc -c reload-rules</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><p><a href="https://www.jianshu.com/p/9348e211a6a2">https://www.jianshu.com/p/9348e211a6a2</a></p>
+]]></content>
+      <categories>
+        <category>NIDS</category>
+      </categories>
+      <tags>
+        <tag>Suricata</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hello World</title>
     <url>/2019/10/04/hello-world/</url>
     <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
@@ -957,103 +1054,6 @@
       </categories>
       <tags>
         <tag>Zeek</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>我在&#39;云&#39;上的日子 - Suricata(部署)</title>
-    <url>/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90%20-%20Suricata%E9%83%A8%E7%BD%B2/</url>
-    <content><![CDATA[<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="PF-RING"><a href="#PF-RING" class="headerlink" title="PF_RING"></a>PF_RING</h2><p><strong>1. pf_ring</strong></p>
-<ul>
-<li> <strong>二进制安装</strong></li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 18.04 LTS</span></span><br><span class="line">$ apt-get install software-properties-common wget</span><br><span class="line">$ add-apt-repository universe [ unless you have <span class="keyword">done</span> it previously ]</span><br><span class="line">$ wget http://apt-stable.ntop.org/18.04/all/apt-ntop-stable.deb</span><br><span class="line">$ apt install ./apt-ntop-stable.deb</span><br><span class="line"></span><br><span class="line">$ apt-get clean all</span><br><span class="line">$ apt-get update</span><br><span class="line">$ apt-get install pfring</span><br></pre></td></tr></table></figure>
-
-<hr>
-<ul>
-<li><strong>编译安装</strong></li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ apt install git make gcc libelf-dev build-essential subversion flex libnuma-dev bison pkg-config libtool rustc cargo libjansson-dev ethtool autoconf autogen liblzma-dev libpcre3-dev libyaml-dev libpcap-dev zlib1g-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/ntop/PF_RING.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/kernel</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载 pf_ring.ko</span></span><br><span class="line">$ sudo insmod pf_ring.ko min_num_slots=65536 transparent_mode=2 enable_tx_capture=0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 pf_ring 信息</span></span><br><span class="line">$ cat /proc/net/pf_ring/info</span><br><span class="line">PF_RING Version          : 7.5.0 (dev:14f62e0edb2b54cd614ab9d1f6467ccb8c6c9c32)</span><br><span class="line">Total rings              : 0</span><br><span class="line"></span><br><span class="line">Standard (non ZC) Options</span><br><span class="line">Ring slots               : 65536</span><br><span class="line">Slot version             : 17</span><br><span class="line">Capture TX               : No [RX only]</span><br><span class="line">IP Defragment            : No</span><br><span class="line">Socket Mode              : Standard</span><br><span class="line">Cluster Fragment Queue   : 0</span><br><span class="line">Cluster Fragment Discard : 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载 pf_ring.ko</span></span><br><span class="line">$ sudo rmmod pf_ring</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>2. libpfring、libpcap</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/lib</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ../libpcap</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/examples</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 接收数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# ./pfcount -i ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Capturing from ens33 [mac: 00:0C:29:D5:B9:8F][if_index: 2][speed: 0Mb/s]</span><br><span class="line"><span class="meta">#</span><span class="bash"> Device RX channels: 1</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Polling threads:    1</span></span><br><span class="line">Dumping statistics on /proc/net/pf_ring/stats/51441-ens33.3</span><br><span class="line">=========================</span><br><span class="line">Absolute Stats: [2 pkts total][0 pkts dropped][0.0% dropped]</span><br><span class="line">[2 pkts rcvd][424 bytes rcvd]</span><br><span class="line">=========================</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 发送数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# sudo ./pfsend -f 64byte_packets.pcap -n 0 -i ens33 -r 5</span><br><span class="line">Sending packets on ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Estimated CPU freq: 2429795000 Hz</span><br><span class="line">Unable to open file 64byte_packets.pcap</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>3. tcpdump</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/userland/tcpdump/</span><br><span class="line">$ ./configure &amp;&amp; make</span><br><span class="line">$ sudo make install</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>参考:</strong></p>
-<ul>
-<li><p><strong><a href="https://www.ntop.org/guides/pf_ring/get_started/git_installation.html">PF_RING</a></strong></p>
-</li>
-<li><p><a href="http://packages.ntop.org/apt-stable/">http://packages.ntop.org/apt-stable/</a></p>
-</li>
-<li><p><a href="https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html">https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html</a></p>
-</li>
-<li><p><a href="https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html">https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html</a></p>
-</li>
-</ul>
-<h2 id="LuaJIT"><a href="#LuaJIT" class="headerlink" title="LuaJIT"></a>LuaJIT</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget http://luajit.org/download/LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -zxf LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> LuaJIT-2.0.5/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make &amp;&amp; make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep lua</span></span><br><span class="line">	liblua5.1.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so.0</span><br><span class="line">	liblua5.1.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so</span><br><span class="line">	liblua5.1-c++.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so.0</span><br><span class="line">	liblua5.1-c++.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Hyperscan"><a href="#Hyperscan" class="headerlink" title="Hyperscan"></a>Hyperscan</h2><p><strong>1. boost</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 依赖</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> apt install cmake</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 下载</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget https://dl.bintray.com/boostorg/release/1.69.0/<span class="built_in">source</span>/boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -xvf boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> boost_1_69_0/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./bootstrap.sh</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo ./b2 --with-iostreams --with-random install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>2. ragle</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt-get install autoconf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget http://www.colm.net/files/ragel/ragel-6.10.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar zxvf ragel-6.10.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> ragel-6.10</span><br><span class="line">$ ./configure</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-<p><strong>3. hyperscan</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt install libpcap-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget https://github.com/intel/hyperscan/archive/v5.1.0.tar.gz -O hyperscan-5.1.0.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar -zxvf hyperscan-5.1.0.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> hyperscan-5.1.0</span><br><span class="line">$ mkdir cmake-build</span><br><span class="line">$ <span class="built_in">cd</span> cmake-build</span><br><span class="line">$ cmake -DBUILD_SHARED_LIBS=on -DCMAKE_BUILD_TYPE=Release ..</span><br><span class="line">$ make -j8</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-<p><strong>4. 验证</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep hs</span></span><br><span class="line">	libhs_runtime.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so.5</span><br><span class="line">	libhs_runtime.so (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so</span><br><span class="line">	libhs.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs.so.5</span><br><span class="line">	libhs.so (libc6,x86-64) =&gt; /usr/local/lib/libhs.so</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>参考:</strong></p>
-<ul>
-<li><a href="http://www.manongjc.com/article/110977.html"><strong>Hyperscan - 5.1.0 安装</strong></a></li>
-</ul>
-<h2 id="Suricata"><a href="#Suricata" class="headerlink" title="Suricata"></a><strong>Suricata</strong></h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> apt-get install libpcre3 libpcre3-dbg libpcre3-dev build-essential libpcap-dev   \</span></span><br><span class="line"><span class="bash">                libnet1-dev libyaml-0-2 libyaml-dev pkg-config zlib1g zlib1g-dev \</span></span><br><span class="line"><span class="bash">                libcap-ng-dev libcap-ng0 make libmagic-dev libjansson-dev        \</span></span><br><span class="line"><span class="bash">                libnss3-dev libgeoip-dev libhiredis-dev libevent-dev \</span></span><br><span class="line"><span class="bash">                python-yaml rustc cargo libmaxminddb-dev liblzma-dev \</span></span><br><span class="line"><span class="bash">                python3-distutils liblz4-dev</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="安装方式-2选1"><a href="#安装方式-2选1" class="headerlink" title="安装方式: 2选1"></a>安装方式: 2选1</h3><h4 id="release"><a href="#release" class="headerlink" title="release"></a>release</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ wget https://www.openinfosecfoundation.org/download/suricata-5.0.2.tar.gz</span><br><span class="line">$ tar zxvf suricata-5.0.2.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-<h4 id="git-clone"><a href="#git-clone" class="headerlink" title="git clone"></a>git clone</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ mkdir suricata</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ git <span class="built_in">clone</span> git://phalanx.openinfosecfoundation.org/oisf.git</span><br><span class="line">$ <span class="built_in">cd</span> oisf</span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/OISF/libhtp.git</span><br><span class="line">$ ./autogen.sh</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h1 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h1><p><strong>1. PF_RING</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep PF_RING</span></span><br><span class="line">Features: PCAP_SET_BUFF PF_RING AF_PACKET HAVE_PACKET_FANOUT LIBCAP_NG LIBNET1.1 HAVE_HTP_URI_NORMALIZE_HOOK PCRE_JIT HAVE_NSS HAVE_LUA HAVE_LUAJIT HAVE_LIBJANSSON PROFILING TLS MAGIC RUST</span><br><span class="line">  PF_RING support:                         yes</span><br></pre></td></tr></table></figure>
-
-<p><strong>2. LuaJit</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep lua</span></span><br><span class="line">  LUA support:                             yes, through luajit</span><br><span class="line">  libluajit:                               yes</span><br></pre></td></tr></table></figure>
-
-<p><strong>3. Hyperscan</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep Hyperscan</span></span><br><span class="line">  Hyperscan support:                       yes</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a><strong>启动</strong></h1><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --pfring-int=ens6 --pfring-cluster-id=99 --pfring-cluster-type=cluster_flow -c /etc/suricata/suricata.yaml</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="规则管理"><a href="#规则管理" class="headerlink" title="规则管理"></a>规则管理</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ pip install --upgrade suricata-update</span><br></pre></td></tr></table></figure>
-
-<p><strong>定时更新</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> crontab -l</span></span><br><span class="line">10 0 * * * /usr/bin/suricata-update --no-test &amp;&amp; /usr/bin/suricatasc -c reload-rules</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><p><a href="https://www.jianshu.com/p/9348e211a6a2">https://www.jianshu.com/p/9348e211a6a2</a></p>
-]]></content>
-      <categories>
-        <category>NIDS</category>
-      </categories>
-      <tags>
-        <tag>Suricata</tag>
       </tags>
   </entry>
   <entry>
@@ -1638,11 +1638,11 @@
 <ul>
 <li>登录<em>Minio</em> <strong><a href="http://minio1:9100/">http://minio1:9100</a></strong></li>
 </ul>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/Minio-1.png" alt="Minio-1"></p>
+<p><img src="/Minio-1.png" alt="Minio-1"></p>
 <ul>
 <li>创建<em>bucket</em></li>
 </ul>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/Minio-2.png" alt="Minio-2"></p>
+<p><img src="/Minio-2.png" alt="Minio-2"></p>
 </li>
 <li><p>修改<em>TheHive</em>配置文件 <code> /etc/thehive/application.conf</code></p>
 </li>
@@ -1758,43 +1758,43 @@
 <ul>
 <li><em>ThreatBook - Analyzers Config</em></li>
 </ul>
-<p>![Analyzers Config](./玩转TheHive安全事件响应平台/Analyzers Config.png)</p>
+<p>![Analyzers Config](/Analyzers Config.png)</p>
 <ul>
 <li><em>ThreatBook - Analyzers</em></li>
 </ul>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/Analyzers.png" alt="Analyzers"></p>
+<p><img src="/Analyzers.png" alt="Analyzers"></p>
 </li>
 <li><p><em>Responders</em></p>
 <ul>
 <li><em>Mail - Responders Config</em></li>
 </ul>
-<p>![Responders Config](./玩转TheHive安全事件响应平台/Responders Config.png)</p>
+<p>![Responders Config](/Responders Config.png)</p>
 <ul>
 <li><em>Mail - Responders</em></li>
 </ul>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/Responders.png" alt="Responders"></p>
+<p><img src="/Responders.png" alt="Responders"></p>
 </li>
 </ul>
 <h1 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h1><p>​    下面来说一下我们都用<em>TheHive</em>做了哪些，刚开始使用场景其实并不多，还需要后期的摸索。</p>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/workflow.png" alt="workflow"></p>
+<p><img src="/workflow.png" alt="workflow"></p>
 <p>提前创建好模板，例如：按照Playbook的形式提前创建好。便于后期快速引用</p>
 <ul>
 <li><p>分析周报模板</p>
 <p>按照周为单位创建Case，以天为单位创建Task。</p>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%91%A8%E6%8A%A5%E6%A8%A1%E6%9D%BF.png" alt="周报模板"></p>
+<p><img src="/%E5%91%A8%E6%8A%A5%E6%A8%A1%E6%9D%BF.png" alt="周报模板"></p>
 </li>
 <li><p>应急响应模板</p>
 <p>可以参照应急响应阶段来创建</p>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E6%A8%A1%E6%9D%BF.png" alt="应急响应"></p>
+<p><img src="/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E6%A8%A1%E6%9D%BF.png" alt="应急响应"></p>
 </li>
 <li><p>引用模板</p>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%BC%95%E7%94%A8%E6%A8%A1%E6%9D%BF.png" alt="引用模板"></p>
+<p><img src="/%E5%BC%95%E7%94%A8%E6%A8%A1%E6%9D%BF.png" alt="引用模板"></p>
 </li>
 <li><p>事件运营：<em>SIEM</em>（<em>Alarm</em>） -&gt; <em>TheHive</em>（<em>Alert</em>）</p>
 <p><em>TheHive</em>与<em>SIEM</em>做了对接，主要将两种类型的告警自动化的推送到了<em>TheHive</em>上。</p>
 <ul>
 <li><p>第一种：需要研判的安全事件。例如：基于内-&gt;外的<em>NetFlow</em>告警事件（异常端口访问，周期性请求等等）、敏感信息泄漏告警事件（黑客论坛监控、<em>GitHub</em>监控）。通常这类事件需要进行二次确认的，所以会选择通过<em>TheHive</em>来记录整个事件的处理过程。</p>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E4%BA%BA%E5%B7%A5%E7%A0%94%E5%88%A4%E4%BA%8B%E4%BB%B6-1.png" alt="人工研判事件-1"></p>
+<p><img src="/%E4%BA%BA%E5%B7%A5%E7%A0%94%E5%88%A4%E4%BA%8B%E4%BB%B6-1.png" alt="人工研判事件-1"></p>
 </li>
 <li><p>第二种：需要重点关注的安全事件。例如：<em>EDR</em>上的告警事件，命中C2指标的情报告警，通常这类事件需要第一时间去响应。</p>
 <ul>
@@ -1811,17 +1811,17 @@
 <ul>
 <li>通过<em>SIEM</em>推送至<em>TheHive</em>，并通知分析人员进行规则优化。</li>
 </ul>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-4.png" alt="规则运营-4"></p>
+<p><img src="/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-4.png" alt="规则运营-4"></p>
 <ul>
 <li>提交Case并邮件通知</li>
 </ul>
-<p><img src="%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-5.png" alt="规则运营-5"></p>
-<p><img src="%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-6.png" alt="规则运营-6"></p>
+<p><img src="/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-5.png" alt="规则运营-5"></p>
+<p><img src="/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-6.png" alt="规则运营-6"></p>
 <ul>
 <li>TheHive</li>
 </ul>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-7.png" alt="规则运营-7"></p>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-8.png" alt="规则运营-8"></p>
+<p><img src="/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-7.png" alt="规则运营-7"></p>
+<p><img src="/%E8%A7%84%E5%88%99%E8%BF%90%E8%90%A5-8.png" alt="规则运营-8"></p>
 </li>
 <li><p>日常事项：</p>
 <ul>
@@ -1829,23 +1829,23 @@
 <ul>
 <li>以周为单位创建<em>Case</em></li>
 </ul>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A501.png" alt="安全分析周报01"></p>
+<p><img src="/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A501.png" alt="安全分析周报01"></p>
 <ul>
 <li>以天为单位创建<em>Task</em></li>
 </ul>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A503.png" alt="安全分析周报03"></p>
+<p><img src="/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A503.png" alt="安全分析周报03"></p>
 <ul>
 <li>告警与<em>Case</em>相关联</li>
 </ul>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A505.png" alt="安全分析周报05"></p>
+<p><img src="/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A505.png" alt="安全分析周报05"></p>
 <ul>
 <li>批量分析<em>IoC</em></li>
 </ul>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A502.png" alt="安全分析周报02"></p>
+<p><img src="/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A502.png" alt="安全分析周报02"></p>
 <ul>
 <li>分享给需要关注的小组</li>
 </ul>
-<p><img src="./%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A504.png" alt="安全分析周报04"></p>
+<p><img src="/%E5%AE%89%E5%85%A8%E5%88%86%E6%9E%90%E5%91%A8%E6%8A%A504.png" alt="安全分析周报04"></p>
 </li>
 </ul>
 </li>
