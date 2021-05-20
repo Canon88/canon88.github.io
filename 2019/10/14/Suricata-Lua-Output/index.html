@@ -23,7 +23,7 @@
 <meta name="description" content="背景​    由于近期网站遭受大量撞库攻击, 想监控一下登录接口中的异常行为。通过alert并不能起到很好的效果, 所以采用Lua脚本进行扩展, 写了一个审计登录接口的脚本。通过登录接口事件, 再配合Wazuh进行一些简单的关联告警,  效果还是不错的。 需求 由于审计内容涉及到用户敏感信息, 因此需要对敏感信息进行Hash之后再输出; 除通用HTTP Header字段外支持对自定义字段进行选择性">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Suricata - Lua Output Script">
-<meta property="og:url" content="http://example.com/2019/10/14/Suricata%20-%20Lua%20Output/index.html">
+<meta property="og:url" content="http://example.com/2019/10/14/Suricata-Lua-Output/index.html">
 <meta property="og:site_name" content="Canon&#39;s Blog">
 <meta property="og:description" content="背景​    由于近期网站遭受大量撞库攻击, 想监控一下登录接口中的异常行为。通过alert并不能起到很好的效果, 所以采用Lua脚本进行扩展, 写了一个审计登录接口的脚本。通过登录接口事件, 再配合Wazuh进行一些简单的关联告警,  效果还是不错的。 需求 由于审计内容涉及到用户敏感信息, 因此需要对敏感信息进行Hash之后再输出; 除通用HTTP Header字段外支持对自定义字段进行选择性">
 <meta property="og:locale" content="zh_CN">
@@ -34,11 +34,11 @@
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/2019/10/14/Suricata%20-%20Lua%20Output/">
+<link rel="canonical" href="http://example.com/2019/10/14/Suricata-Lua-Output/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2019&#x2F;10&#x2F;14&#x2F;Suricata%20-%20Lua%20Output&#x2F;&quot;,&quot;path&quot;:&quot;2019&#x2F;10&#x2F;14&#x2F;Suricata - Lua Output&#x2F;&quot;,&quot;title&quot;:&quot;Suricata - Lua Output Script&quot;}</script>
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2019&#x2F;10&#x2F;14&#x2F;Suricata-Lua-Output&#x2F;&quot;,&quot;path&quot;:&quot;2019&#x2F;10&#x2F;14&#x2F;Suricata-Lua-Output&#x2F;&quot;,&quot;title&quot;:&quot;Suricata - Lua Output Script&quot;}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
 <title>Suricata - Lua Output Script | Canon's Blog</title><script src="/js/config.js"></script>
@@ -213,7 +213,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2019/10/14/Suricata%20-%20Lua%20Output/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/10/14/Suricata-Lua-Output/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -308,7 +308,7 @@
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90%20-%20Zeek%E9%83%A8%E7%BD%B2/" rel="prev" title="我在'云'上的日子 - Zeek(部署)">
+                <a href="/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-Zeek%E9%83%A8%E7%BD%B2/" rel="prev" title="我在'云'上的日子 - Zeek(部署)">
                   <i class="fa fa-chevron-left"></i> 我在'云'上的日子 - Zeek(部署)
                 </a>
             </div>
