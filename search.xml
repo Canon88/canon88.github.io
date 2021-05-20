@@ -58,46 +58,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Redis Key 过期事件订阅</title>
-    <url>/2019/12/24/Redis-Key-%E8%BF%87%E6%9C%9F%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85/</url>
-    <content><![CDATA[<h3 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h3><p>​        在自建企业内部威胁情报的过程中, 需要通过<strong>Redis</strong>统一管理过期时间的<strong>Key</strong>。因此需要对过期的<strong>Key</strong>进行实时监听, 并进行回调处理。</p>
-<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>​        在 <strong>Redis</strong> 的 <strong>2.8.0</strong> 版本之后，其推出了一个新的特性——键空间消息（Redis Keyspace Notifications），它配合 2.0.0 版本之后的 SUBSCRIBE 就能完成这个定时任务的操作了。</p>
-<p><strong>Redis 的键空间通知支持 订阅指定 Key 的所有事件 与 订阅指定事件 两种方式。</strong></p>
-<blockquote>
-<p>Keyspace notifications are implemented sending two distinct type of events for every operation affecting the Redis data space. For instance a DEL operation targeting the key named mykey in database 0 will trigger the delivering of two messages, exactly equivalent to the following two PUBLISH commands:</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PUBLISH __keyspace@0__:mykey del</span><br><span class="line">PUBLISH __keyevent@0__:del mykey</span><br></pre></td></tr></table></figure>
-
-<p><strong>通过 Redis 的键空间通知（keyspace notification）可以做到：将IoC数据写入Redis，设置过期时间10分钟，利用 Redis 键过期回调提醒，如果未被消费，则进行处理。</strong></p>
-<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><h4 id="1-修改-redis-conf-开启redis-key过期提醒"><a href="#1-修改-redis-conf-开启redis-key过期提醒" class="headerlink" title="1. 修改 redis.conf 开启redis key过期提醒"></a>1. 修改 redis.conf 开启redis key过期提醒</h4><blockquote>
-<p>By default keyspace events notifications are disabled because while not very sensible the feature uses some CPU power. Notifications are enabled using the notify-keyspace-events of redis.conf or via the CONFIG SET.</p>
-</blockquote>
-<p>由于键空间通知比较耗CPU, 所以 Redis默认是关闭键空间事件通知的， 需要手动开启 <code>notify-keyspace-events </code>后才启作用。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">K：keyspace事件，事件以__keyspace@&lt;db&gt;__为前缀进行发布；        </span><br><span class="line">E：keyevent事件，事件以__keyevent@&lt;db&gt;__为前缀进行发布；        </span><br><span class="line">g：一般性的，非特定类型的命令，比如del，expire，rename等；       </span><br><span class="line">$：String 特定命令；        </span><br><span class="line">l：List 特定命令；        </span><br><span class="line">s：Set 特定命令；        </span><br><span class="line">h：Hash 特定命令；        </span><br><span class="line">z：Sorted 特定命令；        </span><br><span class="line">x：过期事件，当某个键过期并删除时会产生该事件；        </span><br><span class="line">e：驱逐事件，当某个键因maxmemore策略而被删除时，产生该事件；        </span><br><span class="line">A：g<span class="variable">$lshzxe</span>的别名，因此”AKE”意味着所有事件。</span><br></pre></td></tr></table></figure>
-
-<p><strong><code>notify-keyspace-events Ex</code> 表示开启键过期事件提醒</strong></p>
-<p><strong>redis.conf</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># RDB Config</span></span><br><span class="line">databases 16</span><br><span class="line">save 900 1</span><br><span class="line">save 300 10</span><br><span class="line">save 60 10000</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line">rdbcompression yes</span><br><span class="line">rdbchecksum no</span><br><span class="line">dir ./</span><br><span class="line"><span class="comment"># AOF Config</span></span><br><span class="line">appendonly yes</span><br><span class="line">appendfilename <span class="string">&quot;appendonly.aof&quot;</span></span><br><span class="line">appendfsync everysec</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line">auto-aof-rewrite-percentage 100</span><br><span class="line">auto-aof-rewrite-min-size 64mb</span><br><span class="line"><span class="comment"># set Password</span></span><br><span class="line">requirepass %&#123;mypassword&#125;</span><br><span class="line"><span class="comment"># set notify-keyspace-events</span></span><br><span class="line">notify-keyspace-events Ex</span><br></pre></td></tr></table></figure>
-
-<h4 id="2-RedisHelper"><a href="#2-RedisHelper" class="headerlink" title="2. RedisHelper"></a>2. RedisHelper</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># Author: Canon</span></span><br><span class="line"><span class="comment"># Date: 2019-12-27</span></span><br><span class="line"><span class="comment"># Version: 0.2</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> redis</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RedisHelper</span>():</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="comment"># 连接Redis</span></span><br><span class="line">        self.__conn = redis.Redis(host=<span class="string">&#x27;127.0.0.1&#x27;</span>, port=<span class="number">6379</span>, password=<span class="string">&#x27;mypassword&#x27;</span>, db=<span class="number">0</span>)</span><br><span class="line">        <span class="comment"># 定义keyevent, 此处0为indexdb</span></span><br><span class="line">        self.keyevent = <span class="string">&#x27;__keyevent@0__:expired&#x27;</span></span><br><span class="line">        </span><br><span class="line">    <span class="comment"># 发布方法</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">publish</span>(<span class="params">self, key, msg</span>):</span></span><br><span class="line">        ttl = <span class="number">10</span></span><br><span class="line">        self.__conn.setex(key, msg, ttl)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 订阅方法</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">subscribe</span>(<span class="params">self</span>):</span></span><br><span class="line">        sub = self.__conn.pubsub()</span><br><span class="line">        sub.subscribe(self.keyevent)</span><br><span class="line">        <span class="keyword">for</span> msg <span class="keyword">in</span> sub.listen():</span><br><span class="line">            <span class="keyword">if</span> msg[<span class="string">&#x27;type&#x27;</span>] == <span class="string">&#x27;message&#x27;</span>:</span><br><span class="line">                ex_key = msg[<span class="string">&#x27;data&#x27;</span>].decode()</span><br><span class="line">                <span class="built_in">print</span>(ex_key)</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ul>
-<li><p><strong><a href="https://crazyfzw.github.io/2019/03/26/redis-keyspace-notifications/">订阅 Redis 的 key 过期事件实现动态定时任务</a></strong></p>
-</li>
-<li><p><strong><a href="https://segmentfault.com/a/1190000016898228">python开发-实现redis中的发布订阅功能</a></strong></p>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Redis</category>
-      </categories>
-      <tags>
-        <tag>Redis</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Logstash Multiple Pipelines</title>
     <url>/2019/12/30/Logstash-Multiple-Pipelines/</url>
     <content><![CDATA[<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>当Logstash要处理的多个input类型时, 最常见的两种解决方案(<strong>不推荐</strong>):</p>
@@ -224,6 +184,46 @@
       </tags>
   </entry>
   <entry>
+    <title>Redis Key 过期事件订阅</title>
+    <url>/2019/12/24/Redis-Key-%E8%BF%87%E6%9C%9F%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85/</url>
+    <content><![CDATA[<h3 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h3><p>​        在自建企业内部威胁情报的过程中, 需要通过<strong>Redis</strong>统一管理过期时间的<strong>Key</strong>。因此需要对过期的<strong>Key</strong>进行实时监听, 并进行回调处理。</p>
+<h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p>​        在 <strong>Redis</strong> 的 <strong>2.8.0</strong> 版本之后，其推出了一个新的特性——键空间消息（Redis Keyspace Notifications），它配合 2.0.0 版本之后的 SUBSCRIBE 就能完成这个定时任务的操作了。</p>
+<p><strong>Redis 的键空间通知支持 订阅指定 Key 的所有事件 与 订阅指定事件 两种方式。</strong></p>
+<blockquote>
+<p>Keyspace notifications are implemented sending two distinct type of events for every operation affecting the Redis data space. For instance a DEL operation targeting the key named mykey in database 0 will trigger the delivering of two messages, exactly equivalent to the following two PUBLISH commands:</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PUBLISH __keyspace@0__:mykey del</span><br><span class="line">PUBLISH __keyevent@0__:del mykey</span><br></pre></td></tr></table></figure>
+
+<p><strong>通过 Redis 的键空间通知（keyspace notification）可以做到：将IoC数据写入Redis，设置过期时间10分钟，利用 Redis 键过期回调提醒，如果未被消费，则进行处理。</strong></p>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><h4 id="1-修改-redis-conf-开启redis-key过期提醒"><a href="#1-修改-redis-conf-开启redis-key过期提醒" class="headerlink" title="1. 修改 redis.conf 开启redis key过期提醒"></a>1. 修改 redis.conf 开启redis key过期提醒</h4><blockquote>
+<p>By default keyspace events notifications are disabled because while not very sensible the feature uses some CPU power. Notifications are enabled using the notify-keyspace-events of redis.conf or via the CONFIG SET.</p>
+</blockquote>
+<p>由于键空间通知比较耗CPU, 所以 Redis默认是关闭键空间事件通知的， 需要手动开启 <code>notify-keyspace-events </code>后才启作用。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">K：keyspace事件，事件以__keyspace@&lt;db&gt;__为前缀进行发布；        </span><br><span class="line">E：keyevent事件，事件以__keyevent@&lt;db&gt;__为前缀进行发布；        </span><br><span class="line">g：一般性的，非特定类型的命令，比如del，expire，rename等；       </span><br><span class="line">$：String 特定命令；        </span><br><span class="line">l：List 特定命令；        </span><br><span class="line">s：Set 特定命令；        </span><br><span class="line">h：Hash 特定命令；        </span><br><span class="line">z：Sorted 特定命令；        </span><br><span class="line">x：过期事件，当某个键过期并删除时会产生该事件；        </span><br><span class="line">e：驱逐事件，当某个键因maxmemore策略而被删除时，产生该事件；        </span><br><span class="line">A：g<span class="variable">$lshzxe</span>的别名，因此”AKE”意味着所有事件。</span><br></pre></td></tr></table></figure>
+
+<p><strong><code>notify-keyspace-events Ex</code> 表示开启键过期事件提醒</strong></p>
+<p><strong>redis.conf</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># RDB Config</span></span><br><span class="line">databases 16</span><br><span class="line">save 900 1</span><br><span class="line">save 300 10</span><br><span class="line">save 60 10000</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line">rdbcompression yes</span><br><span class="line">rdbchecksum no</span><br><span class="line">dir ./</span><br><span class="line"><span class="comment"># AOF Config</span></span><br><span class="line">appendonly yes</span><br><span class="line">appendfilename <span class="string">&quot;appendonly.aof&quot;</span></span><br><span class="line">appendfsync everysec</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line">auto-aof-rewrite-percentage 100</span><br><span class="line">auto-aof-rewrite-min-size 64mb</span><br><span class="line"><span class="comment"># set Password</span></span><br><span class="line">requirepass %&#123;mypassword&#125;</span><br><span class="line"><span class="comment"># set notify-keyspace-events</span></span><br><span class="line">notify-keyspace-events Ex</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-RedisHelper"><a href="#2-RedisHelper" class="headerlink" title="2. RedisHelper"></a>2. RedisHelper</h4><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python3</span></span><br><span class="line"><span class="comment"># Author: Canon</span></span><br><span class="line"><span class="comment"># Date: 2019-12-27</span></span><br><span class="line"><span class="comment"># Version: 0.2</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> redis</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RedisHelper</span>():</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="comment"># 连接Redis</span></span><br><span class="line">        self.__conn = redis.Redis(host=<span class="string">&#x27;127.0.0.1&#x27;</span>, port=<span class="number">6379</span>, password=<span class="string">&#x27;mypassword&#x27;</span>, db=<span class="number">0</span>)</span><br><span class="line">        <span class="comment"># 定义keyevent, 此处0为indexdb</span></span><br><span class="line">        self.keyevent = <span class="string">&#x27;__keyevent@0__:expired&#x27;</span></span><br><span class="line">        </span><br><span class="line">    <span class="comment"># 发布方法</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">publish</span>(<span class="params">self, key, msg</span>):</span></span><br><span class="line">        ttl = <span class="number">10</span></span><br><span class="line">        self.__conn.setex(key, msg, ttl)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 订阅方法</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">subscribe</span>(<span class="params">self</span>):</span></span><br><span class="line">        sub = self.__conn.pubsub()</span><br><span class="line">        sub.subscribe(self.keyevent)</span><br><span class="line">        <span class="keyword">for</span> msg <span class="keyword">in</span> sub.listen():</span><br><span class="line">            <span class="keyword">if</span> msg[<span class="string">&#x27;type&#x27;</span>] == <span class="string">&#x27;message&#x27;</span>:</span><br><span class="line">                ex_key = msg[<span class="string">&#x27;data&#x27;</span>].decode()</span><br><span class="line">                <span class="built_in">print</span>(ex_key)</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><ul>
+<li><p><strong><a href="https://crazyfzw.github.io/2019/03/26/redis-keyspace-notifications/">订阅 Redis 的 key 过期事件实现动态定时任务</a></strong></p>
+</li>
+<li><p><strong><a href="https://segmentfault.com/a/1190000016898228">python开发-实现redis中的发布订阅功能</a></strong></p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Redis</category>
+      </categories>
+      <tags>
+        <tag>Redis</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Scrapy 多个item对应一个pipeline</title>
     <url>/2019/12/30/Scrapy-%E5%A4%9A%E4%B8%AAitem%E5%AF%B9%E5%BA%94%E4%B8%80%E4%B8%AApipeline/</url>
     <content><![CDATA[<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>​        在利用<strong>Scrapy</strong>编写爬虫时,经常会遇到同一个爬虫中包含多个item classes, 并且需要在同一个<code>pipelines.py</code>中根据不同的item classes进行逻辑的处理。</p>
@@ -347,63 +347,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Suricata Custom Rules</title>
-    <url>/2019/10/31/Suricata%20-%20Rules/</url>
-    <content><![CDATA[<h1 id="Solr-RCE-CVE-2019-0193"><a href="#Solr-RCE-CVE-2019-0193" class="headerlink" title="Solr RCE CVE-2019-0193"></a>Solr RCE CVE-2019-0193</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Solr POST RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.post.request; content:<span class="string">&quot;POST&quot;</span>; http_method; fast_pattern; content:<span class="string">&quot;/solr&quot;</span>; http_uri; content:<span class="string">&quot;/config&quot;</span>; http_uri; content:<span class="string">&quot;params.resource.loader.enabled&quot;</span>; http_client_body; classtype:shellcode-detect; sid:3020016; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.post.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020017; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Solr GET RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.get.request; content:<span class="string">&quot;GET&quot;</span>; http_method; content:<span class="string">&quot;/solr&quot;</span>; http_uri; fast_pattern; content:<span class="string">&quot;/select?&quot;</span>; http_uri; content:<span class="string">&quot;wt=velocity&quot;</span>; http_uri; content:<span class="string">&quot;java.lang.Runtime&quot;</span>; http_uri; content:<span class="string">&quot;getRuntime().exec&quot;</span>; http_uri; classtype:shellcode-detect; sid:3020018; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.get.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020019; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>NIDS</category>
-      </categories>
-      <tags>
-        <tag>Suricata</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Wazuh - 黑名单匹配告警(CDB list)</title>
-    <url>/2019/10/18/Wazuh-Using-CDB-lists/</url>
-    <content><![CDATA[<p><strong>需求:</strong></p>
-<p>​        现有一批高危用户, 需要实时关注该账号的登录情况。由于之前已经写好了一个针对用户登录账号的审计规则, 因此, 这里需要用到**<a href="https://documentation.wazuh.com/3.10/user-manual/ruleset/cdb-list.html">Wazuh CDB list</a>**这个功能(<em>此功能主要用例是创建用户，IP或域名的白/黑列表。</em>)消费审计规则数据即可。</p>
-<hr>
-<ol>
-<li><strong>新建列表</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more blacklist</span><br><span class="line"></span><br><span class="line">admin:</span><br><span class="line">root:</span><br><span class="line">administrator:</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li><strong>将列表文件添加到<code>ossec.conf</code></strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more ossec.conf</span><br><span class="line"></span><br><span class="line">&lt;ossec_config&gt;</span><br><span class="line">	&lt;ruleset&gt;</span><br><span class="line">    &lt;!-- User-defined CDB list --&gt;</span><br><span class="line">    &lt;list&gt;etc/lists/blacklist&lt;/list&gt;</span><br><span class="line">	&lt;/ruleset&gt;</span><br><span class="line">&lt;/ossec_config&gt;</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
-<li><strong>编译列表</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /var/ossec/bin/ossec-makelists</span><br><span class="line"></span><br><span class="line"> * File etc/lists/blacklist.cdb needs to be updated</span><br></pre></td></tr></table></figure>
-
-<ol start="4">
-<li><strong>重启进程</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo systemctl restart wazuh-manager</span><br></pre></td></tr></table></figure>
-
-<ol start="5">
-<li><strong>配置规则</strong></li>
-</ol>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">group</span> <span class="attr">name</span>=<span class="string">&quot;local,blacklist,&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- Defind blacklist Rules --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- ID: 100150 - 100199 --&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule</span> <span class="attr">id</span>=<span class="string">&quot;100163&quot;</span> <span class="attr">level</span>=<span class="string">&quot;12&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if_sid</span>&gt;</span>100303<span class="tag">&lt;/<span class="name">if_sid</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">list</span> <span class="attr">field</span>=<span class="string">&quot;http.email&quot;</span> <span class="attr">lookup</span>=<span class="string">&quot;match_key&quot;</span>&gt;</span>etc/lists/blacklist<span class="tag">&lt;/<span class="name">list</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>Wazuh Rules - High-risk user login detected. $(src_ip) -&gt; $(http.email) -&gt; $(http.hostname) -&gt; $(http.url) = $(http.results).<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">options</span>&gt;</span>no_full_log<span class="tag">&lt;/<span class="name">options</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">group</span>&gt;</span>blacklist,<span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">rule</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<ol start="6">
-<li><strong>测试规则</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./ossec-logtest</span><br><span class="line">2019/10/18 15:06:47 ossec-testrule: INFO: Started (pid: 2184).</span><br><span class="line">ossec-testrule: Type one <span class="built_in">log</span> per line.</span><br><span class="line"></span><br><span class="line">**Phase 3: Completed filtering (rules).</span><br><span class="line">       Rule id: <span class="string">&#x27;100163&#x27;</span></span><br><span class="line">       Level: <span class="string">&#x27;12&#x27;</span></span><br><span class="line">       Description: <span class="string">&#x27;Wazuh Rules - High-risk user login detected. 1.1.1.1 -&gt; admin -&gt; canon88.github.io -&gt; /user/login = success.&#x27;</span></span><br><span class="line">**Alert to be generated.</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>HIDS</category>
-      </categories>
-      <tags>
-        <tag>Wazuh</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Suricata + Lua实现本地情报对接</title>
     <url>/2019/10/24/Suricata+Lua%E5%AE%9E%E7%8E%B0%E6%9C%AC%E5%9C%B0%E6%83%85%E6%8A%A5%E5%AF%B9%E6%8E%A5/</url>
     <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>​        由于近期网站遭受恶意攻击, 通过对于登录接口的审计与分析, 现已确定了一批可疑账号。既然之前写过一个登录接口的审计脚本, 那么完全可以通过扩展这个脚本来实现对于可疑账号的比对。主要思路: 通过将可疑账号存进Redis中, 再利用Lua脚本调用Redis接口进行账号的比对。</p>
@@ -523,6 +466,63 @@
       </categories>
       <tags>
         <tag>Suricata</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Suricata Custom Rules</title>
+    <url>/2019/10/31/Suricata%20-%20Rules/</url>
+    <content><![CDATA[<h1 id="Solr-RCE-CVE-2019-0193"><a href="#Solr-RCE-CVE-2019-0193" class="headerlink" title="Solr RCE CVE-2019-0193"></a>Solr RCE CVE-2019-0193</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Solr POST RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.post.request; content:<span class="string">&quot;POST&quot;</span>; http_method; fast_pattern; content:<span class="string">&quot;/solr&quot;</span>; http_uri; content:<span class="string">&quot;/config&quot;</span>; http_uri; content:<span class="string">&quot;params.resource.loader.enabled&quot;</span>; http_client_body; classtype:shellcode-detect; sid:3020016; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.post.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020017; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Solr GET RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.get.request; content:<span class="string">&quot;GET&quot;</span>; http_method; content:<span class="string">&quot;/solr&quot;</span>; http_uri; fast_pattern; content:<span class="string">&quot;/select?&quot;</span>; http_uri; content:<span class="string">&quot;wt=velocity&quot;</span>; http_uri; content:<span class="string">&quot;java.lang.Runtime&quot;</span>; http_uri; content:<span class="string">&quot;getRuntime().exec&quot;</span>; http_uri; classtype:shellcode-detect; sid:3020018; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.get.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020019; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>NIDS</category>
+      </categories>
+      <tags>
+        <tag>Suricata</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Wazuh - 黑名单匹配告警(CDB list)</title>
+    <url>/2019/10/18/Wazuh-Using-CDB-lists/</url>
+    <content><![CDATA[<p><strong>需求:</strong></p>
+<p>​        现有一批高危用户, 需要实时关注该账号的登录情况。由于之前已经写好了一个针对用户登录账号的审计规则, 因此, 这里需要用到**<a href="https://documentation.wazuh.com/3.10/user-manual/ruleset/cdb-list.html">Wazuh CDB list</a>**这个功能(<em>此功能主要用例是创建用户，IP或域名的白/黑列表。</em>)消费审计规则数据即可。</p>
+<hr>
+<ol>
+<li><strong>新建列表</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more blacklist</span><br><span class="line"></span><br><span class="line">admin:</span><br><span class="line">root:</span><br><span class="line">administrator:</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><strong>将列表文件添加到<code>ossec.conf</code></strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more ossec.conf</span><br><span class="line"></span><br><span class="line">&lt;ossec_config&gt;</span><br><span class="line">	&lt;ruleset&gt;</span><br><span class="line">    &lt;!-- User-defined CDB list --&gt;</span><br><span class="line">    &lt;list&gt;etc/lists/blacklist&lt;/list&gt;</span><br><span class="line">	&lt;/ruleset&gt;</span><br><span class="line">&lt;/ossec_config&gt;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li><strong>编译列表</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /var/ossec/bin/ossec-makelists</span><br><span class="line"></span><br><span class="line"> * File etc/lists/blacklist.cdb needs to be updated</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li><strong>重启进程</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo systemctl restart wazuh-manager</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li><strong>配置规则</strong></li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">group</span> <span class="attr">name</span>=<span class="string">&quot;local,blacklist,&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- Defind blacklist Rules --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- ID: 100150 - 100199 --&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule</span> <span class="attr">id</span>=<span class="string">&quot;100163&quot;</span> <span class="attr">level</span>=<span class="string">&quot;12&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if_sid</span>&gt;</span>100303<span class="tag">&lt;/<span class="name">if_sid</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">list</span> <span class="attr">field</span>=<span class="string">&quot;http.email&quot;</span> <span class="attr">lookup</span>=<span class="string">&quot;match_key&quot;</span>&gt;</span>etc/lists/blacklist<span class="tag">&lt;/<span class="name">list</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>Wazuh Rules - High-risk user login detected. $(src_ip) -&gt; $(http.email) -&gt; $(http.hostname) -&gt; $(http.url) = $(http.results).<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">options</span>&gt;</span>no_full_log<span class="tag">&lt;/<span class="name">options</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">group</span>&gt;</span>blacklist,<span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">rule</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li><strong>测试规则</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./ossec-logtest</span><br><span class="line">2019/10/18 15:06:47 ossec-testrule: INFO: Started (pid: 2184).</span><br><span class="line">ossec-testrule: Type one <span class="built_in">log</span> per line.</span><br><span class="line"></span><br><span class="line">**Phase 3: Completed filtering (rules).</span><br><span class="line">       Rule id: <span class="string">&#x27;100163&#x27;</span></span><br><span class="line">       Level: <span class="string">&#x27;12&#x27;</span></span><br><span class="line">       Description: <span class="string">&#x27;Wazuh Rules - High-risk user login detected. 1.1.1.1 -&gt; admin -&gt; canon88.github.io -&gt; /user/login = success.&#x27;</span></span><br><span class="line">**Alert to be generated.</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>HIDS</category>
+      </categories>
+      <tags>
+        <tag>Wazuh</tag>
       </tags>
   </entry>
   <entry>
@@ -845,103 +845,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>我在&#39;云&#39;上的日子 - Suricata(部署)</title>
-    <url>/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90%20-%20Suricata%E9%83%A8%E7%BD%B2/</url>
-    <content><![CDATA[<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="PF-RING"><a href="#PF-RING" class="headerlink" title="PF_RING"></a>PF_RING</h2><p><strong>1. pf_ring</strong></p>
-<ul>
-<li> <strong>二进制安装</strong></li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 18.04 LTS</span></span><br><span class="line">$ apt-get install software-properties-common wget</span><br><span class="line">$ add-apt-repository universe [ unless you have <span class="keyword">done</span> it previously ]</span><br><span class="line">$ wget http://apt-stable.ntop.org/18.04/all/apt-ntop-stable.deb</span><br><span class="line">$ apt install ./apt-ntop-stable.deb</span><br><span class="line"></span><br><span class="line">$ apt-get clean all</span><br><span class="line">$ apt-get update</span><br><span class="line">$ apt-get install pfring</span><br></pre></td></tr></table></figure>
-
-<hr>
-<ul>
-<li><strong>编译安装</strong></li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ apt install git make gcc libelf-dev build-essential subversion flex libnuma-dev bison pkg-config libtool rustc cargo libjansson-dev ethtool autoconf autogen liblzma-dev libpcre3-dev libyaml-dev libpcap-dev zlib1g-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/ntop/PF_RING.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/kernel</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载 pf_ring.ko</span></span><br><span class="line">$ sudo insmod pf_ring.ko min_num_slots=65536 transparent_mode=2 enable_tx_capture=0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 pf_ring 信息</span></span><br><span class="line">$ cat /proc/net/pf_ring/info</span><br><span class="line">PF_RING Version          : 7.5.0 (dev:14f62e0edb2b54cd614ab9d1f6467ccb8c6c9c32)</span><br><span class="line">Total rings              : 0</span><br><span class="line"></span><br><span class="line">Standard (non ZC) Options</span><br><span class="line">Ring slots               : 65536</span><br><span class="line">Slot version             : 17</span><br><span class="line">Capture TX               : No [RX only]</span><br><span class="line">IP Defragment            : No</span><br><span class="line">Socket Mode              : Standard</span><br><span class="line">Cluster Fragment Queue   : 0</span><br><span class="line">Cluster Fragment Discard : 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载 pf_ring.ko</span></span><br><span class="line">$ sudo rmmod pf_ring</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>2. libpfring、libpcap</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/lib</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ../libpcap</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/examples</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 接收数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# ./pfcount -i ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Capturing from ens33 [mac: 00:0C:29:D5:B9:8F][if_index: 2][speed: 0Mb/s]</span><br><span class="line"><span class="meta">#</span><span class="bash"> Device RX channels: 1</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Polling threads:    1</span></span><br><span class="line">Dumping statistics on /proc/net/pf_ring/stats/51441-ens33.3</span><br><span class="line">=========================</span><br><span class="line">Absolute Stats: [2 pkts total][0 pkts dropped][0.0% dropped]</span><br><span class="line">[2 pkts rcvd][424 bytes rcvd]</span><br><span class="line">=========================</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 发送数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# sudo ./pfsend -f 64byte_packets.pcap -n 0 -i ens33 -r 5</span><br><span class="line">Sending packets on ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Estimated CPU freq: 2429795000 Hz</span><br><span class="line">Unable to open file 64byte_packets.pcap</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>3. tcpdump</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/userland/tcpdump/</span><br><span class="line">$ ./configure &amp;&amp; make</span><br><span class="line">$ sudo make install</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>参考:</strong></p>
-<ul>
-<li><p><strong><a href="https://www.ntop.org/guides/pf_ring/get_started/git_installation.html">PF_RING</a></strong></p>
-</li>
-<li><p><a href="http://packages.ntop.org/apt-stable/">http://packages.ntop.org/apt-stable/</a></p>
-</li>
-<li><p><a href="https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html">https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html</a></p>
-</li>
-<li><p><a href="https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html">https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html</a></p>
-</li>
-</ul>
-<h2 id="LuaJIT"><a href="#LuaJIT" class="headerlink" title="LuaJIT"></a>LuaJIT</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget http://luajit.org/download/LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -zxf LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> LuaJIT-2.0.5/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make &amp;&amp; make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep lua</span></span><br><span class="line">	liblua5.1.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so.0</span><br><span class="line">	liblua5.1.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so</span><br><span class="line">	liblua5.1-c++.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so.0</span><br><span class="line">	liblua5.1-c++.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Hyperscan"><a href="#Hyperscan" class="headerlink" title="Hyperscan"></a>Hyperscan</h2><p><strong>1. boost</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 依赖</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> apt install cmake</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 下载</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget https://dl.bintray.com/boostorg/release/1.69.0/<span class="built_in">source</span>/boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -xvf boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> boost_1_69_0/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./bootstrap.sh</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo ./b2 --with-iostreams --with-random install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>2. ragle</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt-get install autoconf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget http://www.colm.net/files/ragel/ragel-6.10.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar zxvf ragel-6.10.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> ragel-6.10</span><br><span class="line">$ ./configure</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-<p><strong>3. hyperscan</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt install libpcap-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget https://github.com/intel/hyperscan/archive/v5.1.0.tar.gz -O hyperscan-5.1.0.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar -zxvf hyperscan-5.1.0.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> hyperscan-5.1.0</span><br><span class="line">$ mkdir cmake-build</span><br><span class="line">$ <span class="built_in">cd</span> cmake-build</span><br><span class="line">$ cmake -DBUILD_SHARED_LIBS=on -DCMAKE_BUILD_TYPE=Release ..</span><br><span class="line">$ make -j8</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-<p><strong>4. 验证</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep hs</span></span><br><span class="line">	libhs_runtime.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so.5</span><br><span class="line">	libhs_runtime.so (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so</span><br><span class="line">	libhs.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs.so.5</span><br><span class="line">	libhs.so (libc6,x86-64) =&gt; /usr/local/lib/libhs.so</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>参考:</strong></p>
-<ul>
-<li><a href="http://www.manongjc.com/article/110977.html"><strong>Hyperscan - 5.1.0 安装</strong></a></li>
-</ul>
-<h2 id="Suricata"><a href="#Suricata" class="headerlink" title="Suricata"></a><strong>Suricata</strong></h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> apt-get install libpcre3 libpcre3-dbg libpcre3-dev build-essential libpcap-dev   \</span></span><br><span class="line"><span class="bash">                libnet1-dev libyaml-0-2 libyaml-dev pkg-config zlib1g zlib1g-dev \</span></span><br><span class="line"><span class="bash">                libcap-ng-dev libcap-ng0 make libmagic-dev libjansson-dev        \</span></span><br><span class="line"><span class="bash">                libnss3-dev libgeoip-dev libhiredis-dev libevent-dev \</span></span><br><span class="line"><span class="bash">                python-yaml rustc cargo libmaxminddb-dev liblzma-dev \</span></span><br><span class="line"><span class="bash">                python3-distutils liblz4-dev</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="安装方式-2选1"><a href="#安装方式-2选1" class="headerlink" title="安装方式: 2选1"></a>安装方式: 2选1</h3><h4 id="release"><a href="#release" class="headerlink" title="release"></a>release</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ wget https://www.openinfosecfoundation.org/download/suricata-5.0.2.tar.gz</span><br><span class="line">$ tar zxvf suricata-5.0.2.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-<h4 id="git-clone"><a href="#git-clone" class="headerlink" title="git clone"></a>git clone</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ mkdir suricata</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ git <span class="built_in">clone</span> git://phalanx.openinfosecfoundation.org/oisf.git</span><br><span class="line">$ <span class="built_in">cd</span> oisf</span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/OISF/libhtp.git</span><br><span class="line">$ ./autogen.sh</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h1 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h1><p><strong>1. PF_RING</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep PF_RING</span></span><br><span class="line">Features: PCAP_SET_BUFF PF_RING AF_PACKET HAVE_PACKET_FANOUT LIBCAP_NG LIBNET1.1 HAVE_HTP_URI_NORMALIZE_HOOK PCRE_JIT HAVE_NSS HAVE_LUA HAVE_LUAJIT HAVE_LIBJANSSON PROFILING TLS MAGIC RUST</span><br><span class="line">  PF_RING support:                         yes</span><br></pre></td></tr></table></figure>
-
-<p><strong>2. LuaJit</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep lua</span></span><br><span class="line">  LUA support:                             yes, through luajit</span><br><span class="line">  libluajit:                               yes</span><br></pre></td></tr></table></figure>
-
-<p><strong>3. Hyperscan</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep Hyperscan</span></span><br><span class="line">  Hyperscan support:                       yes</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a><strong>启动</strong></h1><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --pfring-int=ens6 --pfring-cluster-id=99 --pfring-cluster-type=cluster_flow -c /etc/suricata/suricata.yaml</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="规则管理"><a href="#规则管理" class="headerlink" title="规则管理"></a>规则管理</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ pip install --upgrade suricata-update</span><br></pre></td></tr></table></figure>
-
-<p><strong>定时更新</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> crontab -l</span></span><br><span class="line">10 0 * * * /usr/bin/suricata-update --no-test &amp;&amp; /usr/bin/suricatasc -c reload-rules</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><p><a href="https://www.jianshu.com/p/9348e211a6a2">https://www.jianshu.com/p/9348e211a6a2</a></p>
-]]></content>
-      <categories>
-        <category>NIDS</category>
-      </categories>
-      <tags>
-        <tag>Suricata</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>我在&#39;云&#39;上的日子 - Zeek(部署)</title>
     <url>/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90%20-%20Zeek%E9%83%A8%E7%BD%B2/</url>
     <content><![CDATA[<h4 id="Optional-Dependencies"><a href="#Optional-Dependencies" class="headerlink" title="Optional Dependencies"></a>Optional Dependencies</h4><h5 id="PF-RING"><a href="#PF-RING" class="headerlink" title="PF_RING"></a>PF_RING</h5><p><strong>参考:</strong></p>
@@ -1167,6 +1070,103 @@
 <li><a href="https://community.emc.com/community/support/chinese/teamblog/blog/2016/05/12/%E5%A4%A7%E5%92%96%E8%AE%B2%E7%BD%91%E7%BB%9C-mtu%E5%AF%BC%E8%87%B4%E7%9A%84%E6%82%B2%E5%89%A7">大咖讲网络-mtu导致的悲剧</a></li>
 <li><a href="https://www.cnblogs.com/sammyliu/p/5079898.html">Neutron VxLAN + Linux Bridge 环境中的网络 MTU</a></li>
 </ul>
+]]></content>
+      <categories>
+        <category>NIDS</category>
+      </categories>
+      <tags>
+        <tag>Suricata</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>我在&#39;云&#39;上的日子 - Suricata(部署)</title>
+    <url>/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90%20-%20Suricata%E9%83%A8%E7%BD%B2/</url>
+    <content><![CDATA[<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="PF-RING"><a href="#PF-RING" class="headerlink" title="PF_RING"></a>PF_RING</h2><p><strong>1. pf_ring</strong></p>
+<ul>
+<li> <strong>二进制安装</strong></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 18.04 LTS</span></span><br><span class="line">$ apt-get install software-properties-common wget</span><br><span class="line">$ add-apt-repository universe [ unless you have <span class="keyword">done</span> it previously ]</span><br><span class="line">$ wget http://apt-stable.ntop.org/18.04/all/apt-ntop-stable.deb</span><br><span class="line">$ apt install ./apt-ntop-stable.deb</span><br><span class="line"></span><br><span class="line">$ apt-get clean all</span><br><span class="line">$ apt-get update</span><br><span class="line">$ apt-get install pfring</span><br></pre></td></tr></table></figure>
+
+<hr>
+<ul>
+<li><strong>编译安装</strong></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ apt install git make gcc libelf-dev build-essential subversion flex libnuma-dev bison pkg-config libtool rustc cargo libjansson-dev ethtool autoconf autogen liblzma-dev libpcre3-dev libyaml-dev libpcap-dev zlib1g-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/ntop/PF_RING.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/kernel</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载 pf_ring.ko</span></span><br><span class="line">$ sudo insmod pf_ring.ko min_num_slots=65536 transparent_mode=2 enable_tx_capture=0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 pf_ring 信息</span></span><br><span class="line">$ cat /proc/net/pf_ring/info</span><br><span class="line">PF_RING Version          : 7.5.0 (dev:14f62e0edb2b54cd614ab9d1f6467ccb8c6c9c32)</span><br><span class="line">Total rings              : 0</span><br><span class="line"></span><br><span class="line">Standard (non ZC) Options</span><br><span class="line">Ring slots               : 65536</span><br><span class="line">Slot version             : 17</span><br><span class="line">Capture TX               : No [RX only]</span><br><span class="line">IP Defragment            : No</span><br><span class="line">Socket Mode              : Standard</span><br><span class="line">Cluster Fragment Queue   : 0</span><br><span class="line">Cluster Fragment Discard : 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载 pf_ring.ko</span></span><br><span class="line">$ sudo rmmod pf_ring</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>2. libpfring、libpcap</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/lib</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ../libpcap</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/examples</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 接收数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# ./pfcount -i ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Capturing from ens33 [mac: 00:0C:29:D5:B9:8F][if_index: 2][speed: 0Mb/s]</span><br><span class="line"><span class="meta">#</span><span class="bash"> Device RX channels: 1</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Polling threads:    1</span></span><br><span class="line">Dumping statistics on /proc/net/pf_ring/stats/51441-ens33.3</span><br><span class="line">=========================</span><br><span class="line">Absolute Stats: [2 pkts total][0 pkts dropped][0.0% dropped]</span><br><span class="line">[2 pkts rcvd][424 bytes rcvd]</span><br><span class="line">=========================</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 发送数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# sudo ./pfsend -f 64byte_packets.pcap -n 0 -i ens33 -r 5</span><br><span class="line">Sending packets on ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Estimated CPU freq: 2429795000 Hz</span><br><span class="line">Unable to open file 64byte_packets.pcap</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>3. tcpdump</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/userland/tcpdump/</span><br><span class="line">$ ./configure &amp;&amp; make</span><br><span class="line">$ sudo make install</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>参考:</strong></p>
+<ul>
+<li><p><strong><a href="https://www.ntop.org/guides/pf_ring/get_started/git_installation.html">PF_RING</a></strong></p>
+</li>
+<li><p><a href="http://packages.ntop.org/apt-stable/">http://packages.ntop.org/apt-stable/</a></p>
+</li>
+<li><p><a href="https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html">https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html</a></p>
+</li>
+<li><p><a href="https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html">https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html</a></p>
+</li>
+</ul>
+<h2 id="LuaJIT"><a href="#LuaJIT" class="headerlink" title="LuaJIT"></a>LuaJIT</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget http://luajit.org/download/LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -zxf LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> LuaJIT-2.0.5/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make &amp;&amp; make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep lua</span></span><br><span class="line">	liblua5.1.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so.0</span><br><span class="line">	liblua5.1.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so</span><br><span class="line">	liblua5.1-c++.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so.0</span><br><span class="line">	liblua5.1-c++.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Hyperscan"><a href="#Hyperscan" class="headerlink" title="Hyperscan"></a>Hyperscan</h2><p><strong>1. boost</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 依赖</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> apt install cmake</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 下载</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget https://dl.bintray.com/boostorg/release/1.69.0/<span class="built_in">source</span>/boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -xvf boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> boost_1_69_0/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./bootstrap.sh</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo ./b2 --with-iostreams --with-random install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>2. ragle</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt-get install autoconf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget http://www.colm.net/files/ragel/ragel-6.10.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar zxvf ragel-6.10.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> ragel-6.10</span><br><span class="line">$ ./configure</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. hyperscan</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt install libpcap-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget https://github.com/intel/hyperscan/archive/v5.1.0.tar.gz -O hyperscan-5.1.0.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar -zxvf hyperscan-5.1.0.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> hyperscan-5.1.0</span><br><span class="line">$ mkdir cmake-build</span><br><span class="line">$ <span class="built_in">cd</span> cmake-build</span><br><span class="line">$ cmake -DBUILD_SHARED_LIBS=on -DCMAKE_BUILD_TYPE=Release ..</span><br><span class="line">$ make -j8</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+<p><strong>4. 验证</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep hs</span></span><br><span class="line">	libhs_runtime.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so.5</span><br><span class="line">	libhs_runtime.so (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so</span><br><span class="line">	libhs.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs.so.5</span><br><span class="line">	libhs.so (libc6,x86-64) =&gt; /usr/local/lib/libhs.so</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>参考:</strong></p>
+<ul>
+<li><a href="http://www.manongjc.com/article/110977.html"><strong>Hyperscan - 5.1.0 安装</strong></a></li>
+</ul>
+<h2 id="Suricata"><a href="#Suricata" class="headerlink" title="Suricata"></a><strong>Suricata</strong></h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> apt-get install libpcre3 libpcre3-dbg libpcre3-dev build-essential libpcap-dev   \</span></span><br><span class="line"><span class="bash">                libnet1-dev libyaml-0-2 libyaml-dev pkg-config zlib1g zlib1g-dev \</span></span><br><span class="line"><span class="bash">                libcap-ng-dev libcap-ng0 make libmagic-dev libjansson-dev        \</span></span><br><span class="line"><span class="bash">                libnss3-dev libgeoip-dev libhiredis-dev libevent-dev \</span></span><br><span class="line"><span class="bash">                python-yaml rustc cargo libmaxminddb-dev liblzma-dev \</span></span><br><span class="line"><span class="bash">                python3-distutils liblz4-dev</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="安装方式-2选1"><a href="#安装方式-2选1" class="headerlink" title="安装方式: 2选1"></a>安装方式: 2选1</h3><h4 id="release"><a href="#release" class="headerlink" title="release"></a>release</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ wget https://www.openinfosecfoundation.org/download/suricata-5.0.2.tar.gz</span><br><span class="line">$ tar zxvf suricata-5.0.2.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+<h4 id="git-clone"><a href="#git-clone" class="headerlink" title="git clone"></a>git clone</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ mkdir suricata</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ git <span class="built_in">clone</span> git://phalanx.openinfosecfoundation.org/oisf.git</span><br><span class="line">$ <span class="built_in">cd</span> oisf</span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/OISF/libhtp.git</span><br><span class="line">$ ./autogen.sh</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h1 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h1><p><strong>1. PF_RING</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep PF_RING</span></span><br><span class="line">Features: PCAP_SET_BUFF PF_RING AF_PACKET HAVE_PACKET_FANOUT LIBCAP_NG LIBNET1.1 HAVE_HTP_URI_NORMALIZE_HOOK PCRE_JIT HAVE_NSS HAVE_LUA HAVE_LUAJIT HAVE_LIBJANSSON PROFILING TLS MAGIC RUST</span><br><span class="line">  PF_RING support:                         yes</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. LuaJit</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep lua</span></span><br><span class="line">  LUA support:                             yes, through luajit</span><br><span class="line">  libluajit:                               yes</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. Hyperscan</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep Hyperscan</span></span><br><span class="line">  Hyperscan support:                       yes</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a><strong>启动</strong></h1><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --pfring-int=ens6 --pfring-cluster-id=99 --pfring-cluster-type=cluster_flow -c /etc/suricata/suricata.yaml</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="规则管理"><a href="#规则管理" class="headerlink" title="规则管理"></a>规则管理</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ pip install --upgrade suricata-update</span><br></pre></td></tr></table></figure>
+
+<p><strong>定时更新</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> crontab -l</span></span><br><span class="line">10 0 * * * /usr/bin/suricata-update --no-test &amp;&amp; /usr/bin/suricatasc -c reload-rules</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><p><a href="https://www.jianshu.com/p/9348e211a6a2">https://www.jianshu.com/p/9348e211a6a2</a></p>
 ]]></content>
       <categories>
         <category>NIDS</category>
