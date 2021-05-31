@@ -127,63 +127,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Scrapy + Splash 实现动态网页爬取</title>
-    <url>/2019/10/08/Scrapy%20+%20Splash%20%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E7%BD%91%E9%A1%B5%E7%88%AC%E5%8F%96/</url>
-    <content><![CDATA[<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>​        这是一个撞库事件的后续, 通过之前编写的脚本<strong>Suricata - login_audit</strong>脚本成功审计到了所有登录网站的账号。这里需要对经过分析后存在可疑行为的账号进行反向查询, 主要判断该账号是否已被标记为泄露账号。</p>
-<h2 id="坑点"><a href="#坑点" class="headerlink" title="坑点"></a>坑点</h2><p>​        由于<strong>Scrapy</strong>没有<strong>JS Eengine</strong>只能爬取静态页面的, 对于JS生成的动态页面是不支持的。但是可以借助<a href="https://github.com/scrapy-plugins/scrapy-splash"><strong>Scrapy-Splash</strong></a>来实现动态页面的爬取。</p>
-<h1 id="部署方法"><a href="#部署方法" class="headerlink" title="部署方法"></a>部署方法</h1><h2 id="1-Scrapy-Splash"><a href="#1-Scrapy-Splash" class="headerlink" title="1. Scrapy-Splash"></a>1. Scrapy-Splash</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ pip install scrapy-splash --user</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="2-Splash-Instance"><a href="#2-Splash-Instance" class="headerlink" title="2. Splash Instance"></a>2. Splash Instance</h2><p>由于<strong>Scrapy-Splash</strong>使用的是<strong>Splash HTTP API</strong>， 所以需要一个**<a href="https://splash.readthedocs.io/en/stable/install.html">Splash Instance</a><strong>，一般采用</strong><a href="https://hub.docker.com/r/scrapinghub/splash">Docker</a><strong>运行</strong>Splash**。</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more docker-compose.yml</span><br><span class="line">version: <span class="string">&quot;2.0&quot;</span></span><br><span class="line"></span><br><span class="line">services:</span><br><span class="line">  splash:</span><br><span class="line">    restart: always</span><br><span class="line">    image: scrapinghub/splash</span><br><span class="line">    tty: <span class="literal">true</span></span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">&quot;8050:8050&quot;</span></span><br><span class="line">    network_mode: <span class="string">&quot;bridge&quot;</span></span><br><span class="line">    container_name: <span class="string">&quot;Splash&quot;</span></span><br><span class="line">    hostname: <span class="string">&quot;Splash&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="3-配置Splash服务（以下操作全部在settings-py）"><a href="#3-配置Splash服务（以下操作全部在settings-py）" class="headerlink" title="3. 配置Splash服务（以下操作全部在settings.py）"></a>3. 配置<a href="https://github.com/scrapy-plugins/scrapy-splash"><strong>Splash</strong></a>服务（以下操作全部在<strong>settings.py</strong>）</h2><p><strong>3.1    添加Splash服务器地址</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SPLASH_URL = <span class="string">&#x27;http://localhost:8050&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>3.2    启用Splash middleware</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">DOWNLOADER_MIDDLEWARES = &#123;</span><br><span class="line">    <span class="string">&#x27;scrapy_splash.SplashCookiesMiddleware&#x27;</span>: 723,</span><br><span class="line">    <span class="string">&#x27;scrapy_splash.SplashMiddleware&#x27;</span>: 725,</span><br><span class="line">    <span class="string">&#x27;scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware&#x27;</span>: 810,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><em>Order 723 is just before HttpProxyMiddleware (750) in default scrapy settings.</em></p>
-<p><strong>3.3    启用SplashDeduplicateArgsMiddleware</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SPIDER_MIDDLEWARES = &#123;</span><br><span class="line">    <span class="string">&#x27;scrapy_splash.SplashDeduplicateArgsMiddleware&#x27;</span>: 100,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>3.4  自定义 DUPEFILTER_CLASS</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">DUPEFILTER_CLASS = <span class="string">&#x27;scrapy_splash.SplashAwareDupeFilter&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>3.5 使用Scrapy HTTP缓存</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">HTTPCACHE_STORAGE = <span class="string">&#x27;scrapy_splash.SplashAwareFSCacheStorage&#x27;</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="4-代码"><a href="#4-代码" class="headerlink" title="4. 代码"></a>4. 代码</h2><p>注:  当使用<strong>Scrapy-Splash</strong>之后, 将无法直接使用<strong>crawlera middleware</strong>。需要手动引用外部lua脚本。</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">import</span> scrapy</span><br><span class="line"><span class="keyword">from</span> haveibeenpwned.items <span class="keyword">import</span> feed</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">from</span> scrapy_splash <span class="keyword">import</span> SplashRequest</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">from redis crawl haveibeenpwned</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">LUA_SOURCE = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    function main(splash)</span></span><br><span class="line"><span class="string">        local host = &quot;proxy.crawlera.com&quot;</span></span><br><span class="line"><span class="string">        local port = 8010</span></span><br><span class="line"><span class="string">        local user = &quot;api_key&quot;</span></span><br><span class="line"><span class="string">        local password = &quot;&quot;</span></span><br><span class="line"><span class="string">        local session_header = &quot;X-Crawlera-Session&quot;</span></span><br><span class="line"><span class="string">        local session_id = &quot;create&quot;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        splash:on_request(function (request)</span></span><br><span class="line"><span class="string">            request:set_header(&quot;X-Crawlera-UA&quot;, &quot;desktop&quot;)</span></span><br><span class="line"><span class="string">            request:set_header(session_header, session_id)</span></span><br><span class="line"><span class="string">            request:set_proxy&#123;host, port, username=user, password=password&#125;</span></span><br><span class="line"><span class="string">        end)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        splash:on_response_headers(function (response)</span></span><br><span class="line"><span class="string">            if response.headers[session_header] ~= nil then</span></span><br><span class="line"><span class="string">                session_id = response.headers[session_header]</span></span><br><span class="line"><span class="string">            end</span></span><br><span class="line"><span class="string">        end)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        splash:go(splash.args.url)</span></span><br><span class="line"><span class="string">        return splash:html()</span></span><br><span class="line"><span class="string">    end</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CheckSpider</span>(<span class="params">scrapy.Spider</span>):</span></span><br><span class="line">    name = <span class="string">&#x27;scrapy_demo&#x27;</span></span><br><span class="line">    start_urls = <span class="string">&#x27;https://httpbin.org/get&#x27;</span></span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">start_requests</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">yield</span> SplashRequest(self.start_urls, self.parse, endpoint=<span class="string">&#x27;execute&#x27;</span>,  args=&#123;<span class="string">&#x27;wait&#x27;</span>: <span class="number">3</span>, <span class="string">&#x27;lua_source&#x27;</span>: LUA_SOURCE&#125;)</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">parse</span>(<span class="params">self, response</span>):</span></span><br><span class="line">        <span class="built_in">print</span>(response.text)</span><br></pre></td></tr></table></figure>
-
-<p>参考:</p>
-<ul>
-<li><a href="https://github.com/scrapy-plugins/scrapy-splash/issues/117">https://github.com/scrapy-plugins/scrapy-splash/issues/117</a></li>
-</ul>
-<p>参考:</p>
-<ul>
-<li><a href="https://splash.readthedocs.io/en/stable/search.html?q=splash:html&check_keywords=yes&area=default">Splash</a></li>
-<li><a href="https://github.com/scrapy-plugins/scrapy-splash">Scrapy-Splash</a></li>
-<li><a href="https://doc.scrapinghub.com/crawlera.html#using-crawlera-with-splash">Scrapinghub API Reference</a></li>
-<li><a href="https://stackoverflow.com/questions/43646438/using-proxy-with-scrapy-splash">using proxy with scrapy-splash</a></li>
-<li><a href="http://stackoverflow.com/questions/43090352/proxy-servers-with-scrapy-splash"><strong>Proxy servers with Scrapy-Splash</strong></a></li>
-<li><a href="https://github.com/scrapy-plugins/scrapy-splash/issues/97">Crawlera integration</a></li>
-<li><a href="https://blog.csdn.net/zhengxiangwen/article/details/55227368"><strong>利用scrapy-splash爬取JS生成的动态页面</strong></a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>Spider</category>
-      </categories>
-      <tags>
-        <tag>Scrapy</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Redis Key 过期事件订阅</title>
     <url>/2019/12/24/Redis-Key-%E8%BF%87%E6%9C%9F%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85/</url>
     <content><![CDATA[<h3 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h3><p>​        在自建企业内部威胁情报的过程中, 需要通过<strong>Redis</strong>统一管理过期时间的<strong>Key</strong>。因此需要对过期的<strong>Key</strong>进行实时监听, 并进行回调处理。</p>
@@ -244,8 +187,65 @@
       </tags>
   </entry>
   <entry>
+    <title>Scrapy + Splash 实现动态网页爬取</title>
+    <url>/2019/10/08/Scrapy-Splash-%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E7%BD%91%E9%A1%B5%E7%88%AC%E5%8F%96/</url>
+    <content><![CDATA[<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>​        这是一个撞库事件的后续, 通过之前编写的脚本<strong>Suricata - login_audit</strong>脚本成功审计到了所有登录网站的账号。这里需要对经过分析后存在可疑行为的账号进行反向查询, 主要判断该账号是否已被标记为泄露账号。</p>
+<h2 id="坑点"><a href="#坑点" class="headerlink" title="坑点"></a>坑点</h2><p>​        由于<strong>Scrapy</strong>没有<strong>JS Eengine</strong>只能爬取静态页面的, 对于JS生成的动态页面是不支持的。但是可以借助<a href="https://github.com/scrapy-plugins/scrapy-splash"><strong>Scrapy-Splash</strong></a>来实现动态页面的爬取。</p>
+<h1 id="部署方法"><a href="#部署方法" class="headerlink" title="部署方法"></a>部署方法</h1><h2 id="1-Scrapy-Splash"><a href="#1-Scrapy-Splash" class="headerlink" title="1. Scrapy-Splash"></a>1. Scrapy-Splash</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ pip install scrapy-splash --user</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2-Splash-Instance"><a href="#2-Splash-Instance" class="headerlink" title="2. Splash Instance"></a>2. Splash Instance</h2><p>由于<strong>Scrapy-Splash</strong>使用的是<strong>Splash HTTP API</strong>， 所以需要一个**<a href="https://splash.readthedocs.io/en/stable/install.html">Splash Instance</a><strong>，一般采用</strong><a href="https://hub.docker.com/r/scrapinghub/splash">Docker</a><strong>运行</strong>Splash**。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more docker-compose.yml</span><br><span class="line">version: <span class="string">&quot;2.0&quot;</span></span><br><span class="line"></span><br><span class="line">services:</span><br><span class="line">  splash:</span><br><span class="line">    restart: always</span><br><span class="line">    image: scrapinghub/splash</span><br><span class="line">    tty: <span class="literal">true</span></span><br><span class="line">    ports:</span><br><span class="line">      - <span class="string">&quot;8050:8050&quot;</span></span><br><span class="line">    network_mode: <span class="string">&quot;bridge&quot;</span></span><br><span class="line">    container_name: <span class="string">&quot;Splash&quot;</span></span><br><span class="line">    hostname: <span class="string">&quot;Splash&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3-配置Splash服务（以下操作全部在settings-py）"><a href="#3-配置Splash服务（以下操作全部在settings-py）" class="headerlink" title="3. 配置Splash服务（以下操作全部在settings.py）"></a>3. 配置<a href="https://github.com/scrapy-plugins/scrapy-splash"><strong>Splash</strong></a>服务（以下操作全部在<strong>settings.py</strong>）</h2><p><strong>3.1    添加Splash服务器地址</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SPLASH_URL = <span class="string">&#x27;http://localhost:8050&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>3.2    启用Splash middleware</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">DOWNLOADER_MIDDLEWARES = &#123;</span><br><span class="line">    <span class="string">&#x27;scrapy_splash.SplashCookiesMiddleware&#x27;</span>: 723,</span><br><span class="line">    <span class="string">&#x27;scrapy_splash.SplashMiddleware&#x27;</span>: 725,</span><br><span class="line">    <span class="string">&#x27;scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware&#x27;</span>: 810,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><em>Order 723 is just before HttpProxyMiddleware (750) in default scrapy settings.</em></p>
+<p><strong>3.3    启用SplashDeduplicateArgsMiddleware</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SPIDER_MIDDLEWARES = &#123;</span><br><span class="line">    <span class="string">&#x27;scrapy_splash.SplashDeduplicateArgsMiddleware&#x27;</span>: 100,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>3.4  自定义 DUPEFILTER_CLASS</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">DUPEFILTER_CLASS = <span class="string">&#x27;scrapy_splash.SplashAwareDupeFilter&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>3.5 使用Scrapy HTTP缓存</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">HTTPCACHE_STORAGE = <span class="string">&#x27;scrapy_splash.SplashAwareFSCacheStorage&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="4-代码"><a href="#4-代码" class="headerlink" title="4. 代码"></a>4. 代码</h2><p>注:  当使用<strong>Scrapy-Splash</strong>之后, 将无法直接使用<strong>crawlera middleware</strong>。需要手动引用外部lua脚本。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># -*- coding: utf-8 -*-</span></span><br><span class="line"><span class="keyword">import</span> scrapy</span><br><span class="line"><span class="keyword">from</span> haveibeenpwned.items <span class="keyword">import</span> feed</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"><span class="keyword">from</span> scrapy_splash <span class="keyword">import</span> SplashRequest</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">from redis crawl haveibeenpwned</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">LUA_SOURCE = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    function main(splash)</span></span><br><span class="line"><span class="string">        local host = &quot;proxy.crawlera.com&quot;</span></span><br><span class="line"><span class="string">        local port = 8010</span></span><br><span class="line"><span class="string">        local user = &quot;api_key&quot;</span></span><br><span class="line"><span class="string">        local password = &quot;&quot;</span></span><br><span class="line"><span class="string">        local session_header = &quot;X-Crawlera-Session&quot;</span></span><br><span class="line"><span class="string">        local session_id = &quot;create&quot;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        splash:on_request(function (request)</span></span><br><span class="line"><span class="string">            request:set_header(&quot;X-Crawlera-UA&quot;, &quot;desktop&quot;)</span></span><br><span class="line"><span class="string">            request:set_header(session_header, session_id)</span></span><br><span class="line"><span class="string">            request:set_proxy&#123;host, port, username=user, password=password&#125;</span></span><br><span class="line"><span class="string">        end)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        splash:on_response_headers(function (response)</span></span><br><span class="line"><span class="string">            if response.headers[session_header] ~= nil then</span></span><br><span class="line"><span class="string">                session_id = response.headers[session_header]</span></span><br><span class="line"><span class="string">            end</span></span><br><span class="line"><span class="string">        end)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        splash:go(splash.args.url)</span></span><br><span class="line"><span class="string">        return splash:html()</span></span><br><span class="line"><span class="string">    end</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">CheckSpider</span>(<span class="params">scrapy.Spider</span>):</span></span><br><span class="line">    name = <span class="string">&#x27;scrapy_demo&#x27;</span></span><br><span class="line">    start_urls = <span class="string">&#x27;https://httpbin.org/get&#x27;</span></span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">start_requests</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="keyword">yield</span> SplashRequest(self.start_urls, self.parse, endpoint=<span class="string">&#x27;execute&#x27;</span>,  args=&#123;<span class="string">&#x27;wait&#x27;</span>: <span class="number">3</span>, <span class="string">&#x27;lua_source&#x27;</span>: LUA_SOURCE&#125;)</span><br><span class="line"> </span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">parse</span>(<span class="params">self, response</span>):</span></span><br><span class="line">        <span class="built_in">print</span>(response.text)</span><br></pre></td></tr></table></figure>
+
+<p>参考:</p>
+<ul>
+<li><a href="https://github.com/scrapy-plugins/scrapy-splash/issues/117">https://github.com/scrapy-plugins/scrapy-splash/issues/117</a></li>
+</ul>
+<p>参考:</p>
+<ul>
+<li><a href="https://splash.readthedocs.io/en/stable/search.html?q=splash:html&check_keywords=yes&area=default">Splash</a></li>
+<li><a href="https://github.com/scrapy-plugins/scrapy-splash">Scrapy-Splash</a></li>
+<li><a href="https://doc.scrapinghub.com/crawlera.html#using-crawlera-with-splash">Scrapinghub API Reference</a></li>
+<li><a href="https://stackoverflow.com/questions/43646438/using-proxy-with-scrapy-splash">using proxy with scrapy-splash</a></li>
+<li><a href="http://stackoverflow.com/questions/43090352/proxy-servers-with-scrapy-splash"><strong>Proxy servers with Scrapy-Splash</strong></a></li>
+<li><a href="https://github.com/scrapy-plugins/scrapy-splash/issues/97">Crawlera integration</a></li>
+<li><a href="https://blog.csdn.net/zhengxiangwen/article/details/55227368"><strong>利用scrapy-splash爬取JS生成的动态页面</strong></a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>Spider</category>
+      </categories>
+      <tags>
+        <tag>Scrapy</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Scrapyd + Scrapyd-Client</title>
-    <url>/2019/12/19/Scrapyd%20+%20Scrapyd-Client/</url>
+    <url>/2019/12/19/Scrapyd-Scrapyd-Client/</url>
     <content><![CDATA[<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>​        由于网站时常遭受黑客攻击, 现准备将手头一些攻击者的IP地址收集起来用做企业内部的威胁情报。既然要着手做威胁情报, 那么就避免不了通过一些网站进行数据的丰富化。要想简单省事儿, 当然是使用购买api账号的方式,不过有的api也很坑, 除非购买的是企业版, 否则个人版的api会受到请求速率的限制。所以这边只能依靠爬虫(<strong>Scrapy</strong>)来收集数据。但是采用了分布式爬虫, 就避免不了需要进行集中管理, 以及统一下等操作。下面就说下利用<strong>Scrapy</strong>官方提供的爬虫管理工具(<strong>Scrapyd</strong>)来满足以上的需求。</p>
 <h1 id="Scrapyd"><a href="#Scrapyd" class="headerlink" title="Scrapyd"></a>Scrapyd</h1><p>​        <strong>Scrapyd</strong>是由<strong>Scrapy</strong> 官方提供的爬虫管理工具，使用它我们可以非常方便地上传、控制爬虫并且查看运行日志。</p>
 <p><strong>安装</strong></p>
@@ -327,7 +327,7 @@
   </entry>
   <entry>
     <title>Suricata - Lua Output Script</title>
-    <url>/2019/10/14/Suricata%20-%20Lua%20Output/</url>
+    <url>/2019/10/14/Suricata-Lua-Output/</url>
     <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>​    由于近期网站遭受大量撞库攻击, 想监控一下登录接口中的异常行为。通过<strong>alert</strong>并不能起到很好的效果, 所以采用<strong>Lua</strong>脚本进行扩展, 写了一个审计登录接口的脚本。通过登录接口事件, 再配合<strong>Wazuh</strong>进行一些简单的关联告警,  效果还是不错的。</p>
 <h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><ul>
 <li>由于审计内容涉及到用户敏感信息, 因此需要对敏感信息进行<strong>Hash</strong>之后再输出;</li>
@@ -347,8 +347,21 @@
       </tags>
   </entry>
   <entry>
+    <title>Suricata Custom Rules</title>
+    <url>/2019/10/31/Suricata-Rules/</url>
+    <content><![CDATA[<h1 id="Solr-RCE-CVE-2019-0193"><a href="#Solr-RCE-CVE-2019-0193" class="headerlink" title="Solr RCE CVE-2019-0193"></a>Solr RCE CVE-2019-0193</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Solr POST RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.post.request; content:<span class="string">&quot;POST&quot;</span>; http_method; fast_pattern; content:<span class="string">&quot;/solr&quot;</span>; http_uri; content:<span class="string">&quot;/config&quot;</span>; http_uri; content:<span class="string">&quot;params.resource.loader.enabled&quot;</span>; http_client_body; classtype:shellcode-detect; sid:3020016; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.post.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020017; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Solr GET RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.get.request; content:<span class="string">&quot;GET&quot;</span>; http_method; content:<span class="string">&quot;/solr&quot;</span>; http_uri; fast_pattern; content:<span class="string">&quot;/select?&quot;</span>; http_uri; content:<span class="string">&quot;wt=velocity&quot;</span>; http_uri; content:<span class="string">&quot;java.lang.Runtime&quot;</span>; http_uri; content:<span class="string">&quot;getRuntime().exec&quot;</span>; http_uri; classtype:shellcode-detect; sid:3020018; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.get.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020019; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>NIDS</category>
+      </categories>
+      <tags>
+        <tag>Suricata</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Suricata + Lua实现本地情报对接</title>
-    <url>/2019/10/24/Suricata+Lua%E5%AE%9E%E7%8E%B0%E6%9C%AC%E5%9C%B0%E6%83%85%E6%8A%A5%E5%AF%B9%E6%8E%A5/</url>
+    <url>/2019/10/24/Suricata-Lua%E5%AE%9E%E7%8E%B0%E6%9C%AC%E5%9C%B0%E6%83%85%E6%8A%A5%E5%AF%B9%E6%8E%A5/</url>
     <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>​        由于近期网站遭受恶意攻击, 通过对于登录接口的审计与分析, 现已确定了一批可疑账号。既然之前写过一个登录接口的审计脚本, 那么完全可以通过扩展这个脚本来实现对于可疑账号的比对。主要思路: 通过将可疑账号存进Redis中, 再利用Lua脚本调用Redis接口进行账号的比对。</p>
 <p>先说一下<strong>Suricata</strong>默认是存在黑名单机制的, 如下:</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># IP Reputation</span></span><br><span class="line"><span class="comment">#reputation-categories-file: /etc/suricata/iprep/categories.txt</span></span><br><span class="line"><span class="comment">#default-reputation-path: /etc/suricata/iprep</span></span><br><span class="line"><span class="comment">#reputation-files:</span></span><br><span class="line"><span class="comment"># - reputation.list</span></span><br></pre></td></tr></table></figure>
@@ -405,11 +418,11 @@
 <ul>
 <li>启用CJson模块之前的监控图</li>
 </ul>
-<p><img src="/2019/10/24/Suricata+Lua%E5%AE%9E%E7%8E%B0%E6%9C%AC%E5%9C%B0%E6%83%85%E6%8A%A5%E5%AF%B9%E6%8E%A5/image-20191104103020962.png" alt="image-20191104103020962"></p>
+<p><img src="/2019/10/24/Suricata-Lua%E5%AE%9E%E7%8E%B0%E6%9C%AC%E5%9C%B0%E6%83%85%E6%8A%A5%E5%AF%B9%E6%8E%A5/image-20191104103020962.png" alt="image-20191104103020962"></p>
 <ul>
 <li>启用CJson模块之后的监控图</li>
 </ul>
-<p><img src="/2019/10/24/Suricata+Lua%E5%AE%9E%E7%8E%B0%E6%9C%AC%E5%9C%B0%E6%83%85%E6%8A%A5%E5%AF%B9%E6%8E%A5/image-20191104103557884.png" alt="image-20191104103557884"></p>
+<p><img src="/2019/10/24/Suricata-Lua%E5%AE%9E%E7%8E%B0%E6%9C%AC%E5%9C%B0%E6%83%85%E6%8A%A5%E5%AF%B9%E6%8E%A5/image-20191104103557884.png" alt="image-20191104103557884"></p>
 <ol>
 <li>下载CJson模块</li>
 </ol>
@@ -469,19 +482,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Suricata Custom Rules</title>
-    <url>/2019/10/31/Suricata%20-%20Rules/</url>
-    <content><![CDATA[<h1 id="Solr-RCE-CVE-2019-0193"><a href="#Solr-RCE-CVE-2019-0193" class="headerlink" title="Solr RCE CVE-2019-0193"></a>Solr RCE CVE-2019-0193</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Solr POST RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.post.request; content:<span class="string">&quot;POST&quot;</span>; http_method; fast_pattern; content:<span class="string">&quot;/solr&quot;</span>; http_uri; content:<span class="string">&quot;/config&quot;</span>; http_uri; content:<span class="string">&quot;params.resource.loader.enabled&quot;</span>; http_client_body; classtype:shellcode-detect; sid:3020016; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 POST Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.post.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020017; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Solr GET RCE CVE-2019-0193</span></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET&quot;</span>; flow:to_server,established; flowbits:<span class="built_in">set</span>,CVE-2019-0193.get.request; content:<span class="string">&quot;GET&quot;</span>; http_method; content:<span class="string">&quot;/solr&quot;</span>; http_uri; fast_pattern; content:<span class="string">&quot;/select?&quot;</span>; http_uri; content:<span class="string">&quot;wt=velocity&quot;</span>; http_uri; content:<span class="string">&quot;java.lang.Runtime&quot;</span>; http_uri; content:<span class="string">&quot;getRuntime().exec&quot;</span>; http_uri; classtype:shellcode-detect; sid:3020018; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br><span class="line"></span><br><span class="line">alert http <span class="variable">$EXTERNAL_NET</span> any -&gt; <span class="variable">$HOME_NET</span> any (msg:<span class="string">&quot;LOCAL RULES EXPLOIT Solr RCE CVE-2019-0193 GET Successful&quot;</span>; flow:from_server,established; flowbits:isset,CVE-2019-0193.get.request; content:<span class="string">&quot;200&quot;</span>; http_stat_code; classtype:shellcode-detect; sid:3020019; rev:1; metadata:attack_target web_server, signature_severity Critical, direction outside_to_inside, created_at 2019_10_31, updated_at 2019_10_31, author Canon, tag RCE, tag CVE-2019-0193, tag http, tag exploit, tag Solr;)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>NIDS</category>
-      </categories>
-      <tags>
-        <tag>Suricata</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Wazuh - 黑名单匹配告警(CDB list)</title>
     <url>/2019/10/18/Wazuh-Using-CDB-lists/</url>
     <content><![CDATA[<p><strong>需求:</strong></p>
@@ -517,74 +517,6 @@
 </ol>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./ossec-logtest</span><br><span class="line">2019/10/18 15:06:47 ossec-testrule: INFO: Started (pid: 2184).</span><br><span class="line">ossec-testrule: Type one <span class="built_in">log</span> per line.</span><br><span class="line"></span><br><span class="line">**Phase 3: Completed filtering (rules).</span><br><span class="line">       Rule id: <span class="string">&#x27;100163&#x27;</span></span><br><span class="line">       Level: <span class="string">&#x27;12&#x27;</span></span><br><span class="line">       Description: <span class="string">&#x27;Wazuh Rules - High-risk user login detected. 1.1.1.1 -&gt; admin -&gt; canon88.github.io -&gt; /user/login = success.&#x27;</span></span><br><span class="line">**Alert to be generated.</span><br></pre></td></tr></table></figure>
 
-]]></content>
-      <categories>
-        <category>HIDS</category>
-      </categories>
-      <tags>
-        <tag>Wazuh</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Wazuh - 利用CDB list过滤私网IP地址</title>
-    <url>/2020/01/31/Wazuh-%E5%88%A9%E7%94%A8CDB-list%E8%BF%87%E6%BB%A4%E7%A7%81%E7%BD%91IP%E5%9C%B0%E5%9D%80/</url>
-    <content><![CDATA[<h4 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h4><p>​        目前平台接入了<strong>Suricata</strong>的告警规则, 由于镜像源的关系部分规则产生了**’误’**告警, 因此需要针对这部分规则进行IP地址的过滤。</p>
-<h4 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h4><ol>
-<li>修改Suricata的规则, 如果你的**’误’**告警量很大且为了性能考虑, 推荐直接修改Suricata的规则。</li>
-<li>由于我这边的Suricata告警都是利用Wazuh进行**’消费’<strong>的。因此, 我这边直接采用了</strong><a href="https://documentation.wazuh.com/3.10/user-manual/ruleset/cdb-list.html">Wazuh CDB list</a>**这个功能进行指定IP地址的过滤。</li>
-</ol>
-<h4 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h4><h5 id="1-创建-CDB-list"><a href="#1-创建-CDB-list" class="headerlink" title="1. 创建 CDB list"></a>1. 创建 CDB list</h5><blockquote>
-<p>Each key must be unique and is terminated with a colon <code>:</code>.</p>
-<p>For IP addresses the dot notation is used for subnet matches:</p>
-</blockquote>
-<table>
-<thead>
-<tr>
-<th>key</th>
-<th>CIDR</th>
-<th>Possible matches</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>192.168.:</td>
-<td>192.168.0.0/16</td>
-<td>192.168.0.0 - 192.168.255.255</td>
-</tr>
-<tr>
-<td>172.16.19.:</td>
-<td>172.16.19.0/24</td>
-<td>172.16.19.0 - 172.16.19.255</td>
-</tr>
-<tr>
-<td>10.1.1.1:</td>
-<td>10.1.1.1/32</td>
-<td>10.1.1.1</td>
-</tr>
-</tbody></table>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vim /var/ossec/etc/lists/private_ip</span><br><span class="line"></span><br><span class="line">10.168.:PrivateNet</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Since Wazuh v3.11.3, CDB lists are built and loaded automatically when the analysis engine is started. Therefore, when adding or modifying CDB lists, it is no longer needed to run <code>ossec-makelists</code>, just restart the manager.</p>
-</blockquote>
-<p>从Wazuh v3.11.3开始，将在启动分析引擎时自动构建和加载CDB列表。因此，添加或修改CDB列表时，不再需要运行ossec-makelists，只需重新启动管理器即可。</p>
-<blockquote>
-<p><strong>3.11.3 之前版本需要执行</strong></p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /var/ossec/bin/ossec-makelists</span><br></pre></td></tr></table></figure>
-
-<h5 id="2-在-ossec-conf-中添加-list"><a href="#2-在-ossec-conf-中添加-list" class="headerlink" title="2. 在 ossec.conf 中添加 list"></a>2. 在 ossec.conf 中添加 list</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vim /var/ossec/etc/ossec.conf</span><br><span class="line"></span><br><span class="line">&lt;ossec_config&gt;</span><br><span class="line">  &lt;ruleset&gt;</span><br><span class="line">    &lt;!-- User-defined CDB --&gt;</span><br><span class="line">    &lt;list&gt;etc/lists/private_ip&lt;/list&gt;</span><br><span class="line">  &lt;/ruleset&gt;</span><br><span class="line">&lt;/ossec_config&gt;</span><br></pre></td></tr></table></figure>
-
-<h5 id="3-重启进程"><a href="#3-重启进程" class="headerlink" title="3. 重启进程"></a>3. 重启进程</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ systemctl restart wazuh-manager</span><br></pre></td></tr></table></figure>
-
-<h5 id="4-配置规则"><a href="#4-配置规则" class="headerlink" title="4. 配置规则"></a>4. 配置规则</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&lt;var name=<span class="string">&quot;SAME_IP_TIME&quot;</span>&gt;120&lt;/var&gt;</span><br><span class="line">&lt;var name=<span class="string">&quot;SAME_IP_IGORE&quot;</span>&gt;300&lt;/var&gt;</span><br><span class="line"></span><br><span class="line">&lt;group name=<span class="string">&quot;local,suricata,ids,&quot;</span>&gt;</span><br><span class="line"></span><br><span class="line">    &lt;rule id=<span class="string">&quot;102018&quot;</span> level=<span class="string">&quot;8&quot;</span> frequency=<span class="string">&quot;5&quot;</span> timeframe=<span class="string">&quot;<span class="variable">$SAME_IP_TIME</span>&quot;</span> ignore=<span class="string">&quot;<span class="variable">$SAME_IP_IGORE</span>&quot;</span>&gt;</span><br><span class="line">      &lt;if_matched_sid&gt;86601&lt;/if_matched_sid&gt;</span><br><span class="line">      &lt;field name=<span class="string">&quot;alert.signature_id&quot;</span>&gt;2013057&lt;/field&gt;</span><br><span class="line">      &lt;list field=<span class="string">&quot;src_ip&quot;</span> lookup=<span class="string">&quot;not_address_match_key&quot;</span>&gt;etc/lists/private_ip&lt;/list&gt;</span><br><span class="line">      &lt;description&gt;Wazuh Rules - Same ip of attack occurred 5 <span class="built_in">times</span> within <span class="variable">$SAME_IP_TIME</span> seconds. $(src_ip) -&gt; $(alert.signature) -&gt; $(alert.signature_id).&lt;/description&gt;</span><br><span class="line">      &lt;options&gt;no_full_log&lt;/options&gt;</span><br><span class="line">    &lt;/rule&gt;</span><br><span class="line"></span><br><span class="line">&lt;/group&gt;</span><br></pre></td></tr></table></figure>
-
-<h5 id="5-测试规则"><a href="#5-测试规则" class="headerlink" title="5. 测试规则"></a>5. 测试规则</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /var/ossec/bin/ossec-logtest</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><ul>
-<li><strong><a href="https://documentation.wazuh.com/3.11/user-manual/ruleset/cdb-list.html?highlight=match_key">Using CDB lists</a></strong></li>
-</ul>
 ]]></content>
       <categories>
         <category>HIDS</category>
@@ -722,6 +654,74 @@
       </tags>
   </entry>
   <entry>
+    <title>Wazuh - 利用CDB list过滤私网IP地址</title>
+    <url>/2020/01/31/Wazuh-%E5%88%A9%E7%94%A8CDB-list%E8%BF%87%E6%BB%A4%E7%A7%81%E7%BD%91IP%E5%9C%B0%E5%9D%80/</url>
+    <content><![CDATA[<h4 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h4><p>​        目前平台接入了<strong>Suricata</strong>的告警规则, 由于镜像源的关系部分规则产生了**’误’**告警, 因此需要针对这部分规则进行IP地址的过滤。</p>
+<h4 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h4><ol>
+<li>修改Suricata的规则, 如果你的**’误’**告警量很大且为了性能考虑, 推荐直接修改Suricata的规则。</li>
+<li>由于我这边的Suricata告警都是利用Wazuh进行**’消费’<strong>的。因此, 我这边直接采用了</strong><a href="https://documentation.wazuh.com/3.10/user-manual/ruleset/cdb-list.html">Wazuh CDB list</a>**这个功能进行指定IP地址的过滤。</li>
+</ol>
+<h4 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h4><h5 id="1-创建-CDB-list"><a href="#1-创建-CDB-list" class="headerlink" title="1. 创建 CDB list"></a>1. 创建 CDB list</h5><blockquote>
+<p>Each key must be unique and is terminated with a colon <code>:</code>.</p>
+<p>For IP addresses the dot notation is used for subnet matches:</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>key</th>
+<th>CIDR</th>
+<th>Possible matches</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>192.168.:</td>
+<td>192.168.0.0/16</td>
+<td>192.168.0.0 - 192.168.255.255</td>
+</tr>
+<tr>
+<td>172.16.19.:</td>
+<td>172.16.19.0/24</td>
+<td>172.16.19.0 - 172.16.19.255</td>
+</tr>
+<tr>
+<td>10.1.1.1:</td>
+<td>10.1.1.1/32</td>
+<td>10.1.1.1</td>
+</tr>
+</tbody></table>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vim /var/ossec/etc/lists/private_ip</span><br><span class="line"></span><br><span class="line">10.168.:PrivateNet</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Since Wazuh v3.11.3, CDB lists are built and loaded automatically when the analysis engine is started. Therefore, when adding or modifying CDB lists, it is no longer needed to run <code>ossec-makelists</code>, just restart the manager.</p>
+</blockquote>
+<p>从Wazuh v3.11.3开始，将在启动分析引擎时自动构建和加载CDB列表。因此，添加或修改CDB列表时，不再需要运行ossec-makelists，只需重新启动管理器即可。</p>
+<blockquote>
+<p><strong>3.11.3 之前版本需要执行</strong></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /var/ossec/bin/ossec-makelists</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-在-ossec-conf-中添加-list"><a href="#2-在-ossec-conf-中添加-list" class="headerlink" title="2. 在 ossec.conf 中添加 list"></a>2. 在 ossec.conf 中添加 list</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ vim /var/ossec/etc/ossec.conf</span><br><span class="line"></span><br><span class="line">&lt;ossec_config&gt;</span><br><span class="line">  &lt;ruleset&gt;</span><br><span class="line">    &lt;!-- User-defined CDB --&gt;</span><br><span class="line">    &lt;list&gt;etc/lists/private_ip&lt;/list&gt;</span><br><span class="line">  &lt;/ruleset&gt;</span><br><span class="line">&lt;/ossec_config&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="3-重启进程"><a href="#3-重启进程" class="headerlink" title="3. 重启进程"></a>3. 重启进程</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ systemctl restart wazuh-manager</span><br></pre></td></tr></table></figure>
+
+<h5 id="4-配置规则"><a href="#4-配置规则" class="headerlink" title="4. 配置规则"></a>4. 配置规则</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">&lt;var name=<span class="string">&quot;SAME_IP_TIME&quot;</span>&gt;120&lt;/var&gt;</span><br><span class="line">&lt;var name=<span class="string">&quot;SAME_IP_IGORE&quot;</span>&gt;300&lt;/var&gt;</span><br><span class="line"></span><br><span class="line">&lt;group name=<span class="string">&quot;local,suricata,ids,&quot;</span>&gt;</span><br><span class="line"></span><br><span class="line">    &lt;rule id=<span class="string">&quot;102018&quot;</span> level=<span class="string">&quot;8&quot;</span> frequency=<span class="string">&quot;5&quot;</span> timeframe=<span class="string">&quot;<span class="variable">$SAME_IP_TIME</span>&quot;</span> ignore=<span class="string">&quot;<span class="variable">$SAME_IP_IGORE</span>&quot;</span>&gt;</span><br><span class="line">      &lt;if_matched_sid&gt;86601&lt;/if_matched_sid&gt;</span><br><span class="line">      &lt;field name=<span class="string">&quot;alert.signature_id&quot;</span>&gt;2013057&lt;/field&gt;</span><br><span class="line">      &lt;list field=<span class="string">&quot;src_ip&quot;</span> lookup=<span class="string">&quot;not_address_match_key&quot;</span>&gt;etc/lists/private_ip&lt;/list&gt;</span><br><span class="line">      &lt;description&gt;Wazuh Rules - Same ip of attack occurred 5 <span class="built_in">times</span> within <span class="variable">$SAME_IP_TIME</span> seconds. $(src_ip) -&gt; $(alert.signature) -&gt; $(alert.signature_id).&lt;/description&gt;</span><br><span class="line">      &lt;options&gt;no_full_log&lt;/options&gt;</span><br><span class="line">    &lt;/rule&gt;</span><br><span class="line"></span><br><span class="line">&lt;/group&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="5-测试规则"><a href="#5-测试规则" class="headerlink" title="5. 测试规则"></a>5. 测试规则</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /var/ossec/bin/ossec-logtest</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><ul>
+<li><strong><a href="https://documentation.wazuh.com/3.11/user-manual/ruleset/cdb-list.html?highlight=match_key">Using CDB lists</a></strong></li>
+</ul>
+]]></content>
+      <categories>
+        <category>HIDS</category>
+      </categories>
+      <tags>
+        <tag>Wazuh</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Zeek - 集群部署模式</title>
     <url>/2021/03/02/Zeek-%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E6%A8%A1%E5%BC%8F/</url>
     <content><![CDATA[<h4 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h4><p><strong><a href="https://software.opensuse.org/download.html?project=security:zeek&package=zeek">在线安装</a></strong></p>
@@ -846,7 +846,7 @@
   </entry>
   <entry>
     <title>我在&#39;云&#39;上的日子 - Zeek(部署)</title>
-    <url>/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90%20-%20Zeek%E9%83%A8%E7%BD%B2/</url>
+    <url>/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-Zeek%E9%83%A8%E7%BD%B2/</url>
     <content><![CDATA[<h4 id="Optional-Dependencies"><a href="#Optional-Dependencies" class="headerlink" title="Optional Dependencies"></a>Optional Dependencies</h4><h5 id="PF-RING"><a href="#PF-RING" class="headerlink" title="PF_RING"></a>PF_RING</h5><p><strong>参考:</strong></p>
 <ul>
 <li><strong><a href="https://docs.zeek.org/en/v3.1.1/configuration/index.html#pf-ring-cluster-configuration">Installing PF_RING</a></strong></li>
@@ -1080,7 +1080,7 @@
   </entry>
   <entry>
     <title>我在&#39;云&#39;上的日子 - Suricata(部署)</title>
-    <url>/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90%20-%20Suricata%E9%83%A8%E7%BD%B2/</url>
+    <url>/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-Suricata%E9%83%A8%E7%BD%B2/</url>
     <content><![CDATA[<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="PF-RING"><a href="#PF-RING" class="headerlink" title="PF_RING"></a>PF_RING</h2><p><strong>1. pf_ring</strong></p>
 <ul>
 <li> <strong>二进制安装</strong></li>
@@ -1852,7 +1852,7 @@
 </ul>
 <hr>
 <p><strong>写在最后：</strong>        </p>
-<p>​    如果你有关注过开源解决方案的话，相信你一定有看到过一些<em>TheHive</em>与工作流<em>（*</em><a href="https://medium.com/shuffle-automation">Shuffle</a>、<a href="https://docs.n8n.io/nodes/n8n-nodes-base.theHive/#basic-operations">n8n</a><strong>）<em>组件整合的方案。不难看出，</em>TheHive*擅长的是事件响应与分析，这是一种半自动化的形式。通过与工作流组件的对接，你会发现这就是一个“</strong>散装*<em>”版的</em>SOAR<em>。商业的</em>SOAR<em>相比开源的</em>SOAR<em>多了一个“作战室”的概念，这个功能与</em>TheHive<em>就会有那么一些相似。例如：你可以在作战室中分析某个IP的情报信息，或者联动现有安全设备对某个</em>IoC<em>进行响应的操作。这些功能其实就是对应到了</em>TheHive<em>中的</em>Analyzers<em>与</em>Responders*的功能。</p>
+<p>​    如果你有关注过开源解决方案的话，相信你一定有看到过一些<em>TheHive</em>与工作流（**<a href="https://medium.com/shuffle-automation">Shuffle</a>、<a href="https://docs.n8n.io/nodes/n8n-nodes-base.theHive/#basic-operations">n8n</a><strong>）组件整合的方案。不难看出，<em>TheHive</em>擅长的是事件响应与分析，这是一种半自动化的形式。通过与工作流组件的对接，你会发现这就是一个“</strong>散装*<em>”版的</em>SOAR<em>。商业的</em>SOAR<em>相比开源的</em>SOAR<em>多了一个“作战室”的概念，这个功能与</em>TheHive<em>就会有那么一些相似。例如：你可以在作战室中分析某个IP的情报信息，或者联动现有安全设备对某个</em>IoC<em>进行响应的操作。这些功能其实就是对应到了</em>TheHive<em>中的</em>Analyzers<em>与</em>Responders*的功能。</p>
 <p>​    我个人觉得<em>TheHive</em>这种“半自动化”的形式，可以很好的与<em>SOAR</em>进行互补，相信与<em>SOAR</em>对接后会有更多的“价值”被体现出来。例如：在分析任务中可按照场景的不同有选择的调用<em>SOAR</em>的<em>PalyBook</em>，并将响应结果<em>feedback</em>至<em>TheHive</em>中。其实<em>TheHive</em>上还有挺多东西值得说的，一次也写不完。更多东西还需要我们根据实际场景再去挖掘，“思路”很重要！</p>
 ]]></content>
       <categories>
