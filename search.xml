@@ -1991,7 +1991,7 @@
       </tags>
   </entry>
   <entry>
-    <title>Zeek-ThreatHunting</title>
+    <title>How to Use Zeek ThreatHunting?</title>
     <url>/2024/02/25/Zeek-ThreatHunting/</url>
     <content><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>春节期间，我利用课余时间将之前的一些想法付诸实践。我们都知道，网络威胁分析(NTA)除了具备网络入侵检测系统(NIDS)功能外，还有一个重要特性就是强大的协议解析能力，这对于安全事件的溯源提供了极大的帮助。然而，并非所有的企业都能充分利用这个能力，主要原因有两个方面：</p>
 <ol>
