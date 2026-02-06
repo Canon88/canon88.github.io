@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="写在前面​    上半年是忙的要死，下半年都没怎么做“阳间”的事。这会“阳”了，顺带可以整理一些零散的知识点分享给大家。这一偏会比较剪短一些。 背景​    知道Zeek的小伙伴应该都熟悉或者知道Suricata吧。Suricata在每次调整规则之后是可以通过reload来直接加载规则的，这样的好处是不用重启Suricata就让规则生效，生效速度很快。不知道大家在Zeek上是怎么做的，我之前都是用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="了不起的 Zeek Configuration Framework">
+<meta property="og:url" content="http://example.com/2022/12/15/Zeek-Configuration-Framework/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="写在前面​    上半年是忙的要死，下半年都没怎么做“阳间”的事。这会“阳”了，顺带可以整理一些零散的知识点分享给大家。这一偏会比较剪短一些。 背景​    知道Zeek的小伙伴应该都熟悉或者知道Suricata吧。Suricata在每次调整规则之后是可以通过reload来直接加载规则的，这样的好处是不用重启Suricata就让规则生效，生效速度很快。不知道大家在Zeek上是怎么做的，我之前都是用">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/12/15/Zeek-Configuration-Framework/iShot_2022-12-16_16.24.59.png">
+<meta property="article:published_time" content="2022-12-15T11:37:37.000Z">
+<meta property="article:modified_time" content="2022-12-16T09:18:48.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="Zeek">
+<meta property="article:tag" content="NTA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/12/15/Zeek-Configuration-Framework/iShot_2022-12-16_16.24.59.png">
+
+
+<link rel="canonical" href="http://example.com/2022/12/15/Zeek-Configuration-Framework/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2022&#x2F;12&#x2F;15&#x2F;Zeek-Configuration-Framework&#x2F;&quot;,&quot;path&quot;:&quot;2022&#x2F;12&#x2F;15&#x2F;Zeek-Configuration-Framework&#x2F;&quot;,&quot;title&quot;:&quot;了不起的 Zeek Configuration Framework&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>了不起的 Zeek Configuration Framework | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%82%A3%E4%B9%88%E5%BC%80%E5%A7%8B%E5%90%A7%EF%BC%9F"><span class="nav-number">3.</span> <span class="nav-text">那么开始吧？</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F%E6%94%AF%E6%8C%81%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.1.</span> <span class="nav-text">注意支持类型</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%EF%BC%9Arecord-http-domain"><span class="nav-number">3.2.</span> <span class="nav-text">示例：record-http_domain</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%9C%8B%E4%B8%80%E4%B8%8B%E6%95%88%E6%9E%9C%E5%A6%82%E4%BD%95"><span class="nav-number">4.</span> <span class="nav-text">看一下效果如何</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/12/15/Zeek-Configuration-Framework/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          了不起的 Zeek Configuration Framework
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-12-15 19:37:37" itemprop="dateCreated datePublished" datetime="2022-12-15T19:37:37+08:00">2022-12-15</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-12-16 17:18:48" itemprop="dateModified" datetime="2022-12-16T17:18:48+08:00">2022-12-16</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.8k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h4 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h4><p>​    上半年是忙的要死，下半年都没怎么做“阳间”的事。这会“阳”了，顺带可以整理一些零散的知识点分享给大家。这一偏会比较剪短一些。</p>
+<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>​    知道Zeek的小伙伴应该都熟悉或者知道Suricata吧。Suricata在每次调整规则之后是可以通过reload来直接加载规则的，这样的好处是不用重启Suricata就让规则生效，生效速度很快。不知道大家在Zeek上是怎么做的，我之前都是用<code>zeek deploy</code>的方式确保最新的配置加载。起初，这并不会有什么太大的问题，但是随着Zeek的机器越来越多，操作就会变的异常繁琐。当然，如果你使用了Zeek的集群架构，它也是比较方便的。我今天就来介绍一个让配置加载变的更加便捷的方法，那就是利用Zeek自带的<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/frameworks/configuration.html#configuration-framework">Configuration Framework</a>来实现日常大部分的配置变更与“热”加载。</p>
+<h4 id="那么开始吧？"><a href="#那么开始吧？" class="headerlink" title="那么开始吧？"></a>那么开始吧？</h4><h5 id="注意支持类型"><a href="#注意支持类型" class="headerlink" title="注意支持类型"></a>注意支持类型</h5><p>​    就像我上面的描述那样，Configuration Framework能做到对日常大部分的配置实现“热”加载。因为它有类型的要求，只有在脚本中包含指定的配置项类型才能实现试试下发与“热”加载。一旦出现类型错误，日志将会被发送至<code>reporter.log</code>文件中，大家注意观察。目前支持的类型在大多数情况下是够用的，下表为详细类型：</p>
+<table>
+<thead>
+<tr>
+<th>Data Type</th>
+<th>Sample Config File Entry</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-addr"><code>addr</code></a></td>
+<td><code>1.2.3.4</code></td>
+<td>Plain IPv4 or IPv6 address, as in Zeek. No <code>/32</code> or similar netmasks.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-bool"><code>bool</code></a></td>
+<td><code>T</code></td>
+<td><code>T</code> or <code>1</code> for true, <code>F</code> or <code>0</code> for false</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-count"><code>count</code></a></td>
+<td><code>42</code></td>
+<td>Plain, nonnegative integer.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-double"><code>double</code></a></td>
+<td><code>-42.5</code></td>
+<td>Plain double number.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-enum"><code>enum</code></a></td>
+<td><code>Enum::FOO_A</code></td>
+<td>Plain enum string.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-int"><code>int</code></a></td>
+<td><code>-1</code></td>
+<td>Plain integer.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-interval"><code>interval</code></a></td>
+<td><code>3600.0</code></td>
+<td>Always in epoch seconds, with optional fraction of seconds. Never includes a time unit.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-pattern"><code>pattern</code></a></td>
+<td>`/(foo</td>
+<td>bar)/`</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-port"><code>port</code></a></td>
+<td><code>42/tcp</code></td>
+<td>Port number with protocol, as in Zeek. When the protocol part is missing, Zeek interprets it as <code>/unknown</code>.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-set"><code>set</code></a></td>
+<td><code>80/tcp,53/udp</code></td>
+<td>The set members, formatted as per their own type, separated by commas. For an empty set, use an empty string: just follow the option name with whitespace.Sets with multiple index types (e.g. <code>set[addr,string]</code>) are currently not supported in config files.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-string"><code>string</code></a></td>
+<td><code>Don’t bite, Zeek</code></td>
+<td>Plain string, no quotation marks. Given quotation marks become part of the string. Everything after the whitespace separator delineating the option name becomes the string. Saces and special characters are fine. Backslash characters (e.g. <code>\n</code>) have no special meaning.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-subnet"><code>subnet</code></a></td>
+<td><code>1.2.3.4/16</code></td>
+<td>Plain subnet, as in Zeek.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-time"><code>time</code></a></td>
+<td><code>1608164505.5</code></td>
+<td>Always in epoch seconds, with optional fraction of seconds. Never includes a time unit.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-vector"><code>vector</code></a></td>
+<td><code>1,2,3,4</code></td>
+<td>The set members, formatted as per their own type, separated by commas. For an empty vector, use an empty string: just follow the option name with whitespace.</td>
+</tr>
+</tbody></table>
+<h5 id="示例：record-http-domain"><a href="#示例：record-http-domain" class="headerlink" title="示例：record-http_domain"></a>示例：record-http_domain</h5><p>​    针对需要对HTTP做审计或者监测的小伙伴，可以通过此方法快速的将不需要的记录的域名进行过滤，或者只记录关注的域名。</p>
+<ul>
+<li><p>record-http_domain.zeek</p>
+<p>任何需要进行动态调整的参数，都必须在export中通过option去声明。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> HTTP;</span><br><span class="line"><span class="keyword">module</span> HTTPFilterDomain;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">  <span class="meta"># domain name</span></span><br><span class="line">  option local_domain: <span class="built_in">set</span>[<span class="built_in">string</span>] = &#123;&#125;;</span><br><span class="line">  # record_local_zone</span><br><span class="line">  option record_local_zone: <span class="keyword">bool</span> = F;</span><br><span class="line">  # Load HTTP config.dat</span><br><span class="line">  redef Config::config_files += &#123; <span class="string">&quot;/usr/local/zeek/share/zeek/site/http-audit/record-http_domain.dat&quot;</span> &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">redef record HTTP::Info += &#123;</span><br><span class="line">  is_local_zone: <span class="keyword">bool</span> &amp;<span class="built_in">log</span> &amp;<span class="keyword">default</span>=F;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">hook <span class="title">HTTP::log_policy</span><span class="params">(rec: HTTP::Info, id: Log::ID, filter: Log::Filter)</span> &amp;priority </span>= <span class="number">10</span></span><br><span class="line">  &#123;</span><br><span class="line">  <span class="keyword">if</span> ( filter$name != <span class="string">&quot;default&quot;</span> )</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( record_local_zone )</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">if</span> ( rec$host ! in local_domain )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    rec$is_local_zone = T;</span><br><span class="line">    &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">if</span> ( rec$host in local_domain )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>record-http_domain.dat</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># string</span></span><br><span class="line">HTTPFilterDomain::local_domain ifconfig.io,ipinfo.io</span><br><span class="line"><span class="comment"># bool</span></span><br><span class="line">HTTPFilterDomain::record_local_zone F</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="看一下效果如何"><a href="#看一下效果如何" class="headerlink" title="看一下效果如何"></a>看一下效果如何</h4><p>​    由于我是将HTTP发送到了Kafka里面，好处就是不用关注本身NTA机器的磁盘存储的问题了。这里我通过Kafka的Topic数据给大家看下。</p>
+<p><img src="/2022/12/15/Zeek-Configuration-Framework/iShot_2022-12-16_16.24.59.png" alt="iShot_2022-12-16_16.24.59"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Zeek/" rel="tag"># Zeek</a>
+              <a href="/tags/NTA/" rel="tag"># NTA</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/" rel="prev" title="Zeek-Kafka 之 硬盘舒服了!">
+                  <i class="fa fa-chevron-left"></i> Zeek-Kafka 之 硬盘舒服了!
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/" rel="next" title="致我心中的“散装”SOAR，当Thehive遇到n8n">
+                  致我心中的“散装”SOAR，当Thehive遇到n8n <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

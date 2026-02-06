@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="一个热爱健身的安全分析师">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Canon&#39;s Blog">
+<meta property="og:url" content="http://example.com/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="一个热爱健身的安全分析师">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="Canon">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:true,&quot;isPost&quot;:false,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:&quot;&quot;,&quot;permalink&quot;:&quot;&quot;,&quot;path&quot;:&quot;index.html&quot;,&quot;title&quot;:&quot;&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" class="post-title-link" itemprop="url">自动化之后，SOC 该如何迈向智能化？</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-02-03 23:37:43 / 修改时间：23:33:25" itemprop="dateCreated datePublished" datetime="2026-02-03T23:37:43+08:00">2026-02-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/SOC/" itemprop="url" rel="index"><span itemprop="name">SOC</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h2 id="引言：从自动化到智能化，SOC-正在经历什么？"><a href="#引言：从自动化到智能化，SOC-正在经历什么？" class="headerlink" title="引言：从自动化到智能化，SOC 正在经历什么？"></a>引言：从自动化到智能化，SOC 正在经历什么？</h2><p>如果你的 SOC 正在经历从 <strong>自动化</strong> 走向 <strong>智能化</strong> 的阶段，那么下面这些思考，或许会对你有所帮助。</p>
+<p><img src="/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/1.png" alt="1"></p>
+<hr>
+<p>在 SOC 的自动化阶段，我们做的事情其实非常清晰：</p>
+<p>将个人经验沉淀为 <strong>SOP</strong>，再通过 <strong>SOAR</strong> 将 SOP 转换为可执行的「剧本」。</p>
+<p>这些剧本对 <strong>入参、出参以及执行路径</strong> 都有严格约束——这正是自动化最核心的优势所在：</p>
+<blockquote>
+<p>自动化擅长解决「<strong>已知问题 + 已知路径</strong>」。</p>
+<p>一旦条件满足，执行高效、稳定且可规模化。</p>
+</blockquote>
+<hr>
+<p>但随着剧本数量不断增加，问题也逐渐显现。</p>
+<p>一方面，自动化天然依赖 <strong>确定性输入</strong>。只要告警或事件稍微偏离预期路径，剧本就无法命中，最终仍需要人工介入。久而久之，便会出现一种并不陌生的现象：</p>
+<blockquote>
+<p>剧本在不断沉淀，但真正被高频使用的却越来越少。</p>
+</blockquote>
+<p>另一方面，当面对 <strong>跨系统、跨阶段、信息不完整</strong> 的复杂安全事件时，我们会发现，问题本身已经不再是”流程是否完整”，而是：</p>
+<blockquote>
+<p>如何在不确定的信息中完成研判与调查。</p>
+</blockquote>
+<p>而这，恰恰是传统自动化最不擅长的部分。</p>
+<hr>
+<p>也正是在这样的背景下，近几年 <strong>AI，尤其是 LLM</strong> 的快速发展，为处于「<strong>重度自动化阶段</strong>」的 SOC 团队提供了一个新的契机。</p>
+<p>通过引入 AI 的 <strong>推理与判断能力</strong>，SOC 开始有机会在 <strong>研判</strong> 与 <strong>调查</strong> 这两个高度依赖经验的环节中，弥补自动化在不确定性场景下的天然短板，从而迈向真正意义上的智能化阶段。</p>
+<hr>
+<p>需要强调的是，这并不意味着 SOC 可以跳过”自动化”阶段，直接进入所谓的「AI SOC」。</p>
+<p>恰恰相反：</p>
+<blockquote>
+<p><strong>自动化，是智能化 SOC 不可或缺的基础层。</strong></p>
+</blockquote>
+<p>在引入 AI 之后，SOC 面临的并不是”是否还需要自动化”，而是：</p>
+<blockquote>
+<p><strong>如何重新定义自动化在整个运营体系中的角色！</strong></p>
+</blockquote>
+<hr>
+<h2 id="AI-不是替代自动化，而是“消耗自动化沉淀”的上层能力"><a href="#AI-不是替代自动化，而是“消耗自动化沉淀”的上层能力" class="headerlink" title="AI 不是替代自动化，而是“消耗自动化沉淀”的上层能力"></a>AI 不是替代自动化，而是“消耗自动化沉淀”的上层能力</h2><p>AI 并不是直接解决安全问题的能力。它本质上是建立在自动化之上的一种 <strong>能力放大器。</strong>用于<strong>消化、调用并放大既有能力。</strong></p>
+<p>AI 本身并不具备执行力。真正决定 AI 能走多远的，始终是 SOC 在自动化阶段已经沉淀下来的能力基础。</p>
+<h3 id="1-没有自动化，AI-只能停留在“建议”"><a href="#1-没有自动化，AI-只能停留在“建议”" class="headerlink" title="1. 没有自动化，AI 只能停留在“建议”"></a>1. 没有自动化，AI 只能停留在“建议”</h3><p>AI 并不能直接作用于真实环境。它需要 <strong>可调用、可执行、可审计</strong> 的底层能力作为支撑。这意味着，在自动化阶段沉淀下来的原子能力，需要以 MCP Tools 的形式暴露给 AI 使用。</p>
+<p>如果缺乏这些原子能力：</p>
+<ul>
+<li>AI 无法真正调用真实世界的能力；</li>
+<li>只能停留在分析、推理和“给建议”的层面；</li>
+<li>无法形成闭环，更谈不上规模化落地。</li>
+</ul>
+<h3 id="2-没有-SOP，AI-的判断无法落地"><a href="#2-没有-SOP，AI-的判断无法落地" class="headerlink" title="2. 没有 SOP，AI 的判断无法落地"></a>2. 没有 SOP，AI 的判断无法落地</h3><p>在自动化阶段我们努力让 SOP 不被“<strong>挂在墙上</strong>”。在智能化阶段，SOP 不会消失，反而变得更加重要。SOP 不再只是给人看的操作说明，而是一种：<strong>约束</strong>与<strong>引导</strong>机制。它为 AI 提供 符合真实环境、组织策略与安全边界的处理路径。</p>
+<blockquote>
+<p>换句话说：SOP 决定了 AI「<strong>可以怎么做</strong>」，而不仅仅是「<strong>应该怎么想</strong>」。</p>
+</blockquote>
+<p>此外，在实际运行中，自动化往往还承担着一个容易被忽视的角色：<strong>信息准备层</strong>。通过自动化手段对告警进行<strong>上下文补充</strong>、<strong>资产关联</strong>、<strong>情报拉取</strong>与<strong>数据聚合</strong>，可以在进入 AI 研判之前，就将信息尽可能 结构化、丰富化：</p>
+<ul>
+<li>减少 AI 的重复调用；</li>
+<li>降低整体运行成本；</li>
+<li>提升研判稳定性与一致性。</li>
+</ul>
+<p>因此，在迈向智能化 SOC 的过程中，自动化并没有被削弱，而是完成了一次角色转变：</p>
+<blockquote>
+<p>从<strong>「流程执行者」转变为「能力提供者」和「信息放大器」</strong>。</p>
+</blockquote>
+<hr>
+<h2 id="为什么研判与调查，才是-AI-最适合介入的环节？"><a href="#为什么研判与调查，才是-AI-最适合介入的环节？" class="headerlink" title="为什么研判与调查，才是 AI 最适合介入的环节？"></a>为什么研判与调查，才是 AI 最适合介入的环节？</h2><p>研判与调查，是 SOC 中 <strong>不确定性最高、规则最难穷举、却又高度依赖经验</strong> 的环节。</p>
+<p>而这，恰恰是 AI 最擅长、也是传统自动化最”<strong>无能为力</strong>“的地方。</p>
+<h3 id="1-研判与调查的本质，是在不完整信息中做判断"><a href="#1-研判与调查的本质，是在不完整信息中做判断" class="headerlink" title="1. 研判与调查的本质，是在不完整信息中做判断"></a>1. 研判与调查的本质，是在不完整信息中做判断</h3><p>与检测规则或自动化处置不同，研判与调查面对的，往往并不是”条件是否满足”，而是：</p>
+<ul>
+<li>告警信息不完整，甚至存在噪声；</li>
+<li>数据分散在多个系统中，需要横向关联；</li>
+<li>事件是否构成风险，依赖上下文而非单一指标；</li>
+<li>同一类告警，在不同业务、不同资产背景下，结论可能完全不同。</li>
+</ul>
+<p>这类问题，很难通过固定规则或条件穷举来解决，却高度依赖：</p>
+<ul>
+<li>经验积累；</li>
+<li>模式识别；</li>
+<li>对业务与环境上下文的理解。</li>
+</ul>
+<p>而这，正是 <strong>LLM 最擅长的！</strong></p>
+<h3 id="2-自动化擅长”执行”，但不擅长”判断”"><a href="#2-自动化擅长”执行”，但不擅长”判断”" class="headerlink" title="2. 自动化擅长”执行”，但不擅长”判断”"></a>2. 自动化擅长”执行”，但不擅长”判断”</h3><p>自动化在 SOC 中的价值非常明确：<strong>路径清晰、条件明确、结果可预期</strong>。</p>
+<p>它非常适合处理：</p>
+<ul>
+<li>批量化、重复性任务；</li>
+<li>明确的处置流程；</li>
+<li>可被标准化的操作动作。</li>
+</ul>
+<p>但研判与调查恰恰相反：</p>
+<ul>
+<li>很多判断不是”是否满足条件”，而是”是否合理”；</li>
+<li>很多结论不是二元判断，而是带概率与置信度的判断；</li>
+<li>调查路径需要根据中间结果不断调整，具有明显的动态性。</li>
+</ul>
+<p>如果强行用剧本去覆盖研判与调查阶段，通常只会出现两个结果：</p>
+<ul>
+<li>剧本复杂度不断上升，却依然无法覆盖所有场景；</li>
+<li>分析师开始绕过自动化，回到完全依赖人工的分析模式。</li>
+</ul>
+<blockquote>
+<p>AI 的引入，本质上是：填补自动化在「判断层」的 <strong>空白</strong>。</p>
+</blockquote>
+<h3 id="3-从落地角度看，这是-AI-最容易”真正落地”的切入口"><a href="#3-从落地角度看，这是-AI-最容易”真正落地”的切入口" class="headerlink" title="3. 从落地角度看，这是 AI 最容易”真正落地”的切入口"></a>3. 从落地角度看，这是 AI 最容易”真正落地”的切入口</h3><p>在”真实世界”的 SOC 工作中，引入 AI 往往面临两个非常现实、且不可回避的约束：</p>
+<ul>
+<li>不能影响生产稳定性；</li>
+<li>不能引入不可控的误操作风险。</li>
+</ul>
+<p>这意味着，AI 很难一开始就参与”处置”。在此阶段我们需要与 AI 建立”信任”。</p>
+<p>相比之下，将 AI <strong>优先引入研判与调查阶段</strong>，是一个更现实、也更稳妥的切入口：</p>
+<ul>
+<li><strong>不直接接管处置权</strong>，最终决策仍由人完成；</li>
+<li><strong>不改变既有检测链路</strong>，避免对生产环境产生影响；</li>
+<li><strong>不引入破坏性操作风险</strong>，即便判断失误，代价也可控。</li>
+</ul>
+<p>但与此同时，它可以带来非常直接、可量化的收益：</p>
+<ul>
+<li>显著降低人工分析的时间成本；</li>
+<li>提升告警研判的一致性与稳定性；</li>
+<li>缓解 Tier 1 分析师的人力瓶颈。</li>
+</ul>
+<p>这使得 AI 在 SOC 中的角色，更像是一个：</p>
+<blockquote>
+<p>可逐步放权、可持续验证价值的”增强型分析能力”，而不是一次性、大规模替换人的”黑盒系统”。</p>
+</blockquote>
+<p>也正因为如此，研判与调查，往往成为 AI 在 SOC 中 <strong>最先真正跑起来、且最容易跑稳的场景</strong>。</p>
+<hr>
+<h2 id="为什么要优先从告警研判入手？"><a href="#为什么要优先从告警研判入手？" class="headerlink" title="为什么要优先从告警研判入手？"></a>为什么要优先从告警研判入手？</h2><p>在 SOC 的日常运行中，大量工作并不是在处理「已确认的安全事件」，而是在对 <strong>源源不断的告警进行研判</strong>，确保它们被 <strong>正确分流和处置</strong>。</p>
+<p>现实中，这部分工作通常由 Tier 1 分析师承担，而在国内环境下，很少存在”<strong>只做研判</strong>“的纯 Tier 1 角色。更多时候，分析师需要在告警研判、日常运营、规则优化甚至项目支持之间反复切换。这使得 <strong>告警研判成为最消耗人力、同时也最容易成为瓶颈的环节</strong>。</p>
+<p><img src="/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/2.jpg" alt="2"></p>
+<hr>
+<p>因此，将 AI 优先引入告警研判阶段，往往可以在 <strong>不改变 SOC 整体架构</strong> 的前提下，显著释放分析师的时间与精力。</p>
+<p>通过 <strong>SOAR + AI</strong> 的组合：</p>
+<ul>
+<li>自动化负责信息收集、上下文补全与初步归并；</li>
+<li>AI 在已有信息基础上完成快速分析与定性建议；</li>
+<li>人只需对关键告警进行最终确认。</li>
+</ul>
+<p>优先选择告警研判，并不是因为它”简单”，而是因为它决定了 SOC 是否能把有限的人力，用在 <strong>更具研究价值的工作上</strong>：检测工程、威胁狩猎或安全研究。</p>
+<hr>
+<h2 id="研判与调查：是必须被严格区分的两件事！"><a href="#研判与调查：是必须被严格区分的两件事！" class="headerlink" title="研判与调查：是必须被严格区分的两件事！"></a>研判与调查：是必须被严格区分的两件事！</h2><blockquote>
+<p>研判决定是否升级，调查决定如何响应。</p>
+<p>两者边界越清晰，AI 才越容易安全落地。</p>
+</blockquote>
+<p>在实践中，<strong>一个常见且”危险”的误区</strong>，是 <strong>将”告警研判”和”事件调查”混为一谈</strong>。这不仅会拉高研判阶段的复杂度，也会让 AI 的使用边界变得模糊甚至 <strong>失控</strong>。</p>
+<h3 id="告警研判（Alert-Triage）"><a href="#告警研判（Alert-Triage）" class="headerlink" title="告警研判（Alert Triage）"></a>告警研判（Alert Triage）</h3><ul>
+<li><strong>核心问题</strong>：这是真的攻击，还是误报？</li>
+<li><strong>目标</strong>：降噪与定性</li>
+<li><strong>关注点</strong>：速度、一致性、可解释性</li>
+<li><strong>SOC 视角</strong>：分诊台</li>
+</ul>
+<h3 id="事件调查（Incident-Investigation）"><a href="#事件调查（Incident-Investigation）" class="headerlink" title="事件调查（Incident Investigation）"></a>事件调查（Incident Investigation）</h3><ul>
+<li><strong>核心问题</strong>：攻击者是谁？影响了什么？如何进入？</li>
+<li><strong>目标</strong>：溯源与定损</li>
+<li><strong>关注点</strong>：深度、完整性、可复现性</li>
+<li><strong>SOC 视角</strong>：手术室</li>
+</ul>
+<hr>
+<h2 id="AI-撕开了运营的”遮羞布”"><a href="#AI-撕开了运营的”遮羞布”" class="headerlink" title="AI 撕开了运营的”遮羞布”"></a>AI 撕开了运营的”遮羞布”</h2><p>过去一年，我们在 SOC 运营中全面引入 AI，并将其与既有的自动化体系（SOAR）深度融合。</p>
+<p>从指标上看，这是一场”<strong>胜利</strong>“：Tier 1 分析师从重复劳动中被解放出来，复杂 Case 的吞吐量提升，整体 <strong>MTTR 明显改善</strong>。</p>
+<p><img src="/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/3.png" alt="3"></p>
+<p>但当 AI 真正进入 <strong>日常、高频、规模化</strong> 的研判流程后，我们很快意识到一件事：</p>
+<blockquote>
+<p>AI 并没有自动让研判变得更稳定，反而像一面 <strong>放大镜</strong>，撕开了 SOC 运营体系中原本被掩盖的问题。</p>
+</blockquote>
+<p>最先暴露出来的，并不是检测能力、数据质量，甚至也不是模型能力，而是一个长期被忽视的基础问题：</p>
+<blockquote>
+<p>告警研判的 <strong>一致性</strong> 与 <strong>可复用性</strong>。</p>
+</blockquote>
+<h3 id="在没有-AI-的时代，这些问题是被”默许”的"><a href="#在没有-AI-的时代，这些问题是被”默许”的" class="headerlink" title="在没有 AI 的时代，这些问题是被”默许”的"></a>在没有 AI 的时代，这些问题是被”默许”的</h3><p>在传统 SOC 运营模式下，研判质量高度依赖个人经验：</p>
+<ul>
+<li>不同分析师对同一类告警，结论可能并不一致；</li>
+<li>资深分析师往往能快速给出 <strong>“正确但难以解释”</strong> 的判断；</li>
+<li>这些差异被默认为”经验差距”，并被组织所接受。</li>
+</ul>
+<p>从结果上看，这种状态虽然低效，但仍处于一种 <strong>“软性可控”</strong> 的状态 —— <strong>因为问题只存在于个体之间，而不是被系统性放大</strong>。</p>
+<h3 id="进入-AI-时代后，问题被系统性放大"><a href="#进入-AI-时代后，问题被系统性放大" class="headerlink" title="进入 AI 时代后，问题被系统性放大"></a>进入 AI 时代后，问题被系统性放大</h3><p>当 AI 介入研判之后，情况发生了变化。</p>
+<p>如果缺乏 <strong>清晰</strong> 的 <strong>SOP</strong> 与经验约束，AI 会对同一类告警：</p>
+<ul>
+<li>给出风格差异极大的分析结论；</li>
+<li>采用逻辑路径不一致的判断方式；</li>
+<li>甚至在不同时间，对同一问题给出 <strong>相互矛盾</strong> 的结论。</li>
+</ul>
+<p>处在自动化阶段的 SOC，可以通过 SOAR 做很多事。但 SOAR 始终只能提供 “<strong>冷冰冰的数据上下文</strong>“：</p>
+<ul>
+<li>字段</li>
+<li>日志</li>
+<li>关联关系</li>
+<li>历史次数</li>
+</ul>
+<p>但它无法回答一个关键问题：</p>
+<blockquote>
+<p><strong>“在我们这个组织里，这类告警通常是如何被理解和处理的？”</strong></p>
+</blockquote>
+<p>也正是在这个阶段，我们逐渐意识到：</p>
+<blockquote>
+<p>如果没有经验约束，AI 只会把研判差异放大成系统性风险。</p>
+</blockquote>
+<h3 id="SOP，决定了-AI-研判的”下限”"><a href="#SOP，决定了-AI-研判的”下限”" class="headerlink" title="SOP，决定了 AI 研判的”下限”"></a>SOP，决定了 AI 研判的”下限”</h3><p>在告警研判与事件处理中，AI 并不是凭空做判断。</p>
+<p>它所采用的分析路径、检查步骤与决策逻辑，本质上来源于两类资产：</p>
+<ul>
+<li><strong>SOP</strong></li>
+<li><strong>历史 Case</strong></li>
+</ul>
+<p>如果这两者本身是模糊的、不完整的，那么 AI 的输出只会显得 “<strong>看起来合理</strong>“，却无法保证 <strong>一致性</strong> 与 <strong>可复用性</strong>。</p>
+<h3 id="一个直观的对比（SOP）：国内-vs-海外"><a href="#一个直观的对比（SOP）：国内-vs-海外" class="headerlink" title="一个直观的对比（SOP）：国内 vs 海外"></a>一个直观的对比（SOP）：国内 vs 海外</h3><p>从我的个人观察来看，<strong>海外团队</strong> 在 SOP 的标准化与细化程度上，整体要优于国内。</p>
+<p>我看过不少海外分析师留下的 Case 记录和 SOP，从国内的视角来看，这些内容往往显得：</p>
+<ul>
+<li>很繁琐；</li>
+<li>很基础；</li>
+<li>甚至有些”笨笨的”。</li>
+</ul>
+<p>但他们会非常明确地写出：</p>
+<ul>
+<li>每一步具体要查什么数据；</li>
+<li>为什么查这个数据；</li>
+<li>在什么条件下得出什么结论；</li>
+<li>哪些情况可以直接终止分析。</li>
+</ul>
+<p>而在国内 SOC 的现实环境中，我们更常见的是另一种写法：</p>
+<ul>
+<li>“检查日志确认无异常”</li>
+<li>“确认资产为测试环境”</li>
+<li>“综合判断为误报”</li>
+</ul>
+<p>这些描述方向未必是错的，但它们存在一个致命问题：</p>
+<blockquote>
+<p><strong>无法被直接执行。无论是给新人，还是给 AI。</strong></p>
+</blockquote>
+<p>这一点我感触很深，我的新加坡团队成员就曾和我反馈过，为什么国内的小伙伴处理的Case，总是”轻描淡写”的写一句：”综合判断误判 或 运维正常操作”，并不会写明判断过程和附上判断依据。</p>
+<p>这背后当然有现实原因：</p>
+<ul>
+<li>国内更强调效率，要求一人身兼多职</li>
+<li>日常运营压力大，很难抽出时间系统性沉淀文档</li>
+<li>能偶尔写一篇 Blog，已经算是”幸运”</li>
+</ul>
+<p>在这样的环境下，很少能够有时间对历史 Case 做标准化抽象，再进一步整理为 <strong>可复用、可传承的 SOP</strong>。这是需要分析师有专注的时间去打磨的。</p>
+<p>当 AI 进入研判流程后，这种差距会被迅速放大。</p>
+<p>这听起来 <strong>非常基础</strong>，但这正是大多数 SOC 团队不愿面对的”<strong>运营债</strong>“—— <strong>知识库与 SOP</strong>。</p>
+<h3 id="列举2个常见的场景"><a href="#列举2个常见的场景" class="headerlink" title="列举2个常见的场景"></a>列举2个常见的场景</h3><h4 id="场景一：模糊历史的「族谱索引」"><a href="#场景一：模糊历史的「族谱索引」" class="headerlink" title="场景一：模糊历史的「族谱索引」"></a>场景一：模糊历史的「族谱索引」</h4><p>这是资深分析师最难被传承的一类直觉能力：</p>
+<blockquote>
+<p><strong>“这个告警，我好像半年前见过。”</strong></p>
+</blockquote>
+<p>现实中的典型场景包括：</p>
+<ul>
+<li>某个业务系统存在罕见 Bug，会周期性触发异常请求；</li>
+<li>半年前曾有分析师深入排查，并在工单中留下明确结论；</li>
+<li>由于特征不稳定，无法通过规则或白名单彻底解决。</li>
+</ul>
+<p>在这种场景下：</p>
+<ul>
+<li>SOAR 能提供的是 <strong>数据</strong>：相似字段、历史出现次数、时间分布；</li>
+<li>却给不出 <strong>经验</strong>：当时是如何判断的？为什么最终被忽略？</li>
+</ul>
+<p>如果没有知识库或结构化的历史 Case，这类经验只能停留在个人脑海中。</p>
+<p>而当 <strong>SOP 与历史 Case 被系统化沉淀</strong> 后，AI 可以在研判阶段明确指出：</p>
+<blockquote>
+<p>“这类告警在我们组织内部，历史上是如何被理解和处理的。”</p>
+</blockquote>
+<p><strong>❗️温馨提示：</strong><br>这并不是让 AI “拍板”，而是让 AI <strong>继承组织的集体经验</strong>。</p>
+<h4 id="场景二：研判质量的「下限固化」"><a href="#场景二：研判质量的「下限固化」" class="headerlink" title="场景二：研判质量的「下限固化」"></a>场景二：研判质量的「下限固化」</h4><p>另一个在真实运营中反复出现的问题是：</p>
+<ul>
+<li>同一类告警，不同分析师的研判质量差异极大；</li>
+<li>某些分析师的处理方式被公认为”教科书级别”；</li>
+<li>但这种高质量研判，无法被稳定复用。</li>
+</ul>
+<p>在没有 AI 的情况下，这种差异虽然存在，但影响范围有限。</p>
+<p>而在引入 AI 之后，如果缺乏 SOP 约束，这种问题会演变为：</p>
+<ul>
+<li>研判逻辑过度发散；</li>
+<li>输出风格不断漂移；</li>
+<li>甚至出现 <strong>“逻辑自洽，但结论错误”</strong> 的幻觉。</li>
+</ul>
+<p>在这一场景下，<strong>SOP 的价值恰恰不是提升 AI 的上限，而是：固化分析路径，保证研判质量的下限</strong>。</p>
+<p>SOP 在这里扮演的角色，并不是”告诉 AI 答案”，而是：</p>
+<ul>
+<li>明确哪些检查是 <strong>必须做的</strong>；</li>
+<li>哪些结论是 <strong>不能轻易给出的</strong>；</li>
+<li>哪些判断需要满足 <strong>明确前提</strong>。</li>
+</ul>
+<h3 id="SOP-是-AI-分析研判阶段的”安全护栏”"><a href="#SOP-是-AI-分析研判阶段的”安全护栏”" class="headerlink" title="SOP 是 AI 分析研判阶段的”安全护栏”"></a>SOP 是 AI 分析研判阶段的”安全护栏”</h3><p>在 AI 时代，那些看起来 “<strong>笨笨的 SOP</strong>“，反而成了最有价值的资产：</p>
+<ul>
+<li>为 AI 提供明确、可执行的分析路径；</li>
+<li>天然适合作为知识库与高质量 Case 的来源；</li>
+<li>让 AI 始终运行在一个 <strong>稳定、可控的判断框架</strong> 之内。</li>
+</ul>
+<p><strong>在实践中你会发现</strong>：</p>
+<ul>
+<li>自动化越成熟，AI 的建议越容易落地</li>
+<li>SOP 越清晰，AI 的研判越稳定可控</li>
+</ul>
+<p><strong>反之</strong>：</p>
+<ul>
+<li>自动化混乱，AI 的判断无法执行</li>
+<li>SOP 模糊，AI 的判断无法复用</li>
+</ul>
+<p><strong>所以</strong>：</p>
+<blockquote>
+<p>往往并不是”AI 不行”，而是 <strong>AI 把 SOC 的基础问题照得更清楚了</strong>。</p>
+<p>SOP 不是为了让 AI 更聪明，而是为了让它不犯低级错误，守住研判的下限。</p>
+</blockquote>
+<hr>
+<h2 id="结束语：用好-AI，本质上是在”逼迫”-SOC-回归基础"><a href="#结束语：用好-AI，本质上是在”逼迫”-SOC-回归基础" class="headerlink" title="结束语：用好 AI，本质上是在”逼迫” SOC 回归基础"></a>结束语：用好 AI，本质上是在”逼迫” SOC 回归基础</h2><p>AI 无法替代清晰的 SOP，也不会替你补齐基础能力，它只会非常诚实地放大你已经具备的能力。</p>
+<p>当你觉得 AI 不好用时，真正的问题往往不是 AI，而是：</p>
+<blockquote>
+<p><strong>AI 把 SOC 的基础问题照得更清楚了。</strong></p>
+</blockquote>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/08/10/Zeek-Detect-Suspicious-DNS-traffic/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/08/10/Zeek-Detect-Suspicious-DNS-traffic/" class="post-title-link" itemprop="url">How to use Zeek Detect Suspicious DNS traffic</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2024-08-10 14:41:21" itemprop="dateCreated datePublished" datetime="2024-08-10T14:41:21+08:00">2024-08-10</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2024-08-16 16:08:50" itemprop="dateModified" datetime="2024-08-16T16:08:50+08:00">2024-08-16</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h4 id="写在前面："><a href="#写在前面：" class="headerlink" title="写在前面："></a>写在前面：</h4><p>​    我嘞个去！小不在意都已经到了2024的下半年了，近期花了一些时间研究了DNS异常流量的检测模型。老样子依旧是放在Zeek上来实现，Zeek作为网络流量的“瑞士军刀”可玩性还是很大的。由于现在写Blog时间太少了，这里将会通过分期的形式进行更新。</p>
+<p>​    本期主题是：如何通过 Zeek <a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 实现<strong>动态基线</strong>，检测 DNS Payload 请求长度上的异常。</p>
+<h4 id="检测维度"><a href="#检测维度" class="headerlink" title="检测维度"></a>检测维度</h4><h5 id="1-请求包长度异常"><a href="#1-请求包长度异常" class="headerlink" title="1. 请求包长度异常"></a>1. 请求包长度异常</h5><p>​    通常最简单粗暴的方式就是通过手动指定一个<strong>『长度』</strong>作为告警阈值。但是难点就是<strong>『长度』</strong>设置为多少才算合适？长度设置较小，告警量多，误报率就会增加。长度设置较大，告警量少，但不一定会有告警。所以最好的方式就是能够动态计算一段时间内的<strong>『长度』</strong>作为阈值，以这个为基线去计算标准差和平均值再进行比对。</p>
+<ul>
+<li><p>定义一个动态基线时间窗口</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># Global variable <span class="keyword">for</span> baseline interval</span><br><span class="line"><span class="keyword">const</span> baseline_interval: interval = <span class="number">300</span>sec &amp;redef; # Baseline interval <span class="keyword">for</span> SumStats collection</span><br></pre></td></tr></table></figure></li>
+<li><p>由于DNS在不同的请求类型下Payload长度也会有明显的差异，所以为了避免这类“干扰项”我们将按照DNS请求类型进行聚合来计算动态基线</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    # Define a record type to store the average <span class="keyword">and</span> standard deviation</span><br><span class="line">    type Stats: record &#123;</span><br><span class="line">        prev_avg: count; # Previous average payload size</span><br><span class="line">        prev_sd: count;  # Previous standard deviation of payload size</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    # Define a table to store the data</span><br><span class="line">    option data: table[string] of Stats;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>考虑到实际环境中DNS的请求数量会非常的多，我们也需要考虑代码在上线后对集群负载带来的影响。所以，这里将会通过<code>local_domain</code>、<code>ignore_qtypes</code>、<code>ignore_querys</code>、<code>ignore_subdomains</code>、<code>ignore_domains</code>、<code>ignore_tlds</code>等多个条件进行控制。</p>
+<ul>
+<li><strong>local_domian</strong>：代表实际环境中的内部域名，这些域名通常用于企业内网或者内部业务系统之间的通讯和API调用。通常这些域名不需要被列入到动态基线的计算范围内，因为它们在多数情况下都是在内部网络环境中使用，而非公开互联网访问。这有助于减少不必要的噪音和误报，提高基线计算的准确性。</li>
+<li><strong>ignore_qtypes</strong>：代表你需要忽略的DNS请求类型。</li>
+<li><strong>ignore_querys</strong>：代表你需要忽略的完整DNS请求。如：<code>canon88.github.io</code> 就是一个完整的域名请求</li>
+<li><strong>ignore_subdomains</strong>：代表你需要忽略的子域名。例如：在 <code>canon88.github.io</code> 中，<code>canon88</code> 就是子域名</li>
+<li><strong>ignore_domains</strong>：代表你需要忽略的主域名或二级域名。例如：在 <code>canon88.github.io</code> 中，<code>github.io</code> 是主域</li>
+<li><strong>ignore_tlds</strong>：代表你需要忽略的顶级域名（TLD）。例如：在 <code>canon88.github.io</code> 中，<code>io</code> 就是顶级域名。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123; </span><br><span class="line">		# Return early if the domain is local</span><br><span class="line">    if (c$dns$is_local_domain)</span><br><span class="line">        return;</span><br><span class="line">  </span><br><span class="line">    # Filter out queries of types that should be ignored</span><br><span class="line">    if (c$dns$qtype_name in SuspiciousDNSTraffic::ignore_qtypes)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted queries</span><br><span class="line">    if (c$dns$query in SuspiciousDNSTraffic::ignore_querys)</span><br><span class="line">        return;</span><br><span class="line">    </span><br><span class="line">    #  Ignore trusted subdomains</span><br><span class="line">    if ( (c$dns?$subdomain) &amp;&amp; (c$dns$subdomain in SuspiciousDNSTraffic::ignore_subdomains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted domains</span><br><span class="line">    if ( (c$dns?$domain) &amp;&amp; (c$dns$domain in SuspiciousDNSTraffic::ignore_domains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted top-level domains</span><br><span class="line">    if ( (c$dns?$tld) &amp;&amp; ( (c$dns$tld in SuspiciousDNSTraffic::ignore_tlds) || (SuspiciousDNSTraffic::ignore_tlds_regex in c$dns$tld) ) )</span><br><span class="line">        return;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>下面开始进入“正题”，通过Zeek <a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 进行 DNS Payload 动态基线的计算。</p>
+<ul>
+<li><p><strong>计算基线数据</strong>：使用 <code>SumStats</code> 模块每隔 <code>baseline_interval</code>（300秒） 计算一次 DNS 负载大小的平均值和标准差，并将这些数据存储在 <code>data</code> 表中。</p>
+</li>
+<li><p><strong>比对当前负载大小</strong>：在处理每个 DNS 消息时，当前负载大小（<code>len</code>）会与数据表中的先前平均值（<code>prev_avg</code>）和标准差（<code>prev_sd</code>）进行比对。</p>
+</li>
+<li><p><strong>比对阈值计算</strong>：</p>
+<ul>
+<li><p>最大平均值阈值：<code>avg * multiplier_threshold</code></p>
+</li>
+<li><p>最小平均值阈值：<code>avg / multiplier_threshold</code></p>
+</li>
+<li><p>最大标准差阈值：<code>avg + sd * deviation_threshold</code></p>
+</li>
+<li><p>最小标准差阈值：<code>avg - sd * deviation_threshold</code></p>
+</li>
+</ul>
+</li>
+<li><p><strong>确定可疑负载</strong>：</p>
+<ul>
+<li><p>如果当前负载大小超过最大平均值阈值或小于最小平均值阈值，则标记为可疑。</p>
+</li>
+<li><p>如果当前负载大小超过最大标准差阈值或小于最小标准差阈值，则标记为可疑。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"># Event handler for DNS messages</span><br><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123;</span><br><span class="line">    # Store the payload size in the DNS::Info record</span><br><span class="line">    c$dns$payload_len = len;</span><br><span class="line"></span><br><span class="line">    # Observe the payload size for SumStats calculations</span><br><span class="line">    SumStats::observe(&quot;dns_payload_len&quot;, SumStats::Key($str=c$dns$qtype_name), SumStats::Observation($num=len));</span><br><span class="line"></span><br><span class="line">    if (c$dns$qtype_name in data) &#123;</span><br><span class="line">        local avg = data[c$dns$qtype_name]$prev_avg;</span><br><span class="line">        local sd = data[c$dns$qtype_name]$prev_sd;</span><br><span class="line"></span><br><span class="line">        local max_avg_threshold = avg * SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local min_avg_threshold = avg / SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local max_sd_threshold = avg + sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line">        local min_sd_threshold = avg - sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line"></span><br><span class="line">        # Compare the current payload size with the calculated average and standard deviation</span><br><span class="line">        if ( avg != 0.0 ) &#123;</span><br><span class="line">            local alert_reason: set[string] = set();</span><br><span class="line">            if ( len &gt; max_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = max_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; avg_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = min_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; avg_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( len &gt; max_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = max_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; sd_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = min_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; sd_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( |alert_reason| &gt; 0 ) &#123;</span><br><span class="line">                c$dns$alert_reason = alert_reason;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        # c$dns$payload_prev_avg = avg;</span><br><span class="line">        # c$dns$payload_prev_sd = sd;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Initialize the event handler for analyzing DNS requests</span><br><span class="line">event zeek_init() &#123;</span><br><span class="line">    # Define a reducer to calculate the standard deviation of DNS payload sizes</span><br><span class="line">    local r_std_dev = SumStats::Reducer($stream=&quot;dns_payload_len&quot;, $apply=set(SumStats::STD_DEV));</span><br><span class="line"></span><br><span class="line">    # Create a SumStats object to collect data every baseline_interval (e.g. 5 minutes)</span><br><span class="line">    SumStats::create([</span><br><span class="line">        $name = &quot;dns_payload_len.std_dev&quot;,</span><br><span class="line">        $epoch = baseline_interval,</span><br><span class="line">        $reducers = set(r_std_dev),</span><br><span class="line">        $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = &#123; </span><br><span class="line">            local current_avg = double_to_count(result[&quot;dns_payload_len&quot;]$average);</span><br><span class="line">            local current_std_dev = double_to_count(result[&quot;dns_payload_len&quot;]$std_dev);</span><br><span class="line"></span><br><span class="line">            # Initialize the table with the given data</span><br><span class="line">            data[key$str] = [$prev_avg = current_avg, $prev_sd = current_std_dev];</span><br><span class="line"></span><br><span class="line">            # Update the data table with the new values</span><br><span class="line">            Config::set_value(&quot;SuspiciousDNSTraffic::data&quot;, data);</span><br><span class="line">        &#125;</span><br><span class="line">    ]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://pic.vjshi.com/2021-12-23/33ac8590ed1844d5bf0251349ea6da19/online/main.jpg?x-oss-process=style/video_cover_20231101" alt="未完待续视频素材下载, 未完待续AE模板下载_光厂(VJ师网)"></p>
+<h5 id="2-请求域名长度异常"><a href="#2-请求域名长度异常" class="headerlink" title="2. 请求域名长度异常"></a>2. 请求域名长度异常</h5><h5 id="3-非常见域名监控"><a href="#3-非常见域名监控" class="headerlink" title="3. 非常见域名监控"></a>3. 非常见域名监控</h5><h5 id="4-Fast-Flux"><a href="#4-Fast-Flux" class="headerlink" title="4. Fast Flux"></a>4. Fast Flux</h5><h5 id="5-非常见请求类型"><a href="#5-非常见请求类型" class="headerlink" title="5. 非常见请求类型"></a>5. 非常见请求类型</h5><h5 id="6-域名信誉度"><a href="#6-域名信誉度" class="headerlink" title="6. 域名信誉度"></a>6. 域名信誉度</h5>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/02/25/Zeek-ThreatHunting/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2024/02/25/Zeek-ThreatHunting/" class="post-title-link" itemprop="url">How to Use Zeek ThreatHunting?</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2024-02-25 23:27:38" itemprop="dateCreated datePublished" datetime="2024-02-25T23:27:38+08:00">2024-02-25</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2024-03-05 22:59:14" itemprop="dateModified" datetime="2024-03-05T22:59:14+08:00">2024-03-05</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>春节期间，我利用课余时间将之前的一些想法付诸实践。我们都知道，网络威胁分析(NTA)除了具备网络入侵检测系统(NIDS)功能外，还有一个重要特性就是强大的协议解析能力，这对于安全事件的溯源提供了极大的帮助。然而，并非所有的企业都能充分利用这个能力，主要原因有两个方面：</p>
+<ol>
+<li><strong>存储成本</strong>：如果需要进行全面的网络元数据捕获，它的存储成本将会是一个“挑战”。因为，你的网络流量越大也就意味着你的存储成本越高。</li>
+<li><strong>隐私合规</strong>：如果你所在公司的数据安全成熟度不高且公司业务又面临强合规监管。那么，合规法案将会在一定程度上与数据捕获的需求“冲突”。</li>
+</ol>
+<p>所以，如果你和我一样在工作中即需要满足安全需求又需要考虑这么做是否合规，那么我相信本篇文章会对你有一些帮助，既在满足合规的前提下为威胁狩猎提供更多的网络元数据。</p>
+<h4 id="需求概述"><a href="#需求概述" class="headerlink" title="需求概述"></a>需求概述</h4><p>当触发告警时，Zeek可以从Kafka获取IoC并根据指定时间窗口进行数据捕获。</p>
+<h4 id="实现步骤"><a href="#实现步骤" class="headerlink" title="实现步骤"></a>实现步骤</h4><ol>
+<li><p>首先，需要搞定如何让Zeek连接Kafka。好消息是，Zeek v6.0已经支持通过<a target="_blank" rel="noopener" href="https://zeekjs.readthedocs.io/en/latest/#">ZeekJS</a>插件加载并执行JavaScript代码。有了JavaScript的加持，一切皆有可能！</p>
+</li>
+<li><p>其次，需要尝试为IoC设置过期时间。Zeek本身对部分类型是支持过期时间这个属性的，借助<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/current/script-reference/attributes.html#attr-&create_expire">create_expire</a>这个属性再加上<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/current/frameworks/intel.html">Intelligence Framework</a>就可以为每个IoC设置不同的过期时间。这里给大家推荐<a target="_blank" rel="noopener" href="https://github.com/J-Gras">J-Gras</a>的<a target="_blank" rel="noopener" href="https://github.com/J-Gras/intel-expire">intel-expire</a>项目，我们就不用“重复造轮子”了。</p>
+</li>
+<li><p>最后，使用<code>Intel::LOG</code>作为触发器捕获元数据。这里需要使用Zeek的<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/current/frameworks/intel.html">Intelligence Framework</a>来对IoC进行实时的匹配，你可以将<code>Intel::LOG</code>视为一个触发器，一旦匹配到之后将会自动捕获与之对应的uid事件。这里需要使用Zeek v6.2，目前还没release，尝鲜的话可以先用 zeek version 6.2.0-dev 。</p>
+</li>
+</ol>
+<p><em>这里需要说明一点，Zeek中负责嗅探网络流量并解析协议的是Worker角色，所以我们的需求落实到代码层面也必须让Worker角色来执行。由于当前Intel::match()方法作用域是在Manager上而并非在Worker上。因此，它并不能满足我们当前的需求，好消息是 Zeek v6.2 版本将会支持，届时我们可以使用Intel::seen_policy()来实现。这里有个例外，如果你的环境中Zeek是非集群架构的话，因为Manager和Worker都在一台机器上，所以，就不存在这个问题了，直接使用Intel::match()就行了。若想了解更多关于Zeek架构方面的知识，请参考：<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/current/cluster-setup.html#cluster-architecture">Cluster-architecture</a></em></p>
+<h4 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h4><p>解决了上述三个问题之后，它的工作流程应该是这样的：</p>
+<p><img src="/2024/02/25/Zeek-ThreatHunting/Workflow.png" alt="Workflow"></p>
+<h5 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ tree threat-hunting</span><br><span class="line">threat-hunting</span><br><span class="line">├── config.dat</span><br><span class="line">├── config.zeek</span><br><span class="line">├── __load__.zeek</span><br><span class="line">├── main.zeek</span><br><span class="line">├── plugins</span><br><span class="line">│   ├── conn</span><br><span class="line">│   │   ├── investigation.zeek</span><br><span class="line">│   ├── dns</span><br><span class="line">│   │   ├── investigation.zeek</span><br><span class="line">│   ├── http</span><br><span class="line">│   │   ├── investigation.zeek</span><br><span class="line">│   │   └── normalized.zeek</span><br><span class="line">│   └── __load__.zeek</span><br><span class="line">└── threathunting.js</span><br></pre></td></tr></table></figure>
+
+<h5 id="脚本说明"><a href="#脚本说明" class="headerlink" title="脚本说明"></a>脚本说明</h5><table>
+<thead>
+<tr>
+<th align="left">Script</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">main.zeek</td>
+<td>主程序，通过ZeekJS调用 <code>threathunting.js</code></td>
+</tr>
+<tr>
+<td align="left">config.dat</td>
+<td>配置文件，无需重启Zeek控制指定plugin的启用与禁用。你会经常用到它</td>
+</tr>
+<tr>
+<td align="left">plugins</td>
+<td>插件目录，用户自定义的插件目录。你会经常用到它</td>
+</tr>
+</tbody></table>
+<h4 id="如何使用"><a href="#如何使用" class="headerlink" title="如何使用"></a>如何使用</h4><p>让我们动手，编写一个自己的插件！</p>
+<p>通常你只需要创建一个<code>investigation.zeek</code>脚本，并编辑<code>Intel::seen_policy</code>与<code>HTTP::log_policy</code>中的内容即可。如果你对日志标准化有需求也可以创建一个<code>normalized.zeek</code>来实现标准化。下面以创建<code>./plugins/http/investigation.zeek</code>为示例：</p>
+<ul>
+<li><p>首先，为你所需要的日志增加一个类型为<code>bool</code>的 <code>threathunting</code> 字段，这里是 <code>HTTP::Info</code></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">redef record HTTP::Info += &#123;</span><br><span class="line">    threathunting: <span class="keyword">bool</span> &amp;log &amp;optional;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></li>
+<li><p>然后，使用 <strong>Intel::seen_policy</strong> 在匹配到情报时将<code>threathunting</code>字段设置为<strong>True</strong>。对了，这里<code>HTTP</code>记得添加<strong>config.dat</strong>中<code>ThreatHunting::enable_module HTTP</code>，它将用来控制插件的热启停。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># Hook <span class="keyword">for</span> filtering Intel log entries based on predefined criteria.</span><br><span class="line"><span class="function">hook <span class="title">Intel::seen_policy</span><span class="params">(s: Intel::Seen, found: <span class="keyword">bool</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    # Break <span class="keyword">if</span> there is no match.</span><br><span class="line">    <span class="keyword">if</span> ( ! found )</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    </span><br><span class="line">    # Check <span class="keyword">if</span> the current log entry matches the set investigation criteria.</span><br><span class="line">    <span class="keyword">if</span> ( (<span class="string">&quot;HTTP&quot;</span> in enable_module) &amp;&amp; (s$conn?$http) )</span><br><span class="line">        s$conn$http$threathunting = T;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>最后，使用 <strong>HTTP::log_policy</strong> 对 <code>threathunting</code> 字段为<strong>True</strong>的日志进行捕获，搞定！是不是很简单？</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">hook <span class="title">HTTP::log_policy</span><span class="params">(rec: HTTP::Info, id: Log::ID, filter: Log::Filter)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ( filter$name == <span class="string">&quot;http_investigation&quot;</span> ) &#123;</span><br><span class="line">        <span class="keyword">if</span> (! rec?$threathunting) &#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="功能演示"><a href="#功能演示" class="headerlink" title="功能演示"></a>功能演示</h4><p><img src="/2024/02/25/Zeek-ThreatHunting/threathunting.gif" alt="threathunting"></p>
+<ol>
+<li><p>这里通过推送IoC(httpbin.org)到Kafka，设置过期时间为60秒；</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;ioc&quot;</span>: <span class="string">&quot;httpbin.org&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;domain&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;meta&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;expire&quot;</span>: <span class="number">60</span>,</span><br><span class="line">        <span class="attr">&quot;source&quot;</span>: <span class="string">&quot;SOAR&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;desc&quot;</span>: <span class="string">&quot;bad domain&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>模拟访问httpbin.org时将会触发<strong>Intel::LOG</strong>以及<strong>HTTP::LOG</strong></p>
+</li>
+<li><p>60秒之后再次尝试访问httpbin.org，未生成<strong>Intel::LOG</strong>以及<strong>HTTP::LOG</strong>，因为IoC已过期。</p>
+</li>
+</ol>
+<h4 id="让ChatGPT给上个“价值”"><a href="#让ChatGPT给上个“价值”" class="headerlink" title="让ChatGPT给上个“价值”"></a>让ChatGPT给上个“价值”</h4><p>总的来说，使用Zeek进行威胁狩猎的过程在解决存储成本和隐私合规两大问题上展现了显著的优势。Zeek能够从Kafka获取IoC并在指定的时间窗口内进行数据捕获，有效地降低了存储成本。同时，利用Zeek的Intelligence Framework和intel-expire项目设置IoC的过期时间，避免了无限捕获带来的性能损耗，同时也确保了隐私合规。此外，编写自定义插件的功能为用户提供了极大的便利性和灵活性。值得一提的是，这个方案不仅在安全领域有着广泛的应用，也可以有效地应用于其他非安全的场景，如故障排错，从而发挥出更大的价值。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/11/08/Zeek-Detect-Sliver/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/11/08/Zeek-Detect-Sliver/" class="post-title-link" itemprop="url">How to use Zeek Detect Sliver HTTP beacon traffic</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-11-08 20:42:54 / 修改时间：21:55:42" itemprop="dateCreated datePublished" datetime="2023-11-08T20:42:54+08:00">2023-11-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>15k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>14 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>​    废话少说，今天来给大家分享，如何利用Zeek实现对 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/">Sliver</a> Framework 中 HTTP C2 流量的检测。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/Sliver.png" alt="image-20231103173433297"></p>
+<h4 id="Sliver是什么？我反手就是一个GPT"><a href="#Sliver是什么？我反手就是一个GPT" class="headerlink" title="Sliver是什么？我反手就是一个GPT!"></a>Sliver是什么？我反手就是一个GPT!</h4><p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231103173433297.png" alt="image-20231103173433297"></p>
+<hr>
+<h4 id="Sliver-HTTP-C2-流量检测思路"><a href="#Sliver-HTTP-C2-流量检测思路" class="headerlink" title="Sliver HTTP C2 流量检测思路"></a>Sliver HTTP C2 流量检测思路</h4><p>我们此次的检测思路是针对Sliver HTTP beacon traffic进行检测，也就是我们俗称的“<strong>心跳</strong>”包。以下为分析与检测思路：</p>
+<ol>
+<li><p>当你第一次启动时，Client 会通过一个POST请求与Server进行通讯，它的主要目的是与 Server 进行密钥(Session Key)交换。Sliver 为了规避流量检测，Client在每次连接Server时的请求都是随机的。同时 Sliver HTTP C2的定制化程度很高，用户只需修改<code>http-c2.json</code>中的对应配置项即可实现uri部分的定制化。以下截图为分别3次执行Client端后的POST请求，第1张图截图是修改默认配置项之后的uri的样子。</p>
+<p>第一次：</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231104203402427.png" alt="image-20231104203402427"></p>
+<p>第二次：</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231104203213374.png" alt="image-20231104203213374"></p>
+<p>第三次：</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231104203502838.png" alt="image-20231104203502838"></p>
+<p>​    如上所示，如果你想从uri（<code>session_paths/session_files.session_file_ext</code>）这个角度去检测基本不太可能，因为绕过的成本太低了。所以，我们必须另辟蹊径。通过分析源码，我们将检测目标放在了这些看似“随机”生成的请求参数上。以第一次的POST请求来看，参数<code>ib=6578885j6</code>是基于时间戳生成的一次性密钥（TOTP），另一个参数<code>i=8148k7556</code>是经过混淆之后的EncoderID。<em>其实Body的长度也是一个特征，只不过必须在解码之后才能作为特征，这里没有纳入进去是因为Zeek在有些编码上的解码暂时无法实现。</em></p>
+<hr>
+<h5 id="废话少说，放“码”过来"><a href="#废话少说，放“码”过来" class="headerlink" title="废话少说，放“码”过来"></a>废话少说，放“码”过来</h5><ul>
+<li><p>参数<code>ib=6578885j6</code>是怎么来的？</p>
+<p>该参数是由 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/transports/httpclient/httpclient.go#L211">OTPQueryArgument</a> 方法生成。此方法将会基于时间戳随机生成一个长度为2的字符串作为Key，并同时在<code>value</code>（密钥）中插入0到2个随机字符作为Value。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108103916316.png" alt="image-20231108103916316"></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// OTPQueryArgument - Adds an OTP query argument to the URL</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *SliverHTTPClient)</span> <span class="title">OTPQueryArgument</span><span class="params">(uri *url.URL, value <span class="keyword">string</span>)</span> *<span class="title">url</span>.<span class="title">URL</span></span> &#123;</span><br><span class="line">	values := uri.Query()</span><br><span class="line">	key1 := nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))]</span><br><span class="line">	key2 := nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))]</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; insecureRand.Intn(<span class="number">3</span>); i++ &#123;</span><br><span class="line">		index := insecureRand.Intn(<span class="built_in">len</span>(value))</span><br><span class="line">		char := <span class="keyword">string</span>(nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))])</span><br><span class="line">		value = value[:index] + char + value[index:]</span><br><span class="line">	&#125;</span><br><span class="line">	values.Add(<span class="keyword">string</span>([]<span class="keyword">byte</span>&#123;key1, key2&#125;), value)</span><br><span class="line">	uri.RawQuery = values.Encode()</span><br><span class="line">	<span class="keyword">return</span> uri</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>参数<code>i=8148k7556</code>是怎么来的？</p>
+<p>该参数是由 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/transports/httpclient/httpclient.go#L196">NonceQueryArgument</a> 方法生成。此方法将会随机生成一个长度为1的字符串作为Key，并同时在<code>value</code>中插入0到2个随机字符作为Value。此处<code>value</code>实际是通过 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/master/implant/sliver/encoders/encoders.go#L127">RandomEncoder</a> 方法中的<code>(insecureRand.Intn(maxN) * EncoderModulus) + encoderID</code>代码生成的<code>nonce</code>数值。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108104044549.png" alt="image-20231108104044549"></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// NonceQueryArgument - Adds a nonce query argument to the URL</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *SliverHTTPClient)</span> <span class="title">NonceQueryArgument</span><span class="params">(uri *url.URL, value <span class="keyword">uint64</span>)</span> *<span class="title">url</span>.<span class="title">URL</span></span> &#123;</span><br><span class="line">	values := uri.Query()</span><br><span class="line">	key := nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))]</span><br><span class="line">	argValue := fmt.Sprintf(<span class="string">&quot;%d&quot;</span>, value)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; insecureRand.Intn(<span class="number">3</span>); i++ &#123;</span><br><span class="line">		index := insecureRand.Intn(<span class="built_in">len</span>(argValue))</span><br><span class="line">		char := <span class="keyword">string</span>(nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))])</span><br><span class="line">		argValue = argValue[:index] + char + argValue[index:]</span><br><span class="line">	&#125;</span><br><span class="line">	values.Add(<span class="keyword">string</span>(key), argValue)</span><br><span class="line">	uri.RawQuery = values.Encode()</span><br><span class="line">	<span class="keyword">return</span> uri</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// RandomEncoder - Get a random nonce identifier and a matching encoder</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RandomEncoder</span><span class="params">()</span> <span class="params">(<span class="keyword">int</span>, Encoder)</span></span> &#123;</span><br><span class="line">	keys := <span class="built_in">make</span>([]<span class="keyword">int</span>, <span class="number">0</span>, <span class="built_in">len</span>(EncoderMap))</span><br><span class="line">	<span class="keyword">for</span> k := <span class="keyword">range</span> EncoderMap &#123;</span><br><span class="line">		keys = <span class="built_in">append</span>(keys, k)</span><br><span class="line">	&#125;</span><br><span class="line">	encoderID := keys[insecureRand.Intn(<span class="built_in">len</span>(keys))]</span><br><span class="line">	nonce := (insecureRand.Intn(maxN) * EncoderModulus) + encoderID</span><br><span class="line">	<span class="keyword">return</span> nonce, EncoderMap[encoderID]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>Encoder Map：</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Encoder</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>13</td>
+<td>Base64 with modified alphabet</td>
+</tr>
+<tr>
+<td>22</td>
+<td>PNG</td>
+</tr>
+<tr>
+<td>31</td>
+<td>English words</td>
+</tr>
+<tr>
+<td>43</td>
+<td>Base58 with modified alphabet</td>
+</tr>
+<tr>
+<td>45</td>
+<td>English words + Gzip compression</td>
+</tr>
+<tr>
+<td>49</td>
+<td>Gzip compression</td>
+</tr>
+<tr>
+<td>64</td>
+<td>Base64 + Gzip compression</td>
+</tr>
+<tr>
+<td>65</td>
+<td>Base32 + Gzip compression</td>
+</tr>
+<tr>
+<td>92</td>
+<td>Hex</td>
+</tr>
+</tbody></table>
+<p>所以，我们根据代码片段可以反向推导出这个<code>nonce </code>值实际是对应到了Sliver中的<code>encoderID</code>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line">encoders = &#123;</span><br><span class="line">    <span class="number">13</span>: <span class="string">&quot;b64&quot;</span>,</span><br><span class="line">    <span class="number">31</span>: <span class="string">&quot;words&quot;</span>,</span><br><span class="line">    <span class="number">22</span>: <span class="string">&quot;png&quot;</span>,</span><br><span class="line">    <span class="number">43</span>: <span class="string">&quot;b58&quot;</span>,</span><br><span class="line">    <span class="number">45</span>: <span class="string">&quot;gzip-words&quot;</span>,</span><br><span class="line">    <span class="number">49</span>: <span class="string">&quot;gzip&quot;</span>,</span><br><span class="line">    <span class="number">64</span>: <span class="string">&quot;gzip-b64&quot;</span>,</span><br><span class="line">    <span class="number">65</span>: <span class="string">&quot;b32&quot;</span>,</span><br><span class="line">    <span class="number">92</span>: <span class="string">&quot;hex&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">decode_nonce</span>(<span class="params">nonce_value</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;Takes a nonce value from a HTTP Request and returns the encoder that was used&quot;&quot;&quot;</span></span><br><span class="line">    nonce_value = <span class="built_in">int</span>(re.sub(<span class="string">&#x27;[^0-9]&#x27;</span>,<span class="string">&#x27;&#x27;</span>, nonce_value))</span><br><span class="line">    encoder_id = nonce_value % <span class="number">101</span></span><br><span class="line">    <span class="keyword">return</span> encoders[encoder_id]</span><br><span class="line">  </span><br><span class="line">In [<span class="number">1</span>]: decode_nonce(<span class="string">&quot;8148k7556&quot;</span>)</span><br><span class="line">Out[<span class="number">1</span>]: <span class="string">&#x27;gzip&#x27;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>POST Body里面有什么？这些数据是怎么来的？</p>
+<ol>
+<li>先回答第一个问题，POST Body里面是一个长度为266个字节的加密数据。</li>
+<li>关于第二个问题，我按照我的理解给大家画了一个POST Body数据生成的Workflow。来来来，我们看图说话：</li>
+</ol>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108111232203.png" alt="image-20231108111232203"></p>
+<ul>
+<li><p>第1步：Client通过 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/cryptography/crypto.go">cryptography.RandomKey()</a> 方法随机生成一个32字节的<code>sKey</code>，这个<code>sKey</code>很重要后续的命令执行都会通过这个<code>sKey</code>进行加密。由于这里采用的是对称加密，所以解密也会用到这个<code>sKey</code>。这也就解释了为什么我们说第一次的POST请求是交换密钥，因为Server需要这个<code>sKey</code>做后续请求内容的解密。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sKey := cryptography.RandomKey()</span><br><span class="line"></span><br><span class="line"><span class="comment">// RandomKey - Generate random ID of randomIDSize bytes</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RandomKey</span><span class="params">()</span> [<span class="title">chacha20poly1305</span>.<span class="title">KeySize</span>]<span class="title">byte</span></span> &#123;</span><br><span class="line">	randBuf := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">64</span>)</span><br><span class="line">	rand.Read(randBuf)</span><br><span class="line">	<span class="keyword">return</span> deriveKeyFrom(randBuf)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>第2步：通过 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/transports/httpclient/httpclient.go#L178">proto.Marshal()</a> 方法对第一步生成的<code>sKey</code>进行序列化，这时候<code>sKey</code>的长度从32字节变成了34字节。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">s.SessionCtx = cryptography.NewCipherContext(sKey)</span><br><span class="line">httpSessionInit := &amp;pb.HTTPSessionInit&#123;Key: sKey[:]&#125;</span><br><span class="line">data, _ := proto.Marshal(httpSessionInit)</span><br></pre></td></tr></table></figure>
+
+<p>关于为什么会多出2个字节<code>0a20</code>？我反手就是一个ChatGPT。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231107175632660.png" alt="image-20231107175632660"></p>
+</li>
+<li><p>第3步：通过HMAC（Hash-based Message Authentication Code）来保证<code>sKey</code>完整性和真实性。</p>
+<ul>
+<li>首先创建了一个新的HMAC实例</li>
+<li>接着使用implant’s private key的哈希值作为HMAC的密钥</li>
+<li>最后对<code>plaintext</code>处理得到HMAC值</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">peerKeyPair := GetPeerAgeKeyPair()</span><br><span class="line"></span><br><span class="line"><span class="comment">// First HMAC the plaintext with the hash of the implant&#x27;s private key</span></span><br><span class="line"><span class="comment">// this ensures that the server is talking to a valid implant</span></span><br><span class="line">privateDigest := sha256.New()</span><br><span class="line">privateDigest.Write([]<span class="keyword">byte</span>(peerKeyPair.Private))</span><br><span class="line">mac := hmac.New(sha256.New, privateDigest.Sum(<span class="literal">nil</span>))</span><br><span class="line">mac.Write(plaintext)</span><br></pre></td></tr></table></figure></li>
+<li><p>第4步：通过 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/cryptography/crypto.go#L69">AgeEncrypt()</a> 方法，使用Server Public Key对<code>plaintext</code>进行加密。通过源码可以看到这里将HMAC值（32字节）添加到<code>plaintext</code>消息的前面。这样做是为了确保消息的完整性，Server端只需用同样的方法计算HMAC值并与<code>plaintext</code>中的前32字节进行对比，就可以知道消息在传输过程中是否被篡改。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">ciphertext, err := AgeEncrypt(recipientPublicKey, <span class="built_in">append</span>(mac.Sum(<span class="literal">nil</span>), plaintext...))</span><br><span class="line"></span><br><span class="line"><span class="comment">// AgeEncrypt - Encrypt using Nacl Box</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">AgeEncrypt</span><span class="params">(recipientPublicKey <span class="keyword">string</span>, plaintext []<span class="keyword">byte</span>)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> !strings.HasPrefix(recipientPublicKey, agePublicKeyPrefix) &#123;</span><br><span class="line">		recipientPublicKey = agePublicKeyPrefix + recipientPublicKey</span><br><span class="line">	&#125;</span><br><span class="line">	recipient, err := age.ParseX25519Recipient(recipientPublicKey)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	buf := bytes.NewBuffer([]<span class="keyword">byte</span>&#123;&#125;)</span><br><span class="line">	stream, err := age.Encrypt(buf, recipient)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, err := stream.Write(plaintext); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := stream.Close(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> bytes.TrimPrefix(buf.Bytes(), ageMsgPrefix), <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>第5步：这段代码构建了一个消息<code>msg</code>，这个<code>msg</code>也就是Body在编码之前的样子。该消息包含了implant’s public key的HASH值和加密后的数据，总长度266字节。C2 Server 可以通过对比前32个字节中的HASH值来验证implant’s public key的真实性，并使用Server Pivate Key解密后面的数据。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Sender includes hash of it&#x27;s implant specific peer public key</span></span><br><span class="line">publicDigest := sha256.Sum256([]<span class="keyword">byte</span>(peerKeyPair.Public))</span><br><span class="line">msg := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">32</span>+<span class="built_in">len</span>(ciphertext))</span><br><span class="line"><span class="built_in">copy</span>(msg, publicDigest[:])</span><br><span class="line"><span class="built_in">copy</span>(msg[<span class="number">32</span>:], ciphertext)</span><br></pre></td></tr></table></figure>
+
+<p>最后的最后，Client会通过<a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/encoders/encoders.go#L61">encoder.Encode()</a>方法将266个字节的加密数据进行编码，所以我们捕获流量看到的PCAP数据已经不是“最初”的样子了，因为这段数据已经被编码过了。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108112034359.png" alt="image-20231108112034359"></p>
+</li>
+<li><p><strong>结论：</strong>当你看完这部分源码后你其实会发现，整个过程都是为了保护这个sKey不被泄露。最终我们可以得出一个简单的数据结构图，POST Body由截图中的3个部分组成。</p>
+</li>
+</ul>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231107211334773.png" alt="image-20231107211334773"></p>
+<p>​    这是我模拟加密过程的输出，其中每个阶段的字节数都已经打印在界面上。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108110145849.png" alt="image-20231108110145849"></p>
+<p><strong>结合上面的分析，我们可以抽象出对第一个POST请求的检测特征，如下图所示：</strong></p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108163024578.png" alt="image-20231108163024578"></p>
+<p><strong>Zeek 代码</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &#123;</span><br><span class="line">  if (c$http$method == &quot;POST&quot; &amp;&amp; </span><br><span class="line">      c$http$status_code == 200 &amp;&amp; </span><br><span class="line">      c$http?$set_cookie &amp;&amp; </span><br><span class="line">      is_suspicious_cookie(c$http$set_cookie) &amp;&amp; </span><br><span class="line">      is_suspicious_query(c$http$method, c$http$uri)) &#123;</span><br><span class="line"></span><br><span class="line">    # record suspicious connections</span><br><span class="line">    http_connection_state[c$http$uid] = split_string(c$http$set_cookie, /;/)[0];</span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+<ol start="2">
+<li><p>在完成第一个可疑连接的捕获之后，接下来我们需要把重心回答如何检测HTTP的”信标“流量上了。（其实这里已经简单很多了，最难的其实是交换密钥的特征）如下图，我们可以把POST之后的GET请求可以看做都是“信标”通信流量。Sliver会采用“抖动”的方式规避基于周期性的检测，当然也包括uri的随机性。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231101170122908.png" alt="image-20231101170122908"></p>
+<ul>
+<li><p>如上图，截图中的3个GET请求中每次的uri都是随机的，每次的编码方式也是随机的。好在这里对于“信标”特征的检测思路，可以复用之前参数检测的部分。所以，GET请求中的参数是通过<a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/transports/httpclient/httpclient.go#L196">NonceQueryArgument</a> 方法生成的。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// NonceQueryArgument - Adds a nonce query argument to the URL</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *SliverHTTPClient)</span> <span class="title">NonceQueryArgument</span><span class="params">(uri *url.URL, value <span class="keyword">int</span>)</span> *<span class="title">url</span>.<span class="title">URL</span></span> &#123;</span><br><span class="line">	values := uri.Query()</span><br><span class="line">	key := nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))]</span><br><span class="line">	argValue := fmt.Sprintf(<span class="string">&quot;%d&quot;</span>, value)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; insecureRand.Intn(<span class="number">3</span>); i++ &#123;</span><br><span class="line">		index := insecureRand.Intn(<span class="built_in">len</span>(argValue))</span><br><span class="line">		char := <span class="keyword">string</span>(nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))])</span><br><span class="line">		argValue = argValue[:index] + char + argValue[index:]</span><br><span class="line">	&#125;</span><br><span class="line">	values.Add(<span class="keyword">string</span>(key), argValue)</span><br><span class="line">	uri.RawQuery = values.Encode()</span><br><span class="line">	<span class="keyword">return</span> uri</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>源码中关于<a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/e4ade4e8c982352e1e2b17787b19724bf3903ff7/protobuf/clientpb/client.proto">beacon</a>的默认设置</p>
+<ul>
+<li><code>BeaconInterval</code>： 轮训时间 3s </li>
+<li><code>BeaconJitter</code>：抖动时间 4s</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">message ImplantConfig &#123;</span><br><span class="line">  <span class="keyword">string</span> ID = <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">bool</span> IsBeacon = <span class="number">2</span>;</span><br><span class="line">  <span class="keyword">int64</span> BeaconInterval = <span class="number">3</span>;</span><br><span class="line">  <span class="keyword">int64</span> BeaconJitter = <span class="number">4</span>;</span><br><span class="line">  </span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>结合上面的分析，我们可以抽象出对”信标“请求的流量检测特征，如下图所示。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231103160641641.png" alt="image-20231103160641641"></p>
+<p><strong>Zeek 代码</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># Event handler to process and inspect completed HTTP messages</span><br><span class="line">event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &#123;</span><br><span class="line">    if (c$http$method == &quot;GET&quot; &amp;&amp; c$http$status_code == 204 &amp;&amp; c$http?$cookie &amp;&amp; </span><br><span class="line">        (c$http$uid in http_connection_state) &amp;&amp; </span><br><span class="line">        (c$http$cookie == http_connection_state[c$http$uid])) &#123;</span><br><span class="line"></span><br><span class="line">        local key_str = fmt(&quot;%s#####%s#####%s#####%s#####%s&quot;, </span><br><span class="line">                            c$http$uid, c$id$orig_h, c$http$host, c$id$resp_p, c$http$cookie);</span><br><span class="line">        local observe_str = c$http$uri;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+<h4 id="难点："><a href="#难点：" class="headerlink" title="难点："></a>难点：</h4><ol>
+<li>问：如何在同一个TCP连接中，关联多个HTTP请求的上下文，实现场景的判断？</li>
+</ol>
+<p>​    答：这里可以尝试通过维护一个HTTP状态表来实现同一个uid下的多个HTTP请求关联。例如，将符合<strong>阶段-1</strong>的处理结果存储到<code>http_connection_state</code>中，后续只需通过检查HTTP状态表中的状态来执行之后的逻辑。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## Global table to store cookie state.</span><br><span class="line">global http_connection_state: table[string] of string;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>问：如何避免http_connection_state set无限扩大，降低”无效”uid的填充set？</li>
+</ol>
+<p>​    答：对于这个问题，可以使用Zeek的<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/attributes.html#attr-&create_expire"><strong>create_expire</strong></a>属性，用它来管理整个http_connection_state set的生命周期。按照我们之前的分析，Sliver的HTTP C2流量在密钥交换之后，会进行C2数据包轮训，“信标”时间会有1~4秒抖动。所以，我们可以给这个可疑uid设置一个<code>create_expire</code>属性。如：<code>create_expire=300sec</code>，那么300秒之后我们会自动删除http_connection_state 中的 http_uid，通常这个时间内已经足够我们判断该HTTP请求流中是否为Sliver HTTP beacon traffic了。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## Global table to store cookie state.</span><br><span class="line">global http_connection_state: table[string] of string &amp;create_expire=<span class="number">300</span>sec;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>问：如何实现对规则的快速启停以及调整，避免规则更新重启整个Zeek集群？</li>
+</ol>
+<p>​    答：这里建议使用Zeek的<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/frameworks/configuration.html#configuration-framework"><strong>Configuration Framework</strong></a>，只需将规则中的配置写入到文件中，后续只需要更改配置文件就可以实现”热“加载，从而不需要对Zeek进行<code>deploy</code>。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">## Define <span class="keyword">module</span>-level configuration options.</span><br><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    ## Option to turn on/off detection.</span><br><span class="line">    option enable: <span class="keyword">bool</span> = T;</span><br><span class="line">    </span><br><span class="line">    ## Path to additional configuration <span class="keyword">for</span> detection.</span><br><span class="line">    redef Config::config_files += &#123; <span class="string">&quot;/usr/local/zeek/share/zeek/site/rules/Sliver/config.dat&quot;</span> &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>问：如何让规则只对指定的Zeek Worker生效？例如，我的环境中有30台Zeek，但是实际接入内对外流量Zeek只有2台，剩下都是外对内的流量。</li>
+</ol>
+<p>​    答：可以在代码中增加针对Zeek机器IP的判断，只针对指定的Zeek Worker IP进行规则的生效。这样一来，该规则也只需要在内对外的2台Zeek上生效，避免在负载很高的外对内的Zeek Worker上进行计算。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">event <span class="title">http_message_done</span><span class="params">(c: connection, is_orig: <span class="keyword">bool</span>, stat: http_message_stat)</span> </span>&#123;</span><br><span class="line">    ## Return early <span class="keyword">if</span> detection is disabled <span class="keyword">or</span> sensor IP is <span class="keyword">not</span> allowed.</span><br><span class="line">    <span class="keyword">if</span> (c$http$sensor_ip ! in allow_sensor)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li><p>问：如何解码请求参数中的EncoderID？</p>
+<p>答：废话少说，放“码”过来</p>
+<ul>
+<li><p>Zeek Code</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">## Decode nonce value to identify the encoder used in traffic encoding.</span><br><span class="line"></span><br><span class="line"><span class="function">function <span class="title">decode_nonce</span><span class="params">(nonce: string)</span>: int &#123;</span></span><br><span class="line">    local nonce_value = <span class="built_in">to_int</span>(<span class="built_in">gsub</span>(nonce, /[^[:digit:]]/, <span class="string">&quot;&quot;</span>));</span><br><span class="line">    <span class="keyword">return</span> nonce_value % <span class="number">101</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>Python Code</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## Decode nonce value to identify the encoder used in traffic encoding.</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">decode_nonce</span>(<span class="params">nonce_value</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;Takes a nonce value from a HTTP Request and returns the encoder that was used&quot;&quot;&quot;</span></span><br><span class="line">    nonce_value = <span class="built_in">int</span>(re.sub(<span class="string">&#x27;[^0-9]&#x27;</span>,<span class="string">&#x27;&#x27;</span>, nonce_value))</span><br><span class="line">    <span class="keyword">return</span> nonce_value % <span class="number">101</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>问：如何解码Post Body中的内容？</p>
+<p>答：详细参考这个文章吧 <a target="_blank" rel="noopener" href="https://www.hackplayers.com/2023/03/solucion-al-reto-sliver-forensics-de.html"><strong>Solución al reto Sliver Forensics de #hc0n2023</strong></a></p>
+</li>
+</ol>
+<h4 id="Detect-Sliver-HTTP-beacon-traffic-Demo-检测代码"><a href="#Detect-Sliver-HTTP-beacon-traffic-Demo-检测代码" class="headerlink" title="Detect Sliver HTTP beacon traffic (Demo) 检测代码"></a>Detect Sliver HTTP beacon traffic (Demo) 检测代码</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br></pre></td><td class="code"><pre><span class="line">## Module to detect Sliver HTTP traffic based on specific criteria.</span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> SliverHttpTraffic;</span><br><span class="line"></span><br><span class="line"># Define a <span class="keyword">new</span> notice type <span class="keyword">for</span> Sliver HTTP beacon traffic.</span><br><span class="line">redef <span class="keyword">enum</span> Notice::Type += &#123;</span><br><span class="line">    Sliver_HTTP_Beacon_Traffic</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"># Global configuration <span class="keyword">and</span> settings</span><br><span class="line">global http_connection_state: table[string] of string &amp;create_expire=<span class="number">3600</span>sec;</span><br><span class="line">global encoder_ids: set[<span class="keyword">int</span>] = [<span class="number">13</span>, <span class="number">22</span>, <span class="number">31</span>, <span class="number">43</span>, <span class="number">45</span>, <span class="number">49</span>, <span class="number">64</span>, <span class="number">65</span>, <span class="number">92</span>];</span><br><span class="line">global cookie_len: <span class="keyword">int</span> = <span class="number">32</span>;</span><br><span class="line"></span><br><span class="line"># Extending the HTTP::Info record to capture cookie-related details</span><br><span class="line">redef record HTTP::Info += &#123;</span><br><span class="line">    cookie:     string &amp;log &amp;optional;   # Value of the Cookie header</span><br><span class="line">    set_cookie: string &amp;log &amp;optional;   # Value of the Set-Cookie header</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"># Extend the <span class="keyword">default</span> notice record to capture specific details related to Sliver traffic.</span><br><span class="line">redef record Notice::Info += &#123;</span><br><span class="line">    host:   string &amp;log &amp;optional;      # Hostname involved in the suspicious activity</span><br><span class="line">    uris:   set[string] &amp;log &amp;optional; # Set of suspicious URIs accessed</span><br><span class="line">    cookie: string &amp;log &amp;optional;      # Suspicious cookie associated with the request</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"># <span class="function">Event handler to capture HTTP header information</span></span><br><span class="line"><span class="function">event <span class="title">http_header</span><span class="params">(c: connection, is_orig: <span class="keyword">bool</span>, name: string, value: string)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (is_orig &amp;&amp; name == <span class="string">&quot;COOKIE&quot;</span>) &#123;</span><br><span class="line">        c$http$cookie = value;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!is_orig &amp;&amp; name == <span class="string">&quot;SET-COOKIE&quot;</span>) &#123;</span><br><span class="line">        c$http$set_cookie = value;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># <span class="function">Utility function to decode nonce values</span></span><br><span class="line"><span class="function">function <span class="title">decode_nonce</span><span class="params">(nonce: string)</span>: int &#123;</span></span><br><span class="line">    local nonce_value = <span class="built_in">to_int</span>(<span class="built_in">gsub</span>(nonce, /[^[:digit:]]/, <span class="string">&quot;&quot;</span>));</span><br><span class="line">    <span class="keyword">return</span> nonce_value % <span class="number">101</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># <span class="function">Function to check <span class="keyword">if</span> an HTTP query is suspicious</span></span><br><span class="line"><span class="function">function <span class="title">is_suspicious_query</span><span class="params">(method: string, uri: string)</span>: bool &#123;</span></span><br><span class="line">    local url = <span class="built_in">decompose_uri</span>(uri);</span><br><span class="line">    local encoder_id: <span class="keyword">int</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!url?$params) <span class="keyword">return</span> F;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (method == <span class="string">&quot;POST&quot;</span> &amp;&amp; |url$params| == <span class="number">2</span>) &#123;</span><br><span class="line">        local key_length: table[count] of string;</span><br><span class="line">        <span class="keyword">for</span> (k, v in url$params) &#123;</span><br><span class="line">            <span class="keyword">if</span> (|k| &gt; <span class="number">2</span>) <span class="keyword">return</span> F;</span><br><span class="line">            key_length[|k|] = v;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> ((<span class="number">2</span> ! in key_length) || (<span class="number">1</span> ! in key_length)) <span class="keyword">return</span> F;</span><br><span class="line"></span><br><span class="line">        encoder_id = <span class="built_in">decode_nonce</span>(key_length[<span class="number">1</span>]);</span><br><span class="line">        <span class="keyword">return</span> encoder_id in encoder_ids;</span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (method == <span class="string">&quot;GET&quot;</span> &amp;&amp; |url$params| == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (k, v in url$params) &#123;</span><br><span class="line">            <span class="keyword">if</span> (|k| &gt; <span class="number">1</span>) <span class="keyword">return</span> F;</span><br><span class="line"></span><br><span class="line">            encoder_id = <span class="built_in">decode_nonce</span>(v);</span><br><span class="line">            <span class="keyword">return</span> encoder_id in encoder_ids;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> F;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Check <span class="keyword">if</span> a cookie<span class="number">&#x27;</span><span class="function">s structure is suspicious</span></span><br><span class="line"><span class="function">function <span class="title">is_suspicious_cookie</span><span class="params">(cookie: string)</span>: bool &#123;</span></span><br><span class="line">    local cookies = <span class="built_in">split_string</span>(<span class="built_in">split_string</span>(cookie, /;/)[<span class="number">0</span>], /=/);</span><br><span class="line">    <span class="keyword">return</span> (|cookies| == <span class="number">2</span> &amp;&amp; |cookies[<span class="number">1</span>]| == cookie_len);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># <span class="function">Event handler to process <span class="keyword">and</span> inspect completed HTTP messages</span></span><br><span class="line"><span class="function">event <span class="title">http_message_done</span><span class="params">(c: connection, is_orig: <span class="keyword">bool</span>, stat: http_message_stat)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (is_orig || !c?$http || !c$http?$status_code || !c$http?$method || !c$http?$uri) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (c$http$method == <span class="string">&quot;POST&quot;</span> &amp;&amp; c$http$status_code == <span class="number">200</span> &amp;&amp; c$http?$set_cookie &amp;&amp; <span class="built_in">is_suspicious_cookie</span>(c$http$set_cookie) &amp;&amp; <span class="built_in">is_suspicious_query</span>(c$http$method, c$http$uri)) &#123;</span><br><span class="line">        http_connection_state[c$http$uid] = <span class="built_in">split_string</span>(c$http$set_cookie, /;/)[<span class="number">0</span>];</span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (c$http$method == <span class="string">&quot;GET&quot;</span> &amp;&amp; c$http$status_code == <span class="number">204</span> &amp;&amp; c$http?$cookie &amp;&amp; (c$http$uid in http_connection_state) &amp;&amp; (c$http$cookie == http_connection_state[c$http$uid])) &#123;</span><br><span class="line">        local key_str = <span class="built_in">fmt</span>(<span class="string">&quot;%s#####%s#####%s#####%s#####%s&quot;</span>, c$http$uid, c$id$orig_h, c$http$host, c$id$resp_p, c$http$cookie);</span><br><span class="line">        local observe_str = c$http$uri;</span><br><span class="line"></span><br><span class="line">        # <span class="function">Create an observation <span class="keyword">for</span> statistical analysis</span></span><br><span class="line"><span class="function">        <span class="title">SumStats::observe</span><span class="params">(<span class="string">&quot;sliver_http_beacon_traffic_event&quot;</span>, [$str=key_str], [$str=observe_str])</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># <span class="function">Event to initialize <span class="keyword">and</span> configure statistical mechanisms</span></span><br><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    local r1 = SumStats::<span class="built_in">Reducer</span>($stream=<span class="string">&quot;sliver_http_beacon_traffic_event&quot;</span>, $apply=<span class="built_in">set</span>(SumStats::UNIQUE));</span><br><span class="line"></span><br><span class="line">    # <span class="function">Set up the statistical analysis parameters</span></span><br><span class="line"><span class="function">    <span class="title">SumStats::create</span><span class="params">([</span></span></span><br><span class="line"><span class="params"><span class="function">        $name=<span class="string">&quot;sliver_http_beacon_traffic_event.unique&quot;</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        $epoch=<span class="number">10</span>sec,</span></span></span><br><span class="line"><span class="params"><span class="function">        $reducers=set(r1),</span></span></span><br><span class="line"><span class="params"><span class="function">        $threshold=<span class="number">3.0</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        $threshold_val(key: SumStats::Key, result: SumStats::Result) = &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">            <span class="keyword">return</span> result[<span class="string">&quot;sliver_http_beacon_traffic_event&quot;</span>]$num + <span class="number">0.0</span>;</span></span></span><br><span class="line"><span class="params"><span class="function">        &#125;,</span></span></span><br><span class="line"><span class="params"><span class="function">        $threshold_crossed(key: SumStats::Key, result: SumStats::Result) = &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">            <span class="keyword">if</span> (result[<span class="string">&quot;sliver_http_beacon_traffic_event&quot;</span>]$unique == <span class="number">3</span>) &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">                local key_str_vector: vector of string = split_string(key$str, /#####/);</span></span></span><br><span class="line"><span class="params"><span class="function">                local suspicious_uri: set[string];</span></span></span><br><span class="line"><span class="params"><span class="function">                <span class="keyword">for</span> (value in result[<span class="string">&quot;sliver_http_beacon_traffic_event&quot;</span>]$unique_vals) &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">                    <span class="keyword">if</span> (! is_suspicious_query(<span class="string">&quot;GET&quot;</span>, value$str)) <span class="keyword">return</span>;</span></span></span><br><span class="line"><span class="params"><span class="function">                    add suspicious_uri[value$str];</span></span></span><br><span class="line"><span class="params"><span class="function">                &#125;</span></span></span><br><span class="line"><span class="params"><span class="function"></span></span></span><br><span class="line"><span class="params"><span class="function">                # Issue a notice <span class="keyword">if</span> suspicious behavior is observed</span></span></span><br><span class="line"><span class="params"><span class="function">                NOTICE([</span></span></span><br><span class="line"><span class="params"><span class="function">                    $note=Sliver_HTTP_Beacon_Traffic,</span></span></span><br><span class="line"><span class="params"><span class="function">                    $uid=key_str_vector[<span class="number">0</span>],</span></span></span><br><span class="line"><span class="params"><span class="function">                    $src=to_addr(key_str_vector[<span class="number">1</span>]),</span></span></span><br><span class="line"><span class="params"><span class="function">                    $host=key_str_vector[<span class="number">2</span>],</span></span></span><br><span class="line"><span class="params"><span class="function">                    $p=to_port(key_str_vector[<span class="number">3</span>]),</span></span></span><br><span class="line"><span class="params"><span class="function">                    $cookie=key_str_vector[<span class="number">4</span>],</span></span></span><br><span class="line"><span class="params"><span class="function">                    $uris=suspicious_uri,</span></span></span><br><span class="line"><span class="params"><span class="function">                    $msg=fmt(<span class="string">&quot;[+] Sliver HTTP beacon traffic detected, %s -&gt; %s:%s&quot;</span>, key_str_vector[<span class="number">1</span>], key_str_vector[<span class="number">2</span>], key_str_vector[<span class="number">3</span>]),</span></span></span><br><span class="line"><span class="params"><span class="function">                    $sub=cat(<span class="string">&quot;Sliver HTTP beacon traffic&quot;</span>)</span></span></span><br><span class="line"><span class="params"><span class="function">                ]);</span></span></span><br><span class="line"><span class="params"><span class="function">            &#125;</span></span></span><br><span class="line"><span class="params"><span class="function">        &#125;</span></span></span><br><span class="line"><span class="params"><span class="function">    ])</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="“看疗效”"><a href="#“看疗效”" class="headerlink" title="“看疗效”"></a>“看疗效”</h4><p><img src="/2023/11/08/Zeek-Detect-Sliver/iShot_2023-11-08_20.33.42.png" alt="iShot_2023-11-08_20.33.42"></p>
+<h4 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h4><p>​    <strong>感觉以后自己越来越少机会写这些了。。。但我还是想说：开源是“理念”，分享是“精神”。请让专业的人做专业的事！</strong></p>
+<p><img src="https://img.5youqu.com/bqimg/5eef6257gy1h3z3zb2kndj20u00u00uj.jpg" alt="你要是闲着没事干 就去把村口的粪挑了"></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/" class="post-title-link" itemprop="url">如何“优雅”的设计Playbook</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-06-21 00:39:50 / 修改时间：01:39:33" itemprop="dateCreated datePublished" datetime="2023-06-21T00:39:50+08:00">2023-06-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/SOC/" itemprop="url" rel="index"><span itemprop="name">SOC</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>2 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h4 id="写在最前面"><a href="#写在最前面" class="headerlink" title="写在最前面"></a>写在最前面</h4><p>​    开源是“理念”，分享是“精神”。拒绝一切“对号入座”！</p>
+<img src="https://img.5youqu.com/bqimg/5eef6257gy1h3z3zb2kndj20u00u00uj.jpg" alt="你要是闲着没事干 就去把村口的粪挑了" style="zoom:40%;">
+
+
+
+<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>​    之前有写过一篇Blog（<a target="_blank" rel="noopener" href="https://canon88.github.io/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/">致我心中的“散装”SOAR，当Thehive遇到n8n</a>），主要是介绍如何通过Thehive + n8n形成最“简（基）陋（础）”的SOAR。本篇Blog灵感主要是来源自己平时的思考与总结。那么，让我带领你深入浅出地探索编排的“艺术”，并展示如何“优雅”的设计一个剧本。说实话，当我说出这些“骚”话的时候，我竟一点都不觉得害臊。。。</p>
+<img src="https://img.soogif.com/eDyFGAzcPeRXrw8fF98FICfJs2l4XFTO.jpg" alt="img" style="zoom:100%;">
+
+<h4 id="优雅的设计一个剧本"><a href="#优雅的设计一个剧本" class="headerlink" title="优雅的设计一个剧本"></a>优雅的设计一个剧本</h4><ol>
+<li><p>设置一个<strong>Layer1</strong> Workflow，作为告警的入口。同时指定一个<strong>Layer2</strong> Workflow，作为结果的输出。这个Workflow中我的Kafka Topic是根据设备类型进行区分的，目的是便于后期进行扩展与维护。</p>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230618231406229.png" alt="image-20230618231406229"></p>
+<ul>
+<li><p>Q：为什么选择按照设备类型进行接入？</p>
+<p>A：主要是出于<strong>性能</strong>方面的考虑。试想如果你日常的告警数据量比较大，很可能会频繁“拉起”这个Workflow，其实并不是每个告警都“值得”你去跑Workflow。当然你的告警数据量不大的话，可以不用区分。在这里，我选择了按照设备类型来区分，这也方便我后续按照设备类型的不同做一些微调。</p>
+</li>
+<li><p>Q： 为什么不直接扩展Layer1 Workflow？</p>
+<p>A：主要还是考虑到可<strong>扩展性</strong>。我个人理解的“编排”就和你写代码的思维方式差不多，你得让你的Workflow足够的健壮以及剧本一定的伸缩性。应尽量避免因为某个需求，而导致你需要对现有Workflow进行“手术”。相信我，你会很痛苦的！正因如此，我没有选择直接在Layer1进行扩展。避免出现“屎山”代码，剧本也一样如此。</p>
+</li>
+<li><p>Q：为什么图中Threat Intelligence用的是Webhook，而Threat Hunting是Workflow？</p>
+<p>A：至于原因嘛，主要是n8n不支持在同一个Workflow中并行运行Node，且也并不是所有Node都支持异步。好在HTTP Node是支持异步的，所以，当有异步需求或者并行处理需求的时候，我们可以使用Webhook这种方式调用Workflow。算是“曲线救国”吧，不知道未来版本会不会支持。当时在社区也专门开贴讨论过，更多请戳：<a target="_blank" rel="noopener" href="https://community.n8n.io/t/does-n8n-workflow-support-parallel-execution/22596">Does n8n Workflow support parallel execution?</a></p>
+</li>
+</ul>
+<hr>
+</li>
+<li><p>设置一个<strong>Layer2</strong> Workflow，它用于承载Layer1的“<strong>需求</strong>”。</p>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230612003234529.png" alt="image-20230612003234529"></p>
+<ul>
+<li><p>Q：为什么你会选择创建Threat Intelligence、Threat Hunting做为Layer2的Workflow？</p>
+<p>A：其实这里还是考虑到可<strong>扩展性</strong>的关系，Layer2 Workflow它即要承接Layer1 Workflow的“需求”，同时也要为Layer3 Workflow提供“支撑”。所以，Layer2本身就必须有很强的扩展性，我建议你可以把它想象成编程中的“Class”。</p>
+</li>
+<li><p>Q：编写Workflow有什么参考规范吗？</p>
+<p>A：编写Workflow并没有固定的规范，其设计完全依赖于作者的逻辑。但是，当我们将其用于事件响应（Incident Response, IR）时，我认为可以参考NIST发布的<a target="_blank" rel="noopener" href="https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-61r2.pdf">《计算机安全事件处理指南 (SP 800-61)》</a>作为框架。这将帮助我们将当前的Workflow映射到IR的各个阶段，使我们在设计Workflow时更明确其“主要职责”。如果可以每个阶段都可以设计Workflow，以便更有效地应对特定的安全事件，当然这太过于理想化。以下是各阶段的详细介绍：</p>
+<ul>
+<li><strong>准备阶段（Preparation）</strong>：这个阶段包括配置和维护所有必要的安全工具和系统，以便能够有效地检测和应对安全事件。这包括设置和配置SOAR工具，以便它们能够与其他安全系统（如防火墙，入侵检测系统等）集成，并且能够接收并处理威胁情报。</li>
+<li><strong>检测与分析阶段（Detection &amp; Analysis）</strong>：这是威胁情报和威胁狩猎最活跃的阶段。威胁情报可以帮助你识别和了解新的或已知的威胁，而威胁狩猎则是一个主动寻找未被发现的威胁的过程。</li>
+<li><strong>遏制阶段（Containment）</strong>：一旦检测到威胁，即应用预设的自动化流程去遏制威胁，例如隔离受影响的系统或阻止恶意的网络流量。</li>
+<li><strong>消除阶段（Eradication）</strong>：在这个阶段，会移除系统中的威胁组件，修复漏洞并应用补丁。</li>
+<li><strong>恢复阶段（Recovery）</strong>：这个阶段的目标是恢复被攻击的系统和服务，确保一切回到正常状态。</li>
+<li><strong>经验总结阶段（Lessons Learned）</strong>：在应急响应结束后，应对整个事件进行回顾，总结经验教训，提升未来的应急响应效率。</li>
+</ul>
+</li>
+</ul>
+<hr>
+</li>
+<li><p>我通常将剧本会分为3层（Layer1 ~ Layer3），通常Layer3这一层的都是底层“打工仔”，就跟此刻的你一样。</p>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230620145914433.png" alt="image-20230620145914433"></p>
+<ul>
+<li><p>Q：设计Layer3的Workflow时，要足够灵活且尽可能的“独立”。</p>
+<p>A：灵活是指，Layer3即支持被Layer2调用，也要支持通过从HTTP API的方式进行调用，便于后期与自动化进行整合。例如，通过TheHive的Cortex调用Layer3的Workflow，它不香？独立是指：在设计Layer3的时候，需要考虑与Layer2的“亲（耦）密（合）度”，尽可能的模块化，便于其他场景的Workflow单独引用与封装。</p>
+</li>
+</ul>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230620171551885.png" alt="image-20230620171551885"></p>
+<ul>
+<li><p>Q：Layer3是最后一层吗？之后会有Layer4、Layer5吗？</p>
+<p>A：这完全取决于Layer3的“规模”，如果你的Layer3比较复杂，为了更加精细化管理Layer3。可以考虑新增Layer4，此时Layer3将从“底层打工人”升级成了“头号打工仔”，升职加薪，指日可待！</p>
+</li>
+</ul>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230621000301500.png" alt="image-20230621000301500"></p>
+</li>
+</ol>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li><p>我认为一个“优雅”的IR Playbook框架，至少需要3层。为什么？其实，你尝试以编程的逻辑去理解它就很容易了。Layer1就是功能“入口”，Layer2则是Class，而Layer3就应该是Function。</p>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230620174335657.png" alt="image-20230620174335657"></p>
+</li>
+<li><p>一个优秀的Playbook，像极你的老板对你的要求：“<strong>既要、又要、还要</strong>”</p>
+<ul>
+<li><strong>既要</strong>：具有高效的自动化流程，优化安全团队的响应时间</li>
+<li><strong>又要</strong>：有灵活的设计，以便适应各种安全事件的特性</li>
+<li><strong>还要</strong>：易于维护和更新，以便随着威胁场景的变化和组织需求的变化进行调整</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://t12.baidu.com/it/u=1684898709,179869982&fm=30&app=106&f=JPEG?w=640&h=272&s=D5AABD5712015CE6C48964680300E072" alt="img"></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/04/07/Zeek-PF-RING-Load-Balance/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/04/07/Zeek-PF-RING-Load-Balance/" class="post-title-link" itemprop="url">Zeek-PF_RING inner-5-tuple Load Balance</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-04-07 21:41:14" itemprop="dateCreated datePublished" datetime="2023-04-07T21:41:14+08:00">2023-04-07</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-06-21 00:41:20" itemprop="dateModified" datetime="2023-06-21T00:41:20+08:00">2023-06-21</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>1.7k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>2 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>​    早在2019年AWS刚对外发布“Traffic Mirroring” 测试的时候，作为国内最早一批吃“螃蟹”的用户，期间各种试错、填坑之后，“怒”写下了“<a target="_blank" rel="noopener" href="https://canon88.github.io/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/">我在’云’上的日子 - AWS上流量镜像遇到的坑</a>”。也幸好是前期积累的经验，在之后其他云平台上使用云原生的“Traffic Mirroring”对接NTA时更加“丝滑”，毕竟做安全的哪有不监控流量的？！</p>
+<p>​    本篇文章介绍的情况恰巧相反。假设，你目前所在的云平台暂不支持“Traffic Mirroring”你会怎么做？当然，我们可以通过安装agent的形式将流量发出来，这也是在云原生支持“Traffic Mirroring”之前的通用做法。如今这类的agent不少，开源的有，商业的也有。恰巧我现在就在使用某商业产品，不过很“蠢”的是该产品通过VXLAN发送数据的时候源端口竟然<strong>是固定的</strong>。正因为这个问题，引出了这篇文章。</p>
+<p>​    当你使用tcpdump的时候，你会看到这样的情况。其中，192.168.199.100是数据源，192.168.199.200 是NTA。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ sudo tcpdump -nni eth1 -c 100 | grep 4789</span><br><span class="line"></span><br><span class="line">23:52:25.748497 IP 192.168.199.100.49152 &gt; 192.168.199.200.4789: VXLAN, flags [I] (0x08), vni 1</span><br><span class="line">23:52:25.748498 IP 192.168.199.100.49152 &gt; 192.168.199.200.4789: VXLAN, flags [I] (0x08), vni 1</span><br><span class="line">23:52:25.748505 IP 192.168.199.100.49152 &gt; 192.168.199.200.4789: VXLAN, flags [I] (0x08), vni 1</span><br><span class="line">23:52:25.748530 IP 192.168.199.100.49152 &gt; 192.168.199.200.4789: VXLAN, flags [I] (0x08), vni 1</span><br></pre></td></tr></table></figure>
+
+<p>​    大家都知道，Zeek配合PF_RING之后是支持基于多进程的流量负载均衡的。PF_RING默认的负载均衡是基于5-tuple来进行的。也就是基于5元组进行的HASH，同一个HASH分配到同一个进程。由于我的数据流五元组是一样的，导致我开了16个进程的Zeek只有1个进程是满负载，其他的15个进程是“空转”的。也导致了流量一大就出现了丢包的问题。</p>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h4><p>​    不得不说一句Zeek的开源社区非常的活跃，在Slack上提问了相关问题后，大佬们就给出了“解题思路”。解决方案也很简单将 test_cluster_types设置为<code>inner-5-tuple</code>。</p>
+<p>​    inter 含义 引用原文：<em>This PR adds support for the more recent “INNER” clustering strategies of PF_RING. These allow load balancing according to the IP addresses and ports inside (for instance) GRE tunnels, rather than according to the tunnel’s IP. This was leading to huge balancing issues on some sensors we run.</em></p>
+<p>这里需要关注一下几个点：</p>
+<ul>
+<li><p>PF_RING <strong>8.2</strong> 版本集成了该功能，所以对PF_RING版本有要求</p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/zeek/zeekctl">zeekctl</a>版本有要求，ZeekControl version 2.5.0-5包含了此代码</p>
+<p><img src="/2023/04/07/Zeek-PF-RING-Load-Balance/2.png" alt="image-20230411112133033"></p>
+</li>
+</ul>
+<p>修改后的Zeek配置文件代码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ more /usr/<span class="built_in">local</span>/zeek/etc/zeekctl.cfg</span><br><span class="line"></span><br><span class="line">PFRINGClusterID = 99</span><br><span class="line">PFRINGClusterType = inner-5-tuple</span><br></pre></td></tr></table></figure>
+
+
+
+<p>修改前</p>
+<p><img src="/2023/04/07/Zeek-PF-RING-Load-Balance/1.png" alt="image-20230407232532950"></p>
+<p>修改后</p>
+<p><img src="/2023/04/07/Zeek-PF-RING-Load-Balance/3.png" alt="image-20230411112934287"></p>
+<h5 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h5><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/zeek/zeekctl/pull/40/files/c44382aea866925d884e88df3acc51d687986593">pf_ring: add new ‘inner’ load balancing strategies </a></li>
+<li><a target="_blank" rel="noopener" href="https://community.zeek.org/t/how-to-confige-the-cluster-type-using-pf-ring-doing-loadbalance/6809"><a target="_blank" rel="noopener" href="https://community.zeek.org/t/how-to-confige-the-cluster-type-using-pf-ring-doing-loadbalance/6809">How to confige the “cluster type” using PF_RING doing loadbalance</a></a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/" class="post-title-link" itemprop="url">致我心中的“散装”SOAR，当Thehive遇到n8n</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2023-01-01 19:13:39" itemprop="dateCreated datePublished" datetime="2023-01-01T19:13:39+08:00">2023-01-01</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2023-01-19 13:06:55" itemprop="dateModified" datetime="2023-01-19T13:06:55+08:00">2023-01-19</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/SOC/" itemprop="url" rel="index"><span itemprop="name">SOC</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h4 id="写在最前面"><a href="#写在最前面" class="headerlink" title="写在最前面"></a>写在最前面</h4><p>​    2022这一年有太多琐碎的事，导致这个“作业”从2022年“成功”被我拖到了2023年。如果你和我一样，尝试用开源组件来构建一套安全运营平台，并且恰巧你也正在使用Thehive来管理日常安全运营工作，同时在寻求提升运营效率的途径。那么，我觉得这篇文章应该会对你有所帮助。</p>
+<h4 id="现状"><a href="#现状" class="headerlink" title="现状"></a>现状</h4><p>​    由于一些历史原因，当前SIEM不仅负责多数据源的关联分析，也同时兼顾对日常告警的自动化响应。在初期团队资源有限的情况下可以用这种方式去“顶一顶”，到了后期如果你不去对功能做解耦，你的SIEM可能会变的越来越“笨重”。是的，SIEM并不擅长做自动化响应类的工作。随着时间的推移，你会发现它越来越难“胜任”这份工作。例如：</p>
+<ul>
+<li><p>自动化响应能力单一，无法实现复杂事件的自动化响应</p>
+<p>随着，安全事件的复杂程度不断的上升，我们在很大一部分的安全事件中是无法直接“断言”并采用简单粗暴的方式进行响应。更多情况下我们需要进行一系列的研判分析后，再决定启用对应的遏制动作。</p>
+</li>
+<li><p>响应流程通过代码实现，维护成本较高不利于后期管理</p>
+<p>由于前期是通过脚本开发的自动化响应功能，未采用Workflow（工作流）的直观展现方式。在后期不利于团队多人协作，并且对于一个新入职的小伙伴而言短期内很难维护。</p>
+</li>
+<li><p>SIEM平台上分析与响应耦合度太高，导致很难对SIEM功能进行扩展</p>
+<p>所以，我们需要SOAR（安全编排与自动化响应）来帮助我们承接安全事件中响应侧的需求，从功能上进行“解耦”。</p>
+</li>
+</ul>
+<hr>
+<p>​    自SOAR这个概念在2017年被提出后，经过5年的迭代无论国内还是国外都已经有了相对成熟的商业产品了。商业产品的我就不过多介绍了，开源的项目介绍几个比较火的：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://shuffler.io/">Shuffle</a></li>
+<li><a target="_blank" rel="noopener" href="https://n8n.io/">n8n</a>    本次推荐</li>
+<li><a target="_blank" rel="noopener" href="https://nodered.org/">Node-Red</a></li>
+<li><a target="_blank" rel="noopener" href="https://w5.io/#">W5</a>    国内大佬（三斤）开源的SOAR项目，必须支持！</li>
+</ul>
+<hr>
+<h4 id="开始搬砖🚧"><a href="#开始搬砖🚧" class="headerlink" title="开始搬砖🚧"></a>开始搬砖🚧</h4><p>​    这里我使用了n8n与Thehive进行集成，这也是Thehive官方推荐的方案之一。我尝试把SIEM上的响应逻辑迁移到了n8n上，并且也顺带重新设计了响应剧本的Workflow。一个典型的SOAR剧本应聚焦在 <strong>分析</strong> 与 <strong>遏制</strong> 2个阶段上，因为只有让<strong>分析研判</strong>尽可能的全面才能更好的去支撑下一阶段的<strong>遏制</strong>。下面和大家分享一下使用了n8n作为SOAR之后的一些理解吧，欢迎大家交流！</p>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/nist-incident-response-process.png" alt="img"></p>
+<h5 id="1-剧本自身要分类"><a href="#1-剧本自身要分类" class="headerlink" title="1. 剧本自身要分类"></a>1. 剧本自身要分类</h5><p>​    我们在设计剧本的时候也应当为剧本自身做好分类，这是为了便于后期更好的在其他剧本中复用这些节点。一个主剧本必然是通过不同的子剧本“组装”而来。我觉得这和写代码很像，要先把“类”抽象好，然后在下面不断的去完善“功能”。切记，不要一上来就想整一个“复杂”的剧本，尽可能的把它拆细了拆小了。</p>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/image-20230102125302449.png" alt="image-20230102125302449"></p>
+<p>​    以下是我在n8n上编排的威胁情报剧本，它可以是任何一个复杂剧本的分支，支持将内容输出到TheHive，并将告警推送到Slack上。</p>
+<h6 id="n8n"><a href="#n8n" class="headerlink" title="n8n"></a>n8n</h6><ul>
+<li><p>主剧本</p>
+<p>这里是一个Suricata alert的主剧本，将会由不同的分支子剧本共同“支撑”</p>
+</li>
+</ul>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/Suricata-alert.png" alt="image-20230116181004565"></p>
+<ul>
+<li><p>子剧本</p>
+<p>它可以是任何一个”大”剧本的分支，例如这是一个威胁情报的子剧本</p>
+</li>
+</ul>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/Threat-Intelligence.png" alt="image-20230116181218577"></p>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/Intelligence-Domain.png" alt="image-20230116181542704"></p>
+<h6 id="Slack"><a href="#Slack" class="headerlink" title="Slack"></a>Slack</h6><p>​    当命中威胁情报后调用Slack发送告警并升级当前Case等级</p>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/image-20230113233954354.png" alt="image-20230113233954354"></p>
+<h6 id="TheHive"><a href="#TheHive" class="headerlink" title="TheHive"></a>TheHive</h6><ul>
+<li>所有的分析记录与事件详情通过Thehive来汇总与呈现</li>
+</ul>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/image-20230113233840580.png" alt="image-20230113233840580"></p>
+<ul>
+<li>为每个响应阶段创建对应的Task</li>
+</ul>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/image-20230113235655162.png" alt="image-20230113235655162"></p>
+<ul>
+<li>执行结果更新到Task的logs</li>
+</ul>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/image-20230114003914196.png" alt="image-20230114003914196"></p>
+<ul>
+<li>将威胁情报Tags更新到observables，便于分析人员直观的了解当前IoC的信息</li>
+</ul>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/image-20230113234147771.png" alt="image-20230113234147771"></p>
+<h5 id="2-内容呈现很关键"><a href="#2-内容呈现很关键" class="headerlink" title="2. 内容呈现很关键"></a>2. 内容呈现很关键</h5><p>​    对于调查取证的剧本而言，查询结果呈现非常的关键。如果SOAR运行之后无法直观的展现数据，想看详细数据还得让你去下载一个文本，这对分析人员而言并不是很友好且割裂感很强。这里我就要推荐一下Thehive了，如果你的安全事件都是推送到了Thehive上，你完全可以将输出的内容设置为<strong>Markdown</strong>格式，TheHive能够帮助你更好的呈现自动化节点输出的结果。就像下面这个示例，为了帮助分析人员缩短研判时间，现需要对威胁情报的剧本进行扩展。我们会对IP类型IoC进行PDNS的反查，将反查的域名再次与威胁情报进行匹配，并通过Shodan收集攻击者的主机信息。在这种情况下，对于数据的呈现就提出了要求。一个好的展现方式可以让分析人员更快的了解信息，反之将适得其反。</p>
+<h6 id="TheHive-1"><a href="#TheHive-1" class="headerlink" title="TheHive"></a>TheHive</h6><ul>
+<li>虽然查询的数据源比较多，不过通过TheHive的Markdown格式起来还算比较直观</li>
+</ul>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/image-20230114002858890.png" alt="image-20230114002858890"></p>
+<h5 id="3-你的下一个剧本不应该只是“响应”"><a href="#3-你的下一个剧本不应该只是“响应”" class="headerlink" title="3. 你的下一个剧本不应该只是“响应”"></a>3. 你的下一个剧本不应该只是“响应”</h5><p>​    我们要知道当一个安全事件触发时，我们为安全事件所做的任何动作都是在”响应”这个事件。SOAR中R（Response）所指的响应，也并不只是在最后<strong>遏制</strong>的时候才叫做响应。不论哪种类型的剧本，它的目的都是为了提升安全事件的处置效率。这里建议大家千万不要觉得SOAR上的Playbook（剧本）必须都是要标配有遏制的动作。为什么这么说？是因为在一些企业中有SOP（安全事件指导手册），SOP中都会标注遏制方法或者响应措施，导致有些小伙伴认为SOAR上的剧本需要按照SOP做1:1的还原。</p>
+<p>​    另外一方面在实际运营中，对于一个安全事件想要完全自动化走完剧本还是挺“艰难”的，能够被自动化走完的更多是“专项”场景，这类安全事件针对性强处理流程和模式相对固化。所以，我们在实际工作中，遇见此类告警的机率相对于还是比较少的。对此，我们应尽可能的完善分析类型的剧本，将可被“固化”的分析逻辑集成到剧本中，利用自动化提升分析的效率，也可以帮助我们规避因为分析师经验问题导致的分析“面”缺失。例如，我们可以提取Payload中需要被执行回连的IP或者Domain，并在当前网络中检索是否有对应的请求数据，从而研判这个攻击是否成功。就像之前描述的那样，这并不是一个遏制类的剧本，它是一个分析研判类的剧本，但它确实起到了效果。</p>
+<h6 id="n8n-1"><a href="#n8n-1" class="headerlink" title="n8n"></a>n8n</h6><ul>
+<li>Hunting Callback IoC</li>
+</ul>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/Threat_Hunting.png" alt="image-20230116191844389"></p>
+<ul>
+<li>子剧本</li>
+</ul>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/Hunting_Callback_Domain.png" alt="image-20230116184527491"></p>
+<h6 id="TheHive-2"><a href="#TheHive-2" class="headerlink" title="TheHive"></a>TheHive</h6><ul>
+<li>一旦检测到内部流量存在Callback IoC的数据则升级告警等级，反之则认为攻击并未成功，告警降级自动关闭Case。</li>
+</ul>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/image-20230114001859333.png" alt="image-20230114001859333"></p>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/image-20230114002038716.png" alt="image-20230114002038716"></p>
+<ul>
+<li>尽可能利用TheHive的task logs，输出有价值的信息。也许它并不能帮助你实现自动关闭Case，但是它可以帮助分析师更快的查阅已被自动化执行的结果</li>
+</ul>
+<p><img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/image-20230114002332982.png" alt="image-20230114002332982"></p>
+<h5 id="4-对入SOAR的告警提出要求"><a href="#4-对入SOAR的告警提出要求" class="headerlink" title="4. 对入SOAR的告警提出要求"></a>4. 对入SOAR的告警提出要求</h5><p>​    如果我们想要用好SOAR，就应当对入SOAR的告警提出要求。首先我们得确保入库告警的质量，如果你的告警本身置信度就不高，我相信SOAR在这并不能帮助你什么。SOAR本身就是辅助安全运营，所以本质对安全能力的成熟度也是有要求的。例如：</p>
+<ul>
+<li>企业自身平台的自动化程度，很多时候SOAR都必须通过API调用的方式查询。例如：CMDB资产平台，很多时候我们是需要调用CMDB资产平台查询主机的业务信息、端口开放情况、安全组等。</li>
+<li>本身人员的代码能力，就n8n而言，一些扩展事项还是需要通过代码实现的，至少Python、JS得会写。</li>
+<li>企业自身安全能力的成熟度，如果连基础的安全能力都不具备也没有专职的安全分析人员，我建议暂且可放一放。搞搞基础建设，它不香吗？！安全运营，本身就是一个 P(无)D(限)C(循)A(环)的过程。</li>
+</ul>
+<hr>
+<h4 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h4><p>​    对于SOAR我是这么理解的，不要“一味”的追求大（D）而（炸）全（天）的剧本，就像SIEM厂家“鼓吹”的我们有N个牛P的检测场景一样，工作中你能遇到的又有多少？对于SOAR的剧本，能够被复用就好，能够提升效率就好。不要“迷信”每个剧本都必须有“遏制”的动作，有的时候“分析研判”的剧本真的很“香”。如果你一定会去做些什么，为什么不让它自动化并且找个“好看”的地方“放”（展现）起来。</p>
+<p>​    好了，就啰嗦到这吧。后面如果还有空的话会再补充，欢迎大家交流，写的不对的地方也欢迎指正。在新的一年想创建一个SOAR Playbook的社区，有没有志同道合的小伙伴一起？欢迎扫码加好友，可以一起聊一聊。</p>
+<img src="/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/image-20230114004935522.png" alt="image-20230114004935522" style="zoom:25%;">
+
+<h4 id="另外我觉得你也许还会感兴趣的文章："><a href="#另外我觉得你也许还会感兴趣的文章：" class="headerlink" title="另外我觉得你也许还会感兴趣的文章："></a>另外我觉得你也许还会感兴趣的文章：</h4><ul>
+<li><a target="_blank" rel="noopener" href="https://canon88.github.io/2021/02/02/SIEM%EF%BC%88%E4%B8%80%EF%BC%89/">致我心中的 “散装”（开源）SIEM (一)</a></li>
+<li><a target="_blank" rel="noopener" href="https://canon88.github.io/2021/05/03/%E7%8E%A9%E8%BD%ACTheHive%E5%AE%89%E5%85%A8%E4%BA%8B%E4%BB%B6%E5%93%8D%E5%BA%94%E5%B9%B3%E5%8F%B0/">浅谈TheHive平台在安全运营工作中的落地</a></li>
+<li><a target="_blank" rel="noopener" href="https://canon88.github.io/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/">应急响应 - 你该关注哪些指标？</a></li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/12/15/Zeek-Configuration-Framework/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/12/15/Zeek-Configuration-Framework/" class="post-title-link" itemprop="url">了不起的 Zeek Configuration Framework</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-12-15 19:37:37" itemprop="dateCreated datePublished" datetime="2022-12-15T19:37:37+08:00">2022-12-15</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-12-16 17:18:48" itemprop="dateModified" datetime="2022-12-16T17:18:48+08:00">2022-12-16</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.8k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h4 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h4><p>​    上半年是忙的要死，下半年都没怎么做“阳间”的事。这会“阳”了，顺带可以整理一些零散的知识点分享给大家。这一偏会比较剪短一些。</p>
+<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>​    知道Zeek的小伙伴应该都熟悉或者知道Suricata吧。Suricata在每次调整规则之后是可以通过reload来直接加载规则的，这样的好处是不用重启Suricata就让规则生效，生效速度很快。不知道大家在Zeek上是怎么做的，我之前都是用<code>zeek deploy</code>的方式确保最新的配置加载。起初，这并不会有什么太大的问题，但是随着Zeek的机器越来越多，操作就会变的异常繁琐。当然，如果你使用了Zeek的集群架构，它也是比较方便的。我今天就来介绍一个让配置加载变的更加便捷的方法，那就是利用Zeek自带的<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/frameworks/configuration.html#configuration-framework">Configuration Framework</a>来实现日常大部分的配置变更与“热”加载。</p>
+<h4 id="那么开始吧？"><a href="#那么开始吧？" class="headerlink" title="那么开始吧？"></a>那么开始吧？</h4><h5 id="注意支持类型"><a href="#注意支持类型" class="headerlink" title="注意支持类型"></a>注意支持类型</h5><p>​    就像我上面的描述那样，Configuration Framework能做到对日常大部分的配置实现“热”加载。因为它有类型的要求，只有在脚本中包含指定的配置项类型才能实现试试下发与“热”加载。一旦出现类型错误，日志将会被发送至<code>reporter.log</code>文件中，大家注意观察。目前支持的类型在大多数情况下是够用的，下表为详细类型：</p>
+<table>
+<thead>
+<tr>
+<th>Data Type</th>
+<th>Sample Config File Entry</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-addr"><code>addr</code></a></td>
+<td><code>1.2.3.4</code></td>
+<td>Plain IPv4 or IPv6 address, as in Zeek. No <code>/32</code> or similar netmasks.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-bool"><code>bool</code></a></td>
+<td><code>T</code></td>
+<td><code>T</code> or <code>1</code> for true, <code>F</code> or <code>0</code> for false</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-count"><code>count</code></a></td>
+<td><code>42</code></td>
+<td>Plain, nonnegative integer.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-double"><code>double</code></a></td>
+<td><code>-42.5</code></td>
+<td>Plain double number.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-enum"><code>enum</code></a></td>
+<td><code>Enum::FOO_A</code></td>
+<td>Plain enum string.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-int"><code>int</code></a></td>
+<td><code>-1</code></td>
+<td>Plain integer.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-interval"><code>interval</code></a></td>
+<td><code>3600.0</code></td>
+<td>Always in epoch seconds, with optional fraction of seconds. Never includes a time unit.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-pattern"><code>pattern</code></a></td>
+<td>`/(foo</td>
+<td>bar)/`</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-port"><code>port</code></a></td>
+<td><code>42/tcp</code></td>
+<td>Port number with protocol, as in Zeek. When the protocol part is missing, Zeek interprets it as <code>/unknown</code>.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-set"><code>set</code></a></td>
+<td><code>80/tcp,53/udp</code></td>
+<td>The set members, formatted as per their own type, separated by commas. For an empty set, use an empty string: just follow the option name with whitespace.Sets with multiple index types (e.g. <code>set[addr,string]</code>) are currently not supported in config files.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-string"><code>string</code></a></td>
+<td><code>Don’t bite, Zeek</code></td>
+<td>Plain string, no quotation marks. Given quotation marks become part of the string. Everything after the whitespace separator delineating the option name becomes the string. Saces and special characters are fine. Backslash characters (e.g. <code>\n</code>) have no special meaning.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-subnet"><code>subnet</code></a></td>
+<td><code>1.2.3.4/16</code></td>
+<td>Plain subnet, as in Zeek.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-time"><code>time</code></a></td>
+<td><code>1608164505.5</code></td>
+<td>Always in epoch seconds, with optional fraction of seconds. Never includes a time unit.</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/types.html#type-vector"><code>vector</code></a></td>
+<td><code>1,2,3,4</code></td>
+<td>The set members, formatted as per their own type, separated by commas. For an empty vector, use an empty string: just follow the option name with whitespace.</td>
+</tr>
+</tbody></table>
+<h5 id="示例：record-http-domain"><a href="#示例：record-http-domain" class="headerlink" title="示例：record-http_domain"></a>示例：record-http_domain</h5><p>​    针对需要对HTTP做审计或者监测的小伙伴，可以通过此方法快速的将不需要的记录的域名进行过滤，或者只记录关注的域名。</p>
+<ul>
+<li><p>record-http_domain.zeek</p>
+<p>任何需要进行动态调整的参数，都必须在export中通过option去声明。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> HTTP;</span><br><span class="line"><span class="keyword">module</span> HTTPFilterDomain;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">  <span class="meta"># domain name</span></span><br><span class="line">  option local_domain: <span class="built_in">set</span>[<span class="built_in">string</span>] = &#123;&#125;;</span><br><span class="line">  # record_local_zone</span><br><span class="line">  option record_local_zone: <span class="keyword">bool</span> = F;</span><br><span class="line">  # Load HTTP config.dat</span><br><span class="line">  redef Config::config_files += &#123; <span class="string">&quot;/usr/local/zeek/share/zeek/site/http-audit/record-http_domain.dat&quot;</span> &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">redef record HTTP::Info += &#123;</span><br><span class="line">  is_local_zone: <span class="keyword">bool</span> &amp;<span class="built_in">log</span> &amp;<span class="keyword">default</span>=F;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">hook <span class="title">HTTP::log_policy</span><span class="params">(rec: HTTP::Info, id: Log::ID, filter: Log::Filter)</span> &amp;priority </span>= <span class="number">10</span></span><br><span class="line">  &#123;</span><br><span class="line">  <span class="keyword">if</span> ( filter$name != <span class="string">&quot;default&quot;</span> )</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ( record_local_zone )</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">if</span> ( rec$host ! in local_domain )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    rec$is_local_zone = T;</span><br><span class="line">    &#125;</span><br><span class="line">  <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">if</span> ( rec$host in local_domain )</span><br><span class="line">      <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>record-http_domain.dat</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># string</span></span><br><span class="line">HTTPFilterDomain::local_domain ifconfig.io,ipinfo.io</span><br><span class="line"><span class="comment"># bool</span></span><br><span class="line">HTTPFilterDomain::record_local_zone F</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="看一下效果如何"><a href="#看一下效果如何" class="headerlink" title="看一下效果如何"></a>看一下效果如何</h4><p>​    由于我是将HTTP发送到了Kafka里面，好处就是不用关注本身NTA机器的磁盘存储的问题了。这里我通过Kafka的Topic数据给大家看下。</p>
+<p><img src="/2022/12/15/Zeek-Configuration-Framework/iShot_2022-12-16_16.24.59.png" alt="iShot_2022-12-16_16.24.59"></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/" class="post-title-link" itemprop="url">Zeek-Kafka 之 硬盘舒服了!</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-07-11 13:50:18" itemprop="dateCreated datePublished" datetime="2022-07-11T13:50:18+08:00">2022-07-11</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-07-17 14:13:50" itemprop="dateModified" datetime="2022-07-17T14:13:50+08:00">2022-07-17</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.4k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h4 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h4><p>​    哎，今年上半年实在太忙了，工作中一些琐碎的事让我日常处于和技术“脱线”的状态。好不容易挤出一点时间来整理一下手头的东西，想着还有哪些可以拿出来给大家分享。</p>
+<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>​    由于流量镜像后的网络流量太大，若想利用Zeek将数据解析后进行分析，硬盘的空间以及I/O是我们必须考虑的。虽然我们可以写个脚本做定时任务清除，但这并不是最优解决方案。至少在我的场景中这些数据都是需要发送到Kafka上的，如果能做到在数据源阶段就不用落地在本地磁盘岂不美哉？所以，我需要对数据采集后的写入方式进一步优化。</p>
+<ul>
+<li><p>优化前</p>
+<p>Zeek将日志留存在本地硬盘，由本地安装的filebeat发送给Kafka，最终落地到SIEM上。</p>
+<p><img src="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/zeek-to-filebeat.png" alt="image-20220705172727370"></p>
+<hr>
+</li>
+<li><p>优化后</p>
+<p>Zeek日志将不会留存在本地硬盘上，由Zeek Kafka插件将日志发送到Kafka集群，省去了数据落盘的步骤。</p>
+<p><img src="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/zeek-to-kafka.png" alt="image-20220705173013941"></p>
+</li>
+</ul>
+<h4 id="安排"><a href="#安排" class="headerlink" title="安排"></a>安排</h4><p>​    之前就有了解过Zeek可以通过插件的形式将日志发送到Kafka上，由于当时没有需求也就没有继续探究，想着这次需求来了就开启了“折腾”模式。本次我使用的是<a target="_blank" rel="noopener" href="https://github.com/SeisoLLC/zeek-kafka"><strong>Zeek-Kafka</strong></a>这个插件，很多网上的文章介绍的插件是 <a target="_blank" rel="noopener" href="https://github.com/apache/metron-bro-plugin-kafka"><strong>metron-bro-plugin-kafka</strong></a>。大家可以认为这个是<a target="_blank" rel="noopener" href="https://github.com/SeisoLLC/zeek-kafka"><strong>Zeek-Kafka</strong></a>的前身，后者（<a target="_blank" rel="noopener" href="https://github.com/apache/metron-bro-plugin-kafka"><strong>metron-bro-plugin-kafka</strong></a>）已经并没有在更新了。使用的话还是推荐<a target="_blank" rel="noopener" href="https://github.com/SeisoLLC/zeek-kafka"><strong>Zeek-Kafka</strong></a>。</p>
+<p><strong>安装</strong></p>
+<p>​    安装流程比较简单，参考文档<a target="_blank" rel="noopener" href="https://github.com/SeisoLLC/zeek-kafka"><strong>Zeek-Kafka</strong></a>即可。至此文章结束。下期再会！</p>
+<hr>
+<p><strong>知识点</strong></p>
+<p>​    OK，在开始之前我们来聊一下使用了这个插件之后我认为需要调整的地方以及一些Zeek知识点的补充。</p>
+<p><strong>重新认识Zeek日志框架</strong></p>
+<p>​    为什么这么说？上面有说到，我做此事的目的是为了<strong>节省硬盘空间、降低I/O的压力</strong>。实际在我使用此插件时，它会把日志发送到Kafka集群并同时保留原始的日志数据在本地硬盘<em>（擦，忙活半天，搞了个寂寞！）</em>。不过，至少确认日志发送到Kafka是OK的，现在我们只需要有选择性的drop掉写入硬盘的操作即可。为了满足这个需求，就需要我们先了解一下<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/frameworks/logging.html"><strong>Zeek - Logging Framework（日志框架）</strong></a>。由于我之前写过一些Zeek的检测场景，对于这个框架并不陌生，只不过理解上不够深入，经过这一次，算是比之前有了更加深入的理解。</p>
+<p>Zeek 的日志接口是围绕三个对象构建的：</p>
+<p><img src="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/Streams-Filters-Writers.png" alt="image-20220716232345238"></p>
+<ul>
+<li><p><strong>Streams</strong>（流）</p>
+<p>​    一个日志流对应于一个单一的日志。它定义了一个日志所包含的字段的集合，以及它们的名称和类型。例如，conn流用于记录连接摘要，http流用于记录HTTP活动。</p>
+</li>
+<li><p><strong>Filters</strong>（过滤器）</p>
+<p>​    每个流都有一组过滤器，决定哪些信息被写出来，以及如何写出来。默认情况下，每个流都有一个默认的过滤器，直接把所有的东西都记录到磁盘上。然而，可以添加额外的过滤器，只记录日志记录的一个子集，写到不同的输出，或者设置一个自定义的旋转间隔。如果从一个流中删除所有的过滤器，那么该流的输出就会被禁用。</p>
+</li>
+<li><p><strong>Writers</strong>（写入器）</p>
+<p>​    每个过滤器都有一个写入器。写入器定义了被记录信息的实际输出格式。默认的是ASCII写入器，它产生以制表符分隔的ASCII文件。其他写入器是可用的，比如二进制输出或直接记录到数据库。</p>
+</li>
+</ul>
+<p><strong>简单总结</strong>：<font color="red"><strong>Streams与Filters关系是一对多，Filters与Writers关系是一对一。</strong></font></p>
+<p><strong>我们可以用以下几种方式来定制Zeek的日志：</strong></p>
+<ol>
+<li><p>创建一个新的日志流</p>
+</li>
+<li><p>用新的字段来扩展现有的日志</p>
+</li>
+<li><p>对现有的日志流应用过滤器</p>
+</li>
+<li><p>通过设置日志写入器选项来定制输出格式</p>
+</li>
+</ol>
+<hr>
+<p>根据我们的需求，这里选择<font color="red"><strong>方案3</strong></font>（<em>对现有的日志流应用过滤器</em>）。你会用到的方法如下：</p>
+<ul>
+<li>删除指定流的过滤器：<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.0.5/scripts/base/frameworks/logging/main.zeek.html#id-Log::remove_filter"><strong>Log::remove_filter</strong></a></li>
+<li>创建一个新的过滤器：<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/scripts/base/frameworks/logging/main.zeek.html?highlight=Log::Filter#type-Log::Filter"><strong>Log::Filter</strong></a></li>
+<li>绑定过滤器与流关系：<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/scripts/base/frameworks/logging/main.zeek.html?highlight=Log::Filter#id-Log::add_filter"><strong>Log::add_filter</strong></a></li>
+<li>获取指定流的过滤器：<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/scripts/base/frameworks/logging/main.zeek.html?highlight=Log::Filter#id-Log::get_filter"><strong>Log::get_filter</strong></a></li>
+</ul>
+<p>以下任意一种方式都可以满足我们的需求，既原始日志不会落地在硬盘且直接写入Kafka集群。</p>
+<p><strong>示例代码1：删除默认过滤器</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span> &amp;priority</span>=<span class="number">-10</span></span><br><span class="line">&#123;</span><br><span class="line">  	# <span class="number">1.</span> 删除默认过滤器</span><br><span class="line">    Log::<span class="built_in">remove_filter</span>(HTTP::LOG, <span class="string">&quot;default&quot;</span>);</span><br><span class="line">  	# <span class="number">2.</span> 创建新的过滤器</span><br><span class="line">    local http_filter: Log::Filter = [</span><br><span class="line">        $name = <span class="string">&quot;kafka-http&quot;</span>,</span><br><span class="line">        $writer = Log::WRITER_KAFKAWRITER,</span><br><span class="line">        $path = <span class="string">&quot;http&quot;</span></span><br><span class="line">    ];</span><br><span class="line">  	# <span class="number">3.</span> 绑定流与过滤器</span><br><span class="line">    Log::<span class="built_in">add_filter</span>(HTTP::LOG, http_filter);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>示例代码2 - 修改默认过滤器</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span> &amp;priority</span>=<span class="number">-10</span></span><br><span class="line">&#123;</span><br><span class="line">  	# <span class="number">1.</span> 获取默认过滤器</span><br><span class="line">  	local f = Log::<span class="built_in">get_filter</span>(HTTP::LOG, <span class="string">&quot;default&quot;</span>);</span><br><span class="line">  	# <span class="number">2.</span> 修改默认写入器</span><br><span class="line">  	f$writer = Log::WRITER_KAFKAWRITER;</span><br><span class="line">  	# <span class="number">3.</span> 绑定流与过滤器</span><br><span class="line">    Log::<span class="built_in">add_filter</span>(HTTP::LOG, f);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>真实场景</strong></p>
+<ol>
+<li><p>场景1：适配HTTP的文件还原（file-extraction-plus）场景</p>
+<ul>
+<li><p>kafka/kafka-config.zeek</p>
+<p>​    定义Kafka集群的配置</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">redef Kafka::kafka_conf = <span class="built_in">table</span>(</span><br><span class="line">    [<span class="string">&quot;metadata.broker.list&quot;</span>] = <span class="string">&quot;node-1:9092,node-2:9092,node-3:9092&quot;</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">redef Kafka::json_timestamps = JSON::TS_ISO8601;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>file-extraction-plus/http-extension-logs.zeek</p>
+<p>​    优化<a target="_blank" rel="noopener" href="https://github.com/Canon88/file-extraction-plus"><strong>file-extraction-plus（文件还原）</strong></a>脚本，这里需要为文件还原的HTTP日志新增过滤器（http_extraction），确保能够被接下来引用。因此，需要用到<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/scripts/base/frameworks/logging/main.zeek.html#type-Log::PolicyHook"><strong>Log::PolicyHook</strong></a>方法。</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> Enrichment;</span><br><span class="line"></span><br><span class="line">redef record HTTP::Info += &#123;</span><br><span class="line">    extract:    <span class="keyword">bool</span>        &amp;<span class="keyword">default</span>=F &amp;log;</span><br><span class="line">    domain:     string      &amp;optional &amp;log;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">hook <span class="title">HTTP::log_policy</span><span class="params">(rec: HTTP::Info, id: Log::ID, filter: Log::Filter)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ( filter$name != <span class="string">&quot;http_extraction&quot;</span> )</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( rec$extract == F )</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">    local filter: Log::Filter = [$name=<span class="string">&quot;http_extraction&quot;</span>, $path=<span class="string">&quot;http-extraction&quot;</span>];</span><br><span class="line">    Log::<span class="built_in">add_filter</span>(HTTP::LOG, filter);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    global http: <span class="built_in">function</span>(f: fa_file): fa_file;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">function <span class="title">http</span><span class="params">(f: fa_file)</span>: fa_file</span></span><br><span class="line"><span class="function">    &#123;</span></span><br><span class="line">    f$http$extract = T;</span><br><span class="line">    f$http$domain = f$http$host;</span><br><span class="line">    <span class="keyword">return</span> f;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>kafka/http_extraction-to-kafka.zeek</p>
+<p>​    利用<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/scripts/base/frameworks/logging/main.zeek.html?highlight=Log::Filter#id-Log::get_filter"><strong>Log::get_filter</strong></a>方法获取过滤器(<em>http_extraction</em>)，通过将写入器修改为<em>WRITER_KAFKAWRITER</em>。最终实现将命中文件还原的HTTP事件通过指定topic（<em>zeek-http_extraction</em>）发送到Kafka。</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span> &amp;priority</span>=<span class="number">-10</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="meta"># handles HTTP</span></span><br><span class="line">  	local f = Log::<span class="built_in">get_filter</span>(HTTP::LOG, <span class="string">&quot;http_extraction&quot;</span>);</span><br><span class="line">  	f$writer = Log::WRITER_KAFKAWRITER;</span><br><span class="line">    f$config = <span class="built_in">table</span>([<span class="string">&quot;topic_name&quot;</span>] = <span class="string">&quot;zeek-http_extraction&quot;</span>);</span><br><span class="line">    Log::<span class="built_in">add_filter</span>(HTTP::LOG, f);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>场景2：算是场景1进行扩展，在保留HTTP文件还原的日志前提下，将全量的HTTP数据发送到指定的topic（zeek-http）。</p>
+<ul>
+<li>kafka/kafka-config.zeek</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">redef Kafka::kafka_conf = <span class="built_in">table</span>(</span><br><span class="line">    [<span class="string">&quot;metadata.broker.list&quot;</span>] = <span class="string">&quot;node-1:9092,node-2:9092,node-3:9092&quot;</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>kafka/http-to-kafka.zeek</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span> &amp;priority</span>=<span class="number">-10</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="meta"># handles HTTP</span></span><br><span class="line">  	local f = Log::<span class="built_in">get_filter</span>(HTTP::LOG, <span class="string">&quot;default&quot;</span>);</span><br><span class="line">  	f$writer = Log::WRITER_KAFKAWRITER;</span><br><span class="line">    f$config = <span class="built_in">table</span>([<span class="string">&quot;topic_name&quot;</span>] = <span class="string">&quot;zeek-http&quot;</span>);</span><br><span class="line">    Log::<span class="built_in">add_filter</span>(HTTP::LOG, f);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h4 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h4><p>​    这里用PCAP包回放的形式给大家验证一下前后的对比，为了便于验证，我这里只针对HTTP数据送入到了Kafka。</p>
+<ul>
+<li><p>修改前</p>
+<ul>
+<li>回放http.pcap，本地会留存 http.log</li>
+<li>回放http_extraction.pcap，本地会留存http-extraction.log</li>
+</ul>
+<p><img src="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/%E6%9C%AC%E5%9C%B0%E6%97%A5%E5%BF%97.gif" alt="image-20220716232345238"></p>
+</li>
+<li><p>修改后</p>
+<ul>
+<li>回放http.pcap，本地无http.log。topic: zeek-http，存在日志</li>
+<li>回放http_extraction.pcap，本地无http-extraction.log。topic: zeek-http_extraction，存在日志</li>
+</ul>
+<p><img src="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/Kafka%E6%97%A5%E5%BF%97.gif" alt="image-20220716232345238"></p>
+</li>
+</ul>
+<h4 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h4><p>​    下一篇 《Zeek-Kafka 之 机器受不了!》将会向大家介绍，若想在实际环境中完全发挥<a target="_blank" rel="noopener" href="https://github.com/SeisoLLC/zeek-kafka"><strong>Zeek-Kafka</strong></a>插件的能力，我们的架构也需要进行一些调整，一起探索Zeek集群的模式吧。</p>
+<p><img src="https://docs.zeek.org/en/v4.2.2/_images/deployment.png" alt="_images/deployment.png"></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/" class="post-title-link" itemprop="url">应急响应 - 你该关注哪些指标？</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-01-30 11:33:15" itemprop="dateCreated datePublished" datetime="2022-01-30T11:33:15+08:00">2022-01-30</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-03-15 13:48:32" itemprop="dateModified" datetime="2022-03-15T13:48:32+08:00">2022-03-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/SOC/" itemprop="url" rel="index"><span itemprop="name">SOC</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>​    回首2021年工作，主要重心是放在了安全运营上。既然负责安全运营自然也逃不开应急响应这一茬。在这个用数字“说话”的时代，那必须是要把应急响应KPI给整的明明白白的。领导们爱看，同行们也可以用来参考。</p>
+<p>​    首先需要明确的一点是，我个人是不排斥数字“说话”的，前提是大家对于应急响应KPI的理解必须一致。为什么这样说？主要是避免后期在复盘的时候在KPI的时间上进行过多的“Battle”。同时也是希望大家可以真正理解这些KPI的含义，更好的去制定这些KPI。</p>
+<p>​    今天这一篇文章主要就是介绍应急响应中的KPI。不过在讨论之前，还是得简单的介绍一下什么是应急响应。</p>
+<h1 id="应急响应"><a href="#应急响应" class="headerlink" title="应急响应"></a>应急响应</h1><h2 id="什么是应急响应？"><a href="#什么是应急响应？" class="headerlink" title="什么是应急响应？"></a>什么是应急响应？</h2><p>​    “应急响应”对应的英文是“Incident Response”（IR），是一种处理安全事件、漏洞和网络威胁的结构化<strong>方法</strong>。通常是指一个组织为了应对各种意外事件的发生所做的准备以及在事件发生后所采取的<strong>措施</strong>。</p>
+<h2 id="应急响应流程"><a href="#应急响应流程" class="headerlink" title="应急响应流程"></a>应急响应流程</h2><p>​    应急响应流程可以参考NIST发布的<a href="%5D(https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-61r2.pdf)"><em><strong>《计算机安全事件处理指南 (SP 800-61)》</strong></em></a>其中明确了应急响应4个阶段并细分出了6个步骤。</p>
+<p><img src="/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/nist-incident-response-process-1.png" alt="img"></p>
+<ul>
+<li>准备阶段：人员、预案手册（Playbook）、工具；</li>
+<li>检测与分析阶段：确认安全事件类型，明确事件等级；</li>
+<li>遏制、根除和恢复阶段：立即止损，根据安全事件类型选择对应的遏制方法并制定恢复计划；</li>
+<li>事后总结：从本次的安全事件中改进流程，并将新数据反馈到应急响应流程的准备阶段。你应该询问、调查并记录以下问题的答案：<ul>
+<li>发生了什么，在什么时候？</li>
+<li>事件响应小组对事件的处理情况如何？是否遵循了流程，是否足够？</li>
+<li>更早地发现还需要哪些信息？</li>
+<li>是否采取了任何导致损坏或阻碍恢复的错误操作？</li>
+<li>如果下次发生同样的事件，我们可以采取哪些不同的做法？</li>
+<li>我们能否与其他组织或其他部门更好地分享信息？</li>
+<li>我们是否学会了防止类似事件再次发生的方法？</li>
+<li>我们是否发现了类似事件的新预兆或迹象，以供将来观察？</li>
+<li>需要哪些额外的工具或资源来帮助预防或减轻类似事件？</li>
+</ul>
+</li>
+</ul>
+<h1 id="应急响应指标"><a href="#应急响应指标" class="headerlink" title="应急响应指标"></a>应急响应指标</h1><h2 id="MTTD"><a href="#MTTD" class="headerlink" title="MTTD"></a>MTTD</h2><ul>
+<li><p>什么是MTTD？</p>
+<p>MTTD：平均检测时间（Mean time to detect ）。MTTD是指从系统故障到检测或告警所需的平均时间。</p>
+</li>
+<li><p>如何计算MTTD？</p>
+<p><strong>MTTD = 故障与检测之间的总时间/事件数量</strong></p>
+<p><strong>例如：</strong>某系统在12:00发生故障，但直到12:10才有人注意到或被提醒，那么此时MTTD是10分钟。</p>
+</li>
+</ul>
+<h2 id="MTTA"><a href="#MTTA" class="headerlink" title="MTTA"></a>MTTA</h2><ul>
+<li><p>什么是MTTA？</p>
+<p>MTTA：平均确认时间（Mean time to acknowledge）。MTTA是指从系统产生告警到人员开始注意并处理的平均时间。</p>
+</li>
+<li><p>如何计算MTTA？</p>
+<p><strong>MTTA = 检测与确认之间的总时间/事件数量</strong></p>
+<p><strong>例如：</strong>安全组件在12:10检测并发送告警后，应急响应人员在12:15开始处理该事件。那么此时MTTA是5分钟。</p>
+</li>
+</ul>
+<h2 id="MTTI"><a href="#MTTI" class="headerlink" title="MTTI"></a>MTTI</h2><ul>
+<li><p>什么是MTTI？</p>
+<p>MTTI：平均调查时间（Mean time to investigate）。MTTI是指从确认一个安全事件到开始调查其原因和解决方案的平均时间。</p>
+</li>
+<li><p>如何计算MTTI？</p>
+<p><strong>MTTI = 确认告警与分析调查之间的总时间/事件数量</strong></p>
+<p><strong>例如：</strong>某安全运营人员在12:15开始处理告警并在12:30完成初步分析及拟定止损方案。那么此时MTTI是15分钟。</p>
+</li>
+</ul>
+<h2 id="MTTC"><a href="#MTTC" class="headerlink" title="MTTC"></a>MTTC</h2><ul>
+<li><p>什么是MTTC？</p>
+<p>MTTC：平均遏制时间（Mean Time to contain）。MTTC是指安全团队找到威胁者并阻止他们进一步进入你的系统和网络所需的时间。</p>
+</li>
+<li><p>如何计算MTTC？</p>
+<p><strong>MTTC = 分析调查与快速止损之间的总时间/事件数量</strong></p>
+<p><strong>例如</strong>：自安全事件在12:10被检测到后，应急响应人员在12:45成功遏制了攻击者的利用方式并阻断了通讯隧道，有效地防止攻击者进行下一步入侵。</p>
+<p><strong>注意：</strong>遏制可能是隔离一个电子邮件账户，重设一个用户密码，或关闭一个服务器。遏制是走向恢复的第一步。应急响应团队越快遏制住威胁行为者，越能降低企业受到更大风险的可能性。</p>
+</li>
+</ul>
+<h2 id="MTTR"><a href="#MTTR" class="headerlink" title="MTTR"></a>MTTR</h2><p>​    <strong>MTTR</strong>有4种不同的测量方法，这是由于<strong>R</strong>可以代表修复（repair）、恢复（recovery/restore）、响应（respond）和解决（resolve）。虽然这4个指标有重叠，但它们都有各自的含义和细微差别。安全人员通常关注的是<strong>平均响应时间</strong>这个指标。</p>
+<ul>
+<li><p>平均修复时间（Mean time to repair）</p>
+<ul>
+<li><p>什么是MTTR（平均修复时间）？</p>
+<p>MTTR是修复一个系统的平均时间。它包括维修时间和测试时间，直到系统再次完全运作。</p>
+</li>
+<li><p>如何计算MTTR（平均修复时间）？</p>
+<p><strong>MTTR = 将修复时间与恢复时间相加/修复次数</strong></p>
+<p><strong>例如：</strong>一周内有10次停电，修复系统花费了4个小时。四个小时是240分钟。240除以10是24。这意味着在这种情况下，修复的平均时间是24分钟。</p>
+<p><strong>注意</strong>：平均修复时间并不总是与系统中断本身的时间相同。在某些情况下，修复这个动作是在产品故障或系统中断后的几分钟内开始。</p>
+</li>
+</ul>
+</li>
+<li><p>平均恢复时间（Mean time to recovery/restore）</p>
+<ul>
+<li><p>什么是MTTR（平均恢复时间）？</p>
+<p>MTTR（平均恢复时间）是指从产品或系统故障中恢复的平均时间。这包括从系统或产品发生故障到其重新完全运作的整个中断时间。</p>
+</li>
+<li><p>如何计算MTTR（平均恢复时间）？</p>
+<p><strong>MTTR = 将故障时间与恢复时间相加/故障数量</strong></p>
+<p><strong>例如：</strong>我们的系统在24小时内在两个独立事件中停机了30分钟。30除以2是15，所以我们的MTTR是15分钟。</p>
+<p><strong>注意：</strong>这个指标它包括故障现象出现到告警发出的这段延迟时间与respond有着明显的区别。</p>
+</li>
+</ul>
+</li>
+<li><p>平均解决时间（Mean time to resolve）</p>
+<ul>
+<li><p>什么是MTTR（平均解决时间）？</p>
+<p>MTTR（平均解决时间）是指完全解决一个故障所需的平均时间。这不仅包括检测故障、诊断问题和修复问题的时间，还包括确保故障不会再次发生的时间。<strong>这个指标代表从“救火”到“防火”的转变。</strong></p>
+</li>
+<li><p>如何计算MTTR（平均解决时间）？</p>
+<p><strong>MTTR = 将故障时间与完全解决之间的时间相加/故障数量</strong></p>
+<p><strong>例如：</strong>你的系统在24小时内的一次事件中总共瘫痪了两个小时，而团队又花了两个小时进行修复，以确保系统中断不会再次发生，这就是解决该问题的总时间。这意味着你的MTTR是四个小时。</p>
+<p><strong>注意：</strong>MTTR 最常使用工作时间（8小时）计算（假设你在下班时将故障恢复，并在第二天上班时解决潜在问题，那么你的 MTTR 将不包括下班的16小时）。如果你的团队在能够7X24小时，或者有值班员工在下班后工作，那么这个指标将可以进行适当的微调。</p>
+</li>
+</ul>
+</li>
+<li><p>平均响应时间（Mean time to respond）</p>
+<ul>
+<li><p>什么是MTTR（平均响应时间）？</p>
+<p>MTTR（平均响应时间）是指从第一次收到警报时起，直到产品或系统从故障中恢复所需的平均时间。</p>
+</li>
+<li><p>如何计算MTTR（平均响应时间）？</p>
+<p><strong>MTTR = 检测告警与服务恢复之间的总时间/事件数量</strong></p>
+<p><strong>示例：</strong>如果你在一个40小时的工作周里发生了四起事件，并且在这些事件上总共花了一个小时（从警报到恢复），那么你那一周的MTTR将是15分钟。</p>
+<p><strong>注意：</strong>平均响应时间不考虑问题已经存在但未被识别的时间。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="举个“栗子”"><a href="#举个“栗子”" class="headerlink" title="举个“栗子”"></a>举个“栗子”</h1><p><strong>应急响应KPI时间线</strong></p>
+<p><img src="/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/IR-KPI.png" alt="image-20220208010258629"></p>
+<ol>
+<li><strong>MTTD：</strong>告警群在12:05上报一起安全告警，（假设告警每5分钟同步一次到群里，理想情况下告警应近乎实时）。MTTD：5分钟（<em>12:05 - 12:00 = 5</em>）</li>
+<li><strong>MTTA：</strong>安全运营团队在12:10开始处理此告警并确认这是一起真实的网络入侵事件，同一时间应急响应团队介入。MTTA：5分钟（<em>12:10 - 12:05 = 5</em>）</li>
+<li><strong>MTTI：</strong>应急响应团队在12:25完成初步分析并根据已有应急预案拟定遏制方案。MTTI：15分钟（<em>12:25 - 12:10 = 15</em>）</li>
+<li><strong>MTTC：</strong>根据预案安全运营团队在12:35完成了安全组件的规则调整，并删除已识别的后门木马遏制了攻击者的利用“路径”。为后续的根除威胁争取到了充足的时间。MTTC：30分钟（<em>12:35 - 12:05 = 30</em>）</li>
+<li><strong>MTTR：</strong>12:50正式通知重新上线业务恢复对外服务。MTTR（Respond）：45分钟（<em>12:50 - 12:05 = 45</em>）、MTTR（Recovery）：50分钟（<em>12:50 - 12:00 = 50</em>）；</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

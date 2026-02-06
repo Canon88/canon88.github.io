@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="写在前面 ​       这并不是什么高精尖的架构与技术。这只是我个人在工作中结合目前手头的资源进行了一些整合 。当然实现这些需求的方法有很多, 有钱的可以考虑Splunk, 没钱的有研发的团队的可以上Flink、Esper 。  需求​    由于攻防对抗的升级, 通过单一的数据源很难直接断言攻击是否成功。因此, 我们需要结合多个数据源进行安全事件的关联, 从中提炼出可靠性较高的安全告警进行人工">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Wazuh - 如何对异构数据进行关联告警">
+<meta property="og:url" content="http://example.com/2020/02/25/Wazuh-%E5%A6%82%E4%BD%95%E5%AF%B9%E5%BC%82%E6%9E%84%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E5%85%B3%E8%81%94%E5%91%8A%E8%AD%A6/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="写在前面 ​       这并不是什么高精尖的架构与技术。这只是我个人在工作中结合目前手头的资源进行了一些整合 。当然实现这些需求的方法有很多, 有钱的可以考虑Splunk, 没钱的有研发的团队的可以上Flink、Esper 。  需求​    由于攻防对抗的升级, 通过单一的数据源很难直接断言攻击是否成功。因此, 我们需要结合多个数据源进行安全事件的关联, 从中提炼出可靠性较高的安全告警进行人工">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2020/02/25/Wazuh-%E5%A6%82%E4%BD%95%E5%AF%B9%E5%BC%82%E6%9E%84%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E5%85%B3%E8%81%94%E5%91%8A%E8%AD%A6/image-20200303215020561.png">
+<meta property="article:published_time" content="2020-02-25T14:37:40.000Z">
+<meta property="article:modified_time" content="2020-03-16T06:34:53.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="Logstash">
+<meta property="article:tag" content="Suricata">
+<meta property="article:tag" content="Wazuh">
+<meta property="article:tag" content="Filbeat">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2020/02/25/Wazuh-%E5%A6%82%E4%BD%95%E5%AF%B9%E5%BC%82%E6%9E%84%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E5%85%B3%E8%81%94%E5%91%8A%E8%AD%A6/image-20200303215020561.png">
+
+
+<link rel="canonical" href="http://example.com/2020/02/25/Wazuh-%E5%A6%82%E4%BD%95%E5%AF%B9%E5%BC%82%E6%9E%84%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E5%85%B3%E8%81%94%E5%91%8A%E8%AD%A6/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2020&#x2F;02&#x2F;25&#x2F;Wazuh-%E5%A6%82%E4%BD%95%E5%AF%B9%E5%BC%82%E6%9E%84%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E5%85%B3%E8%81%94%E5%91%8A%E8%AD%A6&#x2F;&quot;,&quot;path&quot;:&quot;2020&#x2F;02&#x2F;25&#x2F;Wazuh-如何对异构数据进行关联告警&#x2F;&quot;,&quot;title&quot;:&quot;Wazuh - 如何对异构数据进行关联告警&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>Wazuh - 如何对异构数据进行关联告警 | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9C%80%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">需求</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%80%9D%E8%B7%AF"><span class="nav-number">2.</span> <span class="nav-text">解决思路</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%9D%91%E7%82%B9"><span class="nav-number">2.1.</span> <span class="nav-text">坑点</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%94%B9%E9%80%A0"><span class="nav-number">3.</span> <span class="nav-text">改造</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%94%B9%E9%80%A0%E4%B9%8B%E5%89%8D"><span class="nav-number">3.1.</span> <span class="nav-text">改造之前:</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%94%B9%E9%80%A0%E4%B9%8B%E5%90%8E"><span class="nav-number">3.2.</span> <span class="nav-text">改造之后:</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Filebeat%E9%85%8D%E7%BD%AE"><span class="nav-number">3.3.</span> <span class="nav-text">Filebeat配置</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#filebeat-yaml"><span class="nav-number">3.3.1.</span> <span class="nav-text">filebeat.yaml</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Logstash%E9%85%8D%E7%BD%AE"><span class="nav-number">3.4.</span> <span class="nav-text">Logstash配置</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#00-input-conf"><span class="nav-number">3.4.1.</span> <span class="nav-text">00_input.conf</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#50-suricata-conf"><span class="nav-number">3.4.2.</span> <span class="nav-text">50_suricata.conf</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#mapping-json"><span class="nav-number">3.4.3.</span> <span class="nav-text">mapping.json</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#70-normalized-suricata-conf"><span class="nav-number">3.4.4.</span> <span class="nav-text">70_normalized-suricata.conf</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#99-output-elasticsearch-conf"><span class="nav-number">3.4.5.</span> <span class="nav-text">99_output-elasticsearch.conf</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#99-output-wazuh-conf"><span class="nav-number">3.4.6.</span> <span class="nav-text">99_output-wazuh.conf</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Wazuh%E9%85%8D%E7%BD%AE"><span class="nav-number">3.5.</span> <span class="nav-text">Wazuh配置</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#custom-syscheck-py"><span class="nav-number">3.5.1.</span> <span class="nav-text">custom-syscheck.py</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#ossec-conf"><span class="nav-number">3.5.2.</span> <span class="nav-text">ossec.conf</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#local-decoder-normalized-xml"><span class="nav-number">3.5.3.</span> <span class="nav-text">local_decoder_normalized.xml</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#0901-local-raw-xml"><span class="nav-number">3.5.4.</span> <span class="nav-text">0901-local_raw.xml</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#0905-local-syscheck-xml"><span class="nav-number">3.5.5.</span> <span class="nav-text">0905-local_syscheck.xml</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#9999-local-composite-xml"><span class="nav-number">3.5.6.</span> <span class="nav-text">9999-local_composite.xml</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/02/25/Wazuh-%E5%A6%82%E4%BD%95%E5%AF%B9%E5%BC%82%E6%9E%84%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E5%85%B3%E8%81%94%E5%91%8A%E8%AD%A6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Wazuh - 如何对异构数据进行关联告警
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-02-25 22:37:40" itemprop="dateCreated datePublished" datetime="2020-02-25T22:37:40+08:00">2020-02-25</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-03-16 14:34:53" itemprop="dateModified" datetime="2020-03-16T14:34:53+08:00">2020-03-16</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/HIDS%E3%80%81NIDS/" itemprop="url" rel="index"><span itemprop="name">HIDS、NIDS</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>11k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>10 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><strong>写在前面</strong></p>
+<p>​       这并不是什么<strong>高精尖</strong>的架构与技术。这只是我个人在工作中结合目前手头的资源进行了一些<strong>整合</strong> 。当然实现这些需求的方法有很多, 有钱的可以考虑Splunk, 没钱的有研发的团队的可以上Flink、Esper 。 </p>
+<h4 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h4><p>​    由于攻防对抗的升级, 通过单一的数据源很难直接断言攻击是否成功。因此, 我们需要结合多个数据源进行安全事件的关联, 从中提炼出可靠性较高的安全告警进行人工排查。例如: 针对WebShell上传类的, 可以通过<strong>网络流量 + 终端</strong>进行关联; 针对Web攻击类, 可以通过<strong>WAF + NIDS</strong>的事件关联, 得到Bypass WAF 的安全告警。</p>
+<h4 id="解决思路"><a href="#解决思路" class="headerlink" title="解决思路"></a>解决思路</h4><p>​    虽然Wazuh本身具备安全事件的关联能力, 但在传统的部署架构中, 通常是由Wazuh Agent将安全事件发送到Wazuh Manager,通过Manager进行安全事件的关联告警。由于缺少了对数据进行ETL, 使得Wazuh Manager很难对异构数据进行关联。因此, 我们需要通过Logstash实现对数据的标准化, 并将标准化后的数据通过Syslog的形式发送到Wazuh Manager, 从而进行异构数据的关联。</p>
+<h5 id="坑点"><a href="#坑点" class="headerlink" title="坑点"></a>坑点</h5><ol>
+<li>本次改造采用了<strong>Syslog</strong>的形式将数据发送到Wazuh Manager端进行数据关联。由于<strong>Syslog</strong> 默认采用了<strong>UDP</strong>协议进行数据传输, 当数据发送过大时将会导致<strong>数据截断</strong>的报错。针对此问题, 需改用<strong>TCP</strong>的形式进行数据发送规避此问题。</li>
+<li>Wazuh Manager 部分告警缺少”<strong>必要</strong>“关联字段的现象。如: 本次场景中<code>syscheck</code>告警事件, 默认不会携带<code>srcip</code>的字段, 对于此问题可以通过在Manager上编写一个预处理脚本来解决。</li>
+</ol>
+<h4 id="改造"><a href="#改造" class="headerlink" title="改造"></a>改造</h4><ol>
+<li><h5 id="改造之前"><a href="#改造之前" class="headerlink" title="改造之前:"></a>改造之前:</h5><p>Suricata (Wazuh agent) —(Agent: UDP 1514)—&gt; Wazuh Manager</p>
+</li>
+<li><h5 id="改造之后"><a href="#改造之后" class="headerlink" title="改造之后:"></a>改造之后:</h5><p>所有的标准化都由Logstash来进行, Filebeat只需要做’<strong>无脑</strong>‘转发即可。</p>
+</li>
+</ol>
+<p><strong>workflow:</strong></p>
+<p><img src="/2020/02/25/Wazuh-%E5%A6%82%E4%BD%95%E5%AF%B9%E5%BC%82%E6%9E%84%E6%95%B0%E6%8D%AE%E8%BF%9B%E8%A1%8C%E5%85%B3%E8%81%94%E5%91%8A%E8%AD%A6/image-20200303215020561.png" alt="image-20200303215020561"></p>
+<hr>
+<h5 id="Filebeat配置"><a href="#Filebeat配置" class="headerlink" title="Filebeat配置"></a>Filebeat配置</h5><ul>
+<li><h6 id="filebeat-yaml"><a href="#filebeat-yaml" class="headerlink" title="filebeat.yaml"></a>filebeat.yaml</h6></li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#=========================== Filebeat inputs =============================</span></span><br><span class="line"><span class="attr">filebeat.inputs:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">type:</span> <span class="string">log</span></span><br><span class="line">  <span class="attr">paths:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">&quot;/var/log/suricata/alert-*.json&quot;</span></span><br><span class="line">  <span class="attr">fields_under_root:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">fields:</span> &#123; <span class="attr">application:</span> <span class="string">suricata</span> &#125;</span><br><span class="line">  <span class="attr">json.keys_under_root:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">json.overwrite_keys:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">json.message_key:</span> <span class="string">log</span></span><br><span class="line">  <span class="attr">tail_files:</span> <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">scan_frequency:</span> <span class="string">1s</span></span><br><span class="line">  <span class="attr">harvester_buffer_size:</span> <span class="number">104857600</span></span><br><span class="line">  <span class="attr">backoff:</span> <span class="string">1s</span></span><br><span class="line">  <span class="attr">max_backoff:</span> <span class="string">10s</span></span><br><span class="line">  <span class="attr">close_timeout:</span> <span class="string">30m</span></span><br><span class="line">  <span class="attr">close_inactive:</span> <span class="string">10m</span></span><br><span class="line">  <span class="attr">clean_inactive:</span> <span class="string">72h</span></span><br><span class="line">  <span class="attr">ignore_older:</span> <span class="string">70h</span></span><br><span class="line">  <span class="attr">registry_file:</span> <span class="string">/etc/filebeat/registry/wazuh/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#================================ Processors ==================================</span></span><br><span class="line"><span class="attr">processors:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">drop_fields:</span></span><br><span class="line">    <span class="attr">fields:</span> [<span class="string">&quot;ecs.version&quot;</span>, <span class="string">&quot;agent.ephemeral_id&quot;</span>, <span class="string">&quot;agent.version&quot;</span>, <span class="string">&quot;agent.type&quot;</span>, <span class="string">&quot;agent.id&quot;</span>, <span class="string">&quot;agent.ephemeral_id&quot;</span>, <span class="string">&quot;input.type&quot;</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">#================================ Outputs =====================================</span></span><br><span class="line"><span class="attr">output.logstash:</span></span><br><span class="line">  <span class="attr">hosts:</span> [<span class="string">&quot;logstash:5010&quot;</span>]</span><br><span class="line">  <span class="attr">loadbalance:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">worker:</span> <span class="number">4</span></span><br><span class="line">  <span class="attr">compression_level:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">bulk_max_size:</span> <span class="number">4096</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h5 id="Logstash配置"><a href="#Logstash配置" class="headerlink" title="Logstash配置"></a>Logstash配置</h5><ul>
+<li><h6 id="00-input-conf"><a href="#00-input-conf" class="headerlink" title="00_input.conf"></a>00_input.conf</h6></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">input &#123;</span><br><span class="line">  beats &#123;</span><br><span class="line">    port =&gt; 5010</span><br><span class="line">    codec =&gt; <span class="string">&quot;json_lines&quot;</span></span><br><span class="line">    tags =&gt; [<span class="string">&quot;beats&quot;</span>]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h6 id="50-suricata-conf"><a href="#50-suricata-conf" class="headerlink" title="50_suricata.conf"></a>50_suricata.conf</h6></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">filter &#123;</span><br><span class="line">  <span class="keyword">if</span> [application] == <span class="string">&quot;suricata&quot;</span> &#123;</span><br><span class="line">    date &#123;</span><br><span class="line">      match =&gt; [ <span class="string">&quot;timestamp&quot;</span>, <span class="string">&quot;ISO8601&quot;</span> ]</span><br><span class="line">      target =&gt; <span class="string">&quot;timestamp&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h6 id="mapping-json"><a href="#mapping-json" class="headerlink" title="mapping.json"></a>mapping.json</h6></li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;common_mapping&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;src_ip&quot;</span>: <span class="string">&quot;srcip&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;dest_ip&quot;</span>: <span class="string">&quot;dstip&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;src_port&quot;</span>: <span class="string">&quot;srcport&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;dest_port&quot;</span>: <span class="string">&quot;dstport&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h6 id="70-normalized-suricata-conf"><a href="#70-normalized-suricata-conf" class="headerlink" title="70_normalized-suricata.conf"></a>70_normalized-suricata.conf</h6></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">filter &#123;</span><br><span class="line">  <span class="built_in">clone</span> &#123;</span><br><span class="line">    clones =&gt; [ <span class="string">&quot;siem_events&quot;</span> ]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">filter &#123;</span><br><span class="line">  <span class="keyword">if</span> [<span class="built_in">type</span>] == <span class="string">&quot;siem_events&quot;</span> &#123;</span><br><span class="line">    mutate &#123;</span><br><span class="line">      remove_field =&gt; [ <span class="string">&quot;application&quot;</span>, <span class="string">&quot;type&quot;</span>, <span class="string">&quot;agent&quot;</span>, <span class="string">&quot;@version&quot;</span>, <span class="string">&quot;@timestamp&quot;</span>]</span><br><span class="line">      add_field =&gt; &#123;</span><br><span class="line">        <span class="string">&quot;provider&quot;</span> =&gt; <span class="string">&quot;Suricata&quot;</span></span><br><span class="line">        <span class="string">&quot;product&quot;</span> =&gt; <span class="string">&quot;Intrusion Detection System&quot;</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ruby &#123;</span><br><span class="line">      init =&gt; <span class="string">&quot;</span></span><br><span class="line"><span class="string">        require &#x27;json&#x27;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        mapping_json = File.read(&#x27;/etc/logstash/mappings/wazuh/mapping.json&#x27;)</span></span><br><span class="line"><span class="string">        mapping = JSON.parse(mapping_json)</span></span><br><span class="line"><span class="string">        @common_mapping = mapping[&#x27;common_mapping&#x27;]</span></span><br><span class="line"><span class="string">      &quot;</span></span><br><span class="line"></span><br><span class="line">      code =&gt; <span class="string">&quot;</span></span><br><span class="line"><span class="string">        keys = event.to_hash.keys</span></span><br><span class="line"><span class="string">        keys.each do |key|</span></span><br><span class="line"><span class="string">            if @common_mapping.include? key then</span></span><br><span class="line"><span class="string">                value = event.get(key)</span></span><br><span class="line"><span class="string">                event.remove(key)</span></span><br><span class="line"><span class="string">                new_key = @common_mapping[key]</span></span><br><span class="line"><span class="string">                event.set(new_key, value)</span></span><br><span class="line"><span class="string">            end</span></span><br><span class="line"><span class="string">        end</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        sensor = event.get(&#x27;[host][name]&#x27;)</span></span><br><span class="line"><span class="string">        event.set(&#x27;sensor&#x27;, sensor)</span></span><br><span class="line"><span class="string">      &quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h6 id="99-output-elasticsearch-conf"><a href="#99-output-elasticsearch-conf" class="headerlink" title="99_output-elasticsearch.conf"></a>99_output-elasticsearch.conf</h6></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">output &#123;</span><br><span class="line">  <span class="keyword">if</span> [event_type] == <span class="string">&quot;alert&quot;</span> &#123;</span><br><span class="line">    elasticsearch &#123;</span><br><span class="line">      cacert =&gt; <span class="string">&quot;/etc/logstash/certs/ca/ca.crt&quot;</span></span><br><span class="line">      user =&gt; <span class="string">&quot;elastic&quot;</span></span><br><span class="line">      password =&gt; <span class="string">&quot;Hello World!&quot;</span></span><br><span class="line">      hosts =&gt; [<span class="string">&quot;https://elasticsearch:9200&quot;</span>]</span><br><span class="line">      index =&gt; <span class="string">&quot;suricata-%&#123;+YYYY.MM.dd&#125;&quot;</span></span><br><span class="line">      template =&gt; <span class="string">&quot;/etc/logstash/index-template.d/suricata-template.json&quot;</span></span><br><span class="line">      template_name =&gt; <span class="string">&quot;suricata&quot;</span></span><br><span class="line">      template_overwrite =&gt; <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h6 id="99-output-wazuh-conf"><a href="#99-output-wazuh-conf" class="headerlink" title="99_output-wazuh.conf"></a>99_output-wazuh.conf</h6></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">output &#123;</span><br><span class="line">  <span class="keyword">if</span> [provider] == <span class="string">&quot;Suricata&quot;</span> &#123;</span><br><span class="line">    syslog &#123;</span><br><span class="line">        host =&gt; <span class="string">&quot;wazuh&quot;</span></span><br><span class="line">        protocol =&gt; <span class="string">&quot;tcp&quot;</span></span><br><span class="line">        port =&gt; 514</span><br><span class="line">        codec =&gt; <span class="string">&quot;json&quot;</span></span><br><span class="line">        sourcehost =&gt; <span class="string">&quot;logstash&quot;</span></span><br><span class="line">        appname =&gt; <span class="string">&quot;NORMALIZED&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">#stdout &#123;</span></span><br><span class="line">        <span class="comment">#codec =&gt; rubydebug</span></span><br><span class="line">    <span class="comment">#&#125;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h5 id="Wazuh配置"><a href="#Wazuh配置" class="headerlink" title="Wazuh配置"></a>Wazuh配置</h5><ul>
+<li><h6 id="custom-syscheck-py"><a href="#custom-syscheck-py" class="headerlink" title="custom-syscheck.py"></a>custom-syscheck.py</h6><p>Wazuh Manager 新增预处理脚本对指定的安全事件进行预处理。如: syscheck事件增加<code>srcip</code>字段。</p>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> datetime <span class="keyword">import</span> datetime, timedelta, timezone</span><br><span class="line"></span><br><span class="line"><span class="comment"># ossec.conf configuration:</span></span><br><span class="line"><span class="comment">#  &lt;integration&gt;</span></span><br><span class="line"><span class="comment">#      &lt;name&gt;custom-syscheck&lt;/name&gt;</span></span><br><span class="line"><span class="comment">#      &lt;rule_id&gt;554&lt;/rule_id&gt;</span></span><br><span class="line"><span class="comment">#      &lt;group&gt;syscheck&lt;/group&gt;</span></span><br><span class="line"><span class="comment">#      &lt;alert_format&gt;json&lt;/alert_format&gt;</span></span><br><span class="line"><span class="comment">#  &lt;/integration&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Global vars</span></span><br><span class="line">debug_enabled = <span class="literal">False</span></span><br><span class="line">pwd = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))</span><br><span class="line">json_alert = &#123;&#125;</span><br><span class="line">now = time.strftime(<span class="string">&quot;%a %b %d %H:%M:%S %Z %Y&quot;</span>)</span><br><span class="line">wazuh_server = <span class="string">&quot;192.168.199.97&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Set paths</span></span><br><span class="line">log_file = <span class="string">&#x27;&#123;0&#125;/logs/integrations.log&#x27;</span>.<span class="built_in">format</span>(pwd)</span><br><span class="line">syscheck_file = <span class="string">&#x27;&#123;0&#125;/logs/syscheck.json&#x27;</span>.<span class="built_in">format</span>(pwd)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">iso8601</span>(<span class="params">hours=<span class="number">8</span></span>):</span></span><br><span class="line">    td = timedelta(hours=hours)</span><br><span class="line">    tz = timezone(td)</span><br><span class="line">    <span class="keyword">return</span> datetime.now(tz=tz).isoformat()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span>(<span class="params">args</span>):</span></span><br><span class="line">    debug(<span class="string">&quot;# Starting&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Read args</span></span><br><span class="line">    alert_file_location = args[<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line">    debug(<span class="string">&quot;# File location&quot;</span>)</span><br><span class="line">    debug(alert_file_location)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Load alert. Parse JSON object.</span></span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(alert_file_location) <span class="keyword">as</span> alert_file:</span><br><span class="line">        json_alert = json.load(alert_file)</span><br><span class="line">    debug(<span class="string">&quot;# Processing alert&quot;</span>)</span><br><span class="line">    debug(json_alert)</span><br><span class="line"></span><br><span class="line">    alert = normalized_data(json_alert)</span><br><span class="line">    <span class="keyword">with</span> <span class="built_in">open</span>(syscheck_file, <span class="string">&#x27;a&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">        msg = json.dumps(alert)</span><br><span class="line">        f.write(msg + <span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">debug</span>(<span class="params">msg</span>):</span></span><br><span class="line">    <span class="keyword">if</span> debug_enabled:</span><br><span class="line">        msg = <span class="string">&quot;&#123;0&#125;: &#123;1&#125;\n&quot;</span>.<span class="built_in">format</span>(now, msg)</span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span>(log_file, <span class="string">&quot;a&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">            f.write(msg)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">normalized_data</span>(<span class="params">alert</span>):</span></span><br><span class="line">    <span class="keyword">if</span> alert[<span class="string">&#x27;agent&#x27;</span>][<span class="string">&#x27;id&#x27;</span>] == <span class="string">&#x27;000&#x27;</span>:</span><br><span class="line">        alert[<span class="string">&#x27;srcip&#x27;</span>] = wazuh_server</span><br><span class="line">    <span class="keyword">elif</span> alert[<span class="string">&#x27;agent&#x27;</span>].get(<span class="string">&#x27;ip&#x27;</span>):</span><br><span class="line">        alert[<span class="string">&#x27;srcip&#x27;</span>] = alert[<span class="string">&#x27;agent&#x27;</span>][<span class="string">&#x27;ip&#x27;</span>]</span><br><span class="line">        alert[<span class="string">&#x27;dstip&#x27;</span>] = alert[<span class="string">&#x27;agent&#x27;</span>][<span class="string">&#x27;ip&#x27;</span>]</span><br><span class="line">    alert[<span class="string">&#x27;integration&#x27;</span>] = <span class="string">&#x27;custom-syscheck&#x27;</span></span><br><span class="line">    alert[<span class="string">&#x27;create_timestamp&#x27;</span>] = iso8601()</span><br><span class="line">    debug(alert)</span><br><span class="line">    <span class="keyword">return</span>(alert)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="comment"># Read arguments</span></span><br><span class="line">        bad_arguments = <span class="literal">False</span></span><br><span class="line">        <span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) &gt;= <span class="number">4</span>:</span><br><span class="line">            msg = <span class="string">&#x27;&#123;0&#125; &#123;1&#125; &#123;2&#125; &#123;3&#125; &#123;4&#125;&#x27;</span>.<span class="built_in">format</span>(now, sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], sys.argv[<span class="number">3</span>], sys.argv[<span class="number">4</span>] <span class="keyword">if</span> <span class="built_in">len</span>(sys.argv) &gt; <span class="number">4</span> <span class="keyword">else</span> <span class="string">&#x27;&#x27;</span>)</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            msg = <span class="string">&#x27;&#123;0&#125; Wrong arguments&#x27;</span>.<span class="built_in">format</span>(now)</span><br><span class="line">            bad_arguments = <span class="literal">True</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># Logging the call</span></span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span>(log_file, <span class="string">&#x27;a&#x27;</span>) <span class="keyword">as</span> f:</span><br><span class="line">            f.write(msg + <span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> bad_arguments:</span><br><span class="line">            debug(<span class="string">&quot;# Exiting: Bad arguments.&quot;</span>)</span><br><span class="line">            sys.exit(<span class="number">1</span>)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Main function</span></span><br><span class="line">        main(sys.argv)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">        debug(<span class="built_in">str</span>(e))</span><br><span class="line">        <span class="keyword">raise</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h6 id="ossec-conf"><a href="#ossec-conf" class="headerlink" title="ossec.conf"></a>ossec.conf</h6><ul>
+<li>配置syslog选用<strong>TCP</strong>协议;</li>
+<li>加载预处理脚本;</li>
+<li>加载脚本输出日志;</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">ossec_config</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">remote</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">connection</span>&gt;</span>syslog<span class="tag">&lt;/<span class="name">connection</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">port</span>&gt;</span>514<span class="tag">&lt;/<span class="name">port</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">protocol</span>&gt;</span>tcp<span class="tag">&lt;/<span class="name">protocol</span>&gt;</span> <span class="comment">&lt;!-- udp(default)/tcp --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">allowed-ips</span>&gt;</span>192.168.199.0/24<span class="tag">&lt;/<span class="name">allowed-ips</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">remote</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">&lt;!-- Custom external Integration --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">integration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>custom-syscheck<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule_id</span>&gt;</span>554<span class="tag">&lt;/<span class="name">rule_id</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">group</span>&gt;</span>syscheck<span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">alert_format</span>&gt;</span>json<span class="tag">&lt;/<span class="name">alert_format</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">integration</span>&gt;</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment">&lt;!-- Custom syscheck.json --&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">localfile</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">log_format</span>&gt;</span>json<span class="tag">&lt;/<span class="name">log_format</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">location</span>&gt;</span>/var/ossec/logs/syscheck.json<span class="tag">&lt;/<span class="name">location</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">localfile</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">ossec_config</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h6 id="local-decoder-normalized-xml"><a href="#local-decoder-normalized-xml" class="headerlink" title="local_decoder_normalized.xml"></a>local_decoder_normalized.xml</h6></li>
+</ul>
+<p><strong>Sample</strong></p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--</span></span><br><span class="line"><span class="comment">2020 Mar 03 02:53:39 logstash NORMALIZED[-]: &#123;&quot;timestamp&quot;:&quot;2020-02-21T19:47:04.382300+0800&quot;,&quot;flow_id&quot;:1133835979634527,&quot;in_iface&quot;:&quot;wlp3s0&quot;,&quot;event_type&quot;:&quot;alert&quot;,&quot;src_ip&quot;:&quot;192.168.199.97&quot;,&quot;src_port&quot;:60022,&quot;dest_ip&quot;:&quot;192.168.199.162&quot;,&quot;dest_port&quot;:59143,&quot;proto&quot;:&quot;TCP&quot;,&quot;alert&quot;:&#123;&quot;action&quot;:&quot;allowed&quot;,&quot;gid&quot;:1,&quot;signature_id&quot;:123456,&quot;rev&quot;:1,&quot;signature&quot;:&quot;LOCAL RULES XXX&quot;,&quot;severity&quot;:3&#125;&#125;</span></span><br><span class="line"><span class="comment">--&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">decoder</span> <span class="attr">name</span>=<span class="string">&quot;nta_json&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">prematch</span>&gt;</span>NORMALIZED[-]: <span class="tag">&lt;/<span class="name">prematch</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugin_decoder</span> <span class="attr">offset</span>=<span class="string">&quot;after_prematch&quot;</span>&gt;</span>JSON_Decoder<span class="tag">&lt;/<span class="name">plugin_decoder</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">decoder</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h6 id="0901-local-raw-xml"><a href="#0901-local-raw-xml" class="headerlink" title="0901-local_raw.xml"></a>0901-local_raw.xml</h6><ul>
+<li>默认引用的解码器为<code>json</code>, 这里需要修改为刚才新增的<code>nta_json</code>;</li>
+<li>通过<code>overwrite=yes</code>覆盖原始规则;</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">group</span> <span class="attr">name</span>=<span class="string">&quot;suricata,&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- /var/ossec/ruleset/rules/0475-suricata_rules.xml --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- Defind Suricata Rules --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- ID: 86600 - 86699 --&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule</span> <span class="attr">id</span>=<span class="string">&quot;86600&quot;</span> <span class="attr">level</span>=<span class="string">&quot;0&quot;</span> <span class="attr">overwrite</span>=<span class="string">&quot;yes&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">decoded_as</span>&gt;</span>nta_json<span class="tag">&lt;/<span class="name">decoded_as</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">&quot;timestamp&quot;</span>&gt;</span>\.+<span class="tag">&lt;/<span class="name">field</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">&quot;event_type&quot;</span>&gt;</span>\.+<span class="tag">&lt;/<span class="name">field</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>Suricata messages.<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">options</span>&gt;</span>no_full_log<span class="tag">&lt;/<span class="name">options</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">rule</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h6 id="0905-local-syscheck-xml"><a href="#0905-local-syscheck-xml" class="headerlink" title="0905-local_syscheck.xml"></a>0905-local_syscheck.xml</h6><p>为预处理脚本生成的日志进行解析</p>
+</li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">group</span> <span class="attr">name</span>=<span class="string">&quot;syscheck,&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule</span> <span class="attr">id</span>=<span class="string">&quot;187100&quot;</span> <span class="attr">level</span>=<span class="string">&quot;7&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">decoded_as</span>&gt;</span>json<span class="tag">&lt;/<span class="name">decoded_as</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">field</span> <span class="attr">name</span>=<span class="string">&quot;integration&quot;</span>&gt;</span>custom-syscheck<span class="tag">&lt;/<span class="name">field</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>syscheck integration messages.<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">options</span>&gt;</span>no_full_log<span class="tag">&lt;/<span class="name">options</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">rule</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><h6 id="9999-local-composite-xml"><a href="#9999-local-composite-xml" class="headerlink" title="9999-local_composite.xml"></a>9999-local_composite.xml</h6></li>
+</ul>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">group</span> <span class="attr">name</span>=<span class="string">&quot;local,composite,&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- Local Composite Rules Range ID: 200000 - 205000 --&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule</span> <span class="attr">id</span>=<span class="string">&quot;200000&quot;</span> <span class="attr">level</span>=<span class="string">&quot;15&quot;</span> <span class="attr">frequency</span>=<span class="string">&quot;2&quot;</span> <span class="attr">timeframe</span>=<span class="string">&quot;600&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if_matched_sid</span>&gt;</span>101000<span class="tag">&lt;/<span class="name">if_matched_sid</span>&gt;</span> <span class="comment">&lt;!-- 文件上传类规则 or 检测WebShell上传类规则 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if_sid</span>&gt;</span>187100<span class="tag">&lt;/<span class="name">if_sid</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">same_source_ip</span> /&gt;</span>	<span class="comment">&lt;!-- 通过IP进行关联 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>Phase 3: 检测到服务器:$(srcip), 被上传WebShell.<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">options</span>&gt;</span>no_full_log<span class="tag">&lt;/<span class="name">options</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">rule</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule</span> <span class="attr">id</span>=<span class="string">&quot;200001&quot;</span> <span class="attr">level</span>=<span class="string">&quot;12&quot;</span> <span class="attr">frequency</span>=<span class="string">&quot;2&quot;</span> <span class="attr">timeframe</span>=<span class="string">&quot;600&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if_matched_sid</span>&gt;</span>88801<span class="tag">&lt;/<span class="name">if_matched_sid</span>&gt;</span> <span class="comment">&lt;!-- WAF安全事件 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if_group</span>&gt;</span>ids<span class="tag">&lt;/<span class="name">if_group</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">same_source_ip</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>Phase 3: Alarm - Same ip Bypass WAF of within 600 seconds. $(srcip) -&gt; $(http.hostname) -&gt; $(alert.signature) -&gt; $(alert.signature_id).<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">options</span>&gt;</span>no_full_log<span class="tag">&lt;/<span class="name">options</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">rule</span>&gt;</span></span><br><span class="line">  </span><br><span class="line"><span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ol>
+<li><p>对于<strong>WebShell</strong>关联检测,目前采用的是同源IP以及时序的关联, 最为靠谱的应该是通过Hash的比对。这里要吐槽一下Suricata默认的fileinfo, 没办法自定义输出, 只要开启可被还原的协议都会输出fileinfo的事件。正因如此, 数据量一大Wazuh的引擎压力会很大。我尝试通过<strong>Lua</strong>来自定义一个文件审计类的事件, 貌似也同样没办法区分协议更别说针对http过滤条件进行自定义的过滤输出了。</p>
+</li>
+<li><p>由于关联规则本身是通过底层多个安全事件进行维度的关联提升告警的<strong>可靠性</strong>。因此, 底层安全事件不够准确同样会让上层的关联规则带来大量误报。对于底层安全事件的优化也是需要持续进行的。</p>
+</li>
+<li><p>  <strong>Wazuh v3.11.4</strong> 采用syslog接收大日志时, 会触发<code>memory violation</code>导致<code>ossec-remoted</code>进程重启, 该问题已向社区反馈下个版本中会解决。</p>
+</li>
+</ol>
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><ul>
+<li><p><strong><a target="_blank" rel="noopener" href="https://wazuh.com/blog/how-to-forward-android-syslog-to-wazuh/">How to forward Android syslog to Wazuh</a></strong></p>
+</li>
+<li><p><strong><a target="_blank" rel="noopener" href="https://wazuh.com/blog/how-to-configure-rsyslog-client-to-send-events-to-wazuh/">How to configure Rsyslog client to send events to Wazuh</a></strong></p>
+</li>
+<li><p><strong><a target="_blank" rel="noopener" href="https://wazuh.com/blog/how-to-integrate-external-software-using-integrator/">How to integrate external software using Integrator</a></strong></p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Logstash/" rel="tag"># Logstash</a>
+              <a href="/tags/Suricata/" rel="tag"># Suricata</a>
+              <a href="/tags/Wazuh/" rel="tag"># Wazuh</a>
+              <a href="/tags/Filbeat/" rel="tag"># Filbeat</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/01/31/Wazuh-%E5%88%A9%E7%94%A8CDB-list%E8%BF%87%E6%BB%A4%E7%A7%81%E7%BD%91IP%E5%9C%B0%E5%9D%80/" rel="prev" title="Wazuh - 利用CDB list过滤私网IP地址">
+                  <i class="fa fa-chevron-left"></i> Wazuh - 利用CDB list过滤私网IP地址
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/03/29/Elasticsearch-alias%E4%B8%8Ereindex%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF/" rel="next" title="Elasticsearch-alias与reindex的使用场景">
+                  Elasticsearch-alias与reindex的使用场景 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="写在前面​    哎，今年上半年实在太忙了，工作中一些琐碎的事让我日常处于和技术“脱线”的状态。好不容易挤出一点时间来整理一下手头的东西，想着还有哪些可以拿出来给大家分享。 背景​    由于流量镜像后的网络流量太大，若想利用Zeek将数据解析后进行分析，硬盘的空间以及I&#x2F;O是我们必须考虑的。虽然我们可以写个脚本做定时任务清除，但这并不是最优解决方案。至少在我的场景中这些数据都是需要发送到Kafk">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zeek-Kafka 之 硬盘舒服了!">
+<meta property="og:url" content="http://example.com/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="写在前面​    哎，今年上半年实在太忙了，工作中一些琐碎的事让我日常处于和技术“脱线”的状态。好不容易挤出一点时间来整理一下手头的东西，想着还有哪些可以拿出来给大家分享。 背景​    由于流量镜像后的网络流量太大，若想利用Zeek将数据解析后进行分析，硬盘的空间以及I&#x2F;O是我们必须考虑的。虽然我们可以写个脚本做定时任务清除，但这并不是最优解决方案。至少在我的场景中这些数据都是需要发送到Kafk">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/zeek-to-filebeat.png">
+<meta property="og:image" content="http://example.com/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/zeek-to-kafka.png">
+<meta property="og:image" content="http://example.com/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/Streams-Filters-Writers.png">
+<meta property="og:image" content="http://example.com/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/%E6%9C%AC%E5%9C%B0%E6%97%A5%E5%BF%97.gif">
+<meta property="og:image" content="http://example.com/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/Kafka%E6%97%A5%E5%BF%97.gif">
+<meta property="og:image" content="https://docs.zeek.org/en/v4.2.2/_images/deployment.png">
+<meta property="article:published_time" content="2022-07-11T05:50:18.000Z">
+<meta property="article:modified_time" content="2022-07-17T06:13:50.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="Zeek">
+<meta property="article:tag" content="NTA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/zeek-to-filebeat.png">
+
+
+<link rel="canonical" href="http://example.com/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2022&#x2F;07&#x2F;11&#x2F;Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86&#x2F;&quot;,&quot;path&quot;:&quot;2022&#x2F;07&#x2F;11&#x2F;Zeek-Log-to-Kafka-硬盘舒服了&#x2F;&quot;,&quot;title&quot;:&quot;Zeek-Kafka 之 硬盘舒服了!&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>Zeek-Kafka 之 硬盘舒服了! | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%89%E6%8E%92"><span class="nav-number">3.</span> <span class="nav-text">安排</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AF%B9%E6%AF%94"><span class="nav-number">4.</span> <span class="nav-text">对比</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%80%E5%90%8E"><span class="nav-number">5.</span> <span class="nav-text">最后</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Zeek-Kafka 之 硬盘舒服了!
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-07-11 13:50:18" itemprop="dateCreated datePublished" datetime="2022-07-11T13:50:18+08:00">2022-07-11</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-07-17 14:13:50" itemprop="dateModified" datetime="2022-07-17T14:13:50+08:00">2022-07-17</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.4k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h4 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h4><p>​    哎，今年上半年实在太忙了，工作中一些琐碎的事让我日常处于和技术“脱线”的状态。好不容易挤出一点时间来整理一下手头的东西，想着还有哪些可以拿出来给大家分享。</p>
+<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>​    由于流量镜像后的网络流量太大，若想利用Zeek将数据解析后进行分析，硬盘的空间以及I/O是我们必须考虑的。虽然我们可以写个脚本做定时任务清除，但这并不是最优解决方案。至少在我的场景中这些数据都是需要发送到Kafka上的，如果能做到在数据源阶段就不用落地在本地磁盘岂不美哉？所以，我需要对数据采集后的写入方式进一步优化。</p>
+<ul>
+<li><p>优化前</p>
+<p>Zeek将日志留存在本地硬盘，由本地安装的filebeat发送给Kafka，最终落地到SIEM上。</p>
+<p><img src="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/zeek-to-filebeat.png" alt="image-20220705172727370"></p>
+<hr>
+</li>
+<li><p>优化后</p>
+<p>Zeek日志将不会留存在本地硬盘上，由Zeek Kafka插件将日志发送到Kafka集群，省去了数据落盘的步骤。</p>
+<p><img src="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/zeek-to-kafka.png" alt="image-20220705173013941"></p>
+</li>
+</ul>
+<h4 id="安排"><a href="#安排" class="headerlink" title="安排"></a>安排</h4><p>​    之前就有了解过Zeek可以通过插件的形式将日志发送到Kafka上，由于当时没有需求也就没有继续探究，想着这次需求来了就开启了“折腾”模式。本次我使用的是<a target="_blank" rel="noopener" href="https://github.com/SeisoLLC/zeek-kafka"><strong>Zeek-Kafka</strong></a>这个插件，很多网上的文章介绍的插件是 <a target="_blank" rel="noopener" href="https://github.com/apache/metron-bro-plugin-kafka"><strong>metron-bro-plugin-kafka</strong></a>。大家可以认为这个是<a target="_blank" rel="noopener" href="https://github.com/SeisoLLC/zeek-kafka"><strong>Zeek-Kafka</strong></a>的前身，后者（<a target="_blank" rel="noopener" href="https://github.com/apache/metron-bro-plugin-kafka"><strong>metron-bro-plugin-kafka</strong></a>）已经并没有在更新了。使用的话还是推荐<a target="_blank" rel="noopener" href="https://github.com/SeisoLLC/zeek-kafka"><strong>Zeek-Kafka</strong></a>。</p>
+<p><strong>安装</strong></p>
+<p>​    安装流程比较简单，参考文档<a target="_blank" rel="noopener" href="https://github.com/SeisoLLC/zeek-kafka"><strong>Zeek-Kafka</strong></a>即可。至此文章结束。下期再会！</p>
+<hr>
+<p><strong>知识点</strong></p>
+<p>​    OK，在开始之前我们来聊一下使用了这个插件之后我认为需要调整的地方以及一些Zeek知识点的补充。</p>
+<p><strong>重新认识Zeek日志框架</strong></p>
+<p>​    为什么这么说？上面有说到，我做此事的目的是为了<strong>节省硬盘空间、降低I/O的压力</strong>。实际在我使用此插件时，它会把日志发送到Kafka集群并同时保留原始的日志数据在本地硬盘<em>（擦，忙活半天，搞了个寂寞！）</em>。不过，至少确认日志发送到Kafka是OK的，现在我们只需要有选择性的drop掉写入硬盘的操作即可。为了满足这个需求，就需要我们先了解一下<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/frameworks/logging.html"><strong>Zeek - Logging Framework（日志框架）</strong></a>。由于我之前写过一些Zeek的检测场景，对于这个框架并不陌生，只不过理解上不够深入，经过这一次，算是比之前有了更加深入的理解。</p>
+<p>Zeek 的日志接口是围绕三个对象构建的：</p>
+<p><img src="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/Streams-Filters-Writers.png" alt="image-20220716232345238"></p>
+<ul>
+<li><p><strong>Streams</strong>（流）</p>
+<p>​    一个日志流对应于一个单一的日志。它定义了一个日志所包含的字段的集合，以及它们的名称和类型。例如，conn流用于记录连接摘要，http流用于记录HTTP活动。</p>
+</li>
+<li><p><strong>Filters</strong>（过滤器）</p>
+<p>​    每个流都有一组过滤器，决定哪些信息被写出来，以及如何写出来。默认情况下，每个流都有一个默认的过滤器，直接把所有的东西都记录到磁盘上。然而，可以添加额外的过滤器，只记录日志记录的一个子集，写到不同的输出，或者设置一个自定义的旋转间隔。如果从一个流中删除所有的过滤器，那么该流的输出就会被禁用。</p>
+</li>
+<li><p><strong>Writers</strong>（写入器）</p>
+<p>​    每个过滤器都有一个写入器。写入器定义了被记录信息的实际输出格式。默认的是ASCII写入器，它产生以制表符分隔的ASCII文件。其他写入器是可用的，比如二进制输出或直接记录到数据库。</p>
+</li>
+</ul>
+<p><strong>简单总结</strong>：<font color="red"><strong>Streams与Filters关系是一对多，Filters与Writers关系是一对一。</strong></font></p>
+<p><strong>我们可以用以下几种方式来定制Zeek的日志：</strong></p>
+<ol>
+<li><p>创建一个新的日志流</p>
+</li>
+<li><p>用新的字段来扩展现有的日志</p>
+</li>
+<li><p>对现有的日志流应用过滤器</p>
+</li>
+<li><p>通过设置日志写入器选项来定制输出格式</p>
+</li>
+</ol>
+<hr>
+<p>根据我们的需求，这里选择<font color="red"><strong>方案3</strong></font>（<em>对现有的日志流应用过滤器</em>）。你会用到的方法如下：</p>
+<ul>
+<li>删除指定流的过滤器：<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.0.5/scripts/base/frameworks/logging/main.zeek.html#id-Log::remove_filter"><strong>Log::remove_filter</strong></a></li>
+<li>创建一个新的过滤器：<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/scripts/base/frameworks/logging/main.zeek.html?highlight=Log::Filter#type-Log::Filter"><strong>Log::Filter</strong></a></li>
+<li>绑定过滤器与流关系：<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/scripts/base/frameworks/logging/main.zeek.html?highlight=Log::Filter#id-Log::add_filter"><strong>Log::add_filter</strong></a></li>
+<li>获取指定流的过滤器：<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/scripts/base/frameworks/logging/main.zeek.html?highlight=Log::Filter#id-Log::get_filter"><strong>Log::get_filter</strong></a></li>
+</ul>
+<p>以下任意一种方式都可以满足我们的需求，既原始日志不会落地在硬盘且直接写入Kafka集群。</p>
+<p><strong>示例代码1：删除默认过滤器</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span> &amp;priority</span>=<span class="number">-10</span></span><br><span class="line">&#123;</span><br><span class="line">  	# <span class="number">1.</span> 删除默认过滤器</span><br><span class="line">    Log::<span class="built_in">remove_filter</span>(HTTP::LOG, <span class="string">&quot;default&quot;</span>);</span><br><span class="line">  	# <span class="number">2.</span> 创建新的过滤器</span><br><span class="line">    local http_filter: Log::Filter = [</span><br><span class="line">        $name = <span class="string">&quot;kafka-http&quot;</span>,</span><br><span class="line">        $writer = Log::WRITER_KAFKAWRITER,</span><br><span class="line">        $path = <span class="string">&quot;http&quot;</span></span><br><span class="line">    ];</span><br><span class="line">  	# <span class="number">3.</span> 绑定流与过滤器</span><br><span class="line">    Log::<span class="built_in">add_filter</span>(HTTP::LOG, http_filter);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>示例代码2 - 修改默认过滤器</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span> &amp;priority</span>=<span class="number">-10</span></span><br><span class="line">&#123;</span><br><span class="line">  	# <span class="number">1.</span> 获取默认过滤器</span><br><span class="line">  	local f = Log::<span class="built_in">get_filter</span>(HTTP::LOG, <span class="string">&quot;default&quot;</span>);</span><br><span class="line">  	# <span class="number">2.</span> 修改默认写入器</span><br><span class="line">  	f$writer = Log::WRITER_KAFKAWRITER;</span><br><span class="line">  	# <span class="number">3.</span> 绑定流与过滤器</span><br><span class="line">    Log::<span class="built_in">add_filter</span>(HTTP::LOG, f);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>真实场景</strong></p>
+<ol>
+<li><p>场景1：适配HTTP的文件还原（file-extraction-plus）场景</p>
+<ul>
+<li><p>kafka/kafka-config.zeek</p>
+<p>​    定义Kafka集群的配置</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">redef Kafka::kafka_conf = <span class="built_in">table</span>(</span><br><span class="line">    [<span class="string">&quot;metadata.broker.list&quot;</span>] = <span class="string">&quot;node-1:9092,node-2:9092,node-3:9092&quot;</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">redef Kafka::json_timestamps = JSON::TS_ISO8601;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>file-extraction-plus/http-extension-logs.zeek</p>
+<p>​    优化<a target="_blank" rel="noopener" href="https://github.com/Canon88/file-extraction-plus"><strong>file-extraction-plus（文件还原）</strong></a>脚本，这里需要为文件还原的HTTP日志新增过滤器（http_extraction），确保能够被接下来引用。因此，需要用到<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/scripts/base/frameworks/logging/main.zeek.html#type-Log::PolicyHook"><strong>Log::PolicyHook</strong></a>方法。</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> Enrichment;</span><br><span class="line"></span><br><span class="line">redef record HTTP::Info += &#123;</span><br><span class="line">    extract:    <span class="keyword">bool</span>        &amp;<span class="keyword">default</span>=F &amp;log;</span><br><span class="line">    domain:     string      &amp;optional &amp;log;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">hook <span class="title">HTTP::log_policy</span><span class="params">(rec: HTTP::Info, id: Log::ID, filter: Log::Filter)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ( filter$name != <span class="string">&quot;http_extraction&quot;</span> )</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( rec$extract == F )</span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">    local filter: Log::Filter = [$name=<span class="string">&quot;http_extraction&quot;</span>, $path=<span class="string">&quot;http-extraction&quot;</span>];</span><br><span class="line">    Log::<span class="built_in">add_filter</span>(HTTP::LOG, filter);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    global http: <span class="built_in">function</span>(f: fa_file): fa_file;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">function <span class="title">http</span><span class="params">(f: fa_file)</span>: fa_file</span></span><br><span class="line"><span class="function">    &#123;</span></span><br><span class="line">    f$http$extract = T;</span><br><span class="line">    f$http$domain = f$http$host;</span><br><span class="line">    <span class="keyword">return</span> f;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>kafka/http_extraction-to-kafka.zeek</p>
+<p>​    利用<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/v4.2.2/scripts/base/frameworks/logging/main.zeek.html?highlight=Log::Filter#id-Log::get_filter"><strong>Log::get_filter</strong></a>方法获取过滤器(<em>http_extraction</em>)，通过将写入器修改为<em>WRITER_KAFKAWRITER</em>。最终实现将命中文件还原的HTTP事件通过指定topic（<em>zeek-http_extraction</em>）发送到Kafka。</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span> &amp;priority</span>=<span class="number">-10</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="meta"># handles HTTP</span></span><br><span class="line">  	local f = Log::<span class="built_in">get_filter</span>(HTTP::LOG, <span class="string">&quot;http_extraction&quot;</span>);</span><br><span class="line">  	f$writer = Log::WRITER_KAFKAWRITER;</span><br><span class="line">    f$config = <span class="built_in">table</span>([<span class="string">&quot;topic_name&quot;</span>] = <span class="string">&quot;zeek-http_extraction&quot;</span>);</span><br><span class="line">    Log::<span class="built_in">add_filter</span>(HTTP::LOG, f);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>场景2：算是场景1进行扩展，在保留HTTP文件还原的日志前提下，将全量的HTTP数据发送到指定的topic（zeek-http）。</p>
+<ul>
+<li>kafka/kafka-config.zeek</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">redef Kafka::kafka_conf = <span class="built_in">table</span>(</span><br><span class="line">    [<span class="string">&quot;metadata.broker.list&quot;</span>] = <span class="string">&quot;node-1:9092,node-2:9092,node-3:9092&quot;</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>kafka/http-to-kafka.zeek</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span> &amp;priority</span>=<span class="number">-10</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="meta"># handles HTTP</span></span><br><span class="line">  	local f = Log::<span class="built_in">get_filter</span>(HTTP::LOG, <span class="string">&quot;default&quot;</span>);</span><br><span class="line">  	f$writer = Log::WRITER_KAFKAWRITER;</span><br><span class="line">    f$config = <span class="built_in">table</span>([<span class="string">&quot;topic_name&quot;</span>] = <span class="string">&quot;zeek-http&quot;</span>);</span><br><span class="line">    Log::<span class="built_in">add_filter</span>(HTTP::LOG, f);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h4 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h4><p>​    这里用PCAP包回放的形式给大家验证一下前后的对比，为了便于验证，我这里只针对HTTP数据送入到了Kafka。</p>
+<ul>
+<li><p>修改前</p>
+<ul>
+<li>回放http.pcap，本地会留存 http.log</li>
+<li>回放http_extraction.pcap，本地会留存http-extraction.log</li>
+</ul>
+<p><img src="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/%E6%9C%AC%E5%9C%B0%E6%97%A5%E5%BF%97.gif" alt="image-20220716232345238"></p>
+</li>
+<li><p>修改后</p>
+<ul>
+<li>回放http.pcap，本地无http.log。topic: zeek-http，存在日志</li>
+<li>回放http_extraction.pcap，本地无http-extraction.log。topic: zeek-http_extraction，存在日志</li>
+</ul>
+<p><img src="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/Kafka%E6%97%A5%E5%BF%97.gif" alt="image-20220716232345238"></p>
+</li>
+</ul>
+<h4 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h4><p>​    下一篇 《Zeek-Kafka 之 机器受不了!》将会向大家介绍，若想在实际环境中完全发挥<a target="_blank" rel="noopener" href="https://github.com/SeisoLLC/zeek-kafka"><strong>Zeek-Kafka</strong></a>插件的能力，我们的架构也需要进行一些调整，一起探索Zeek集群的模式吧。</p>
+<p><img src="https://docs.zeek.org/en/v4.2.2/_images/deployment.png" alt="_images/deployment.png"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Zeek/" rel="tag"># Zeek</a>
+              <a href="/tags/NTA/" rel="tag"># NTA</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/" rel="prev" title="应急响应 - 你该关注哪些指标？">
+                  <i class="fa fa-chevron-left"></i> 应急响应 - 你该关注哪些指标？
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/12/15/Zeek-Configuration-Framework/" rel="next" title="了不起的 Zeek Configuration Framework">
+                  了不起的 Zeek Configuration Framework <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

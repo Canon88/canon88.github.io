@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="​    废话少说，今天来给大家分享，如何利用Zeek实现对 Sliver Framework 中 HTTP C2 流量的检测。  Sliver是什么？我反手就是一个GPT!  Sliver HTTP C2 流量检测思路我们此次的检测思路是针对Sliver HTTP beacon traffic进行检测，也就是我们俗称的“心跳”包。以下为分析与检测思路：  当你第一次启动时，Client 会通过一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to use Zeek Detect Sliver HTTP beacon traffic">
+<meta property="og:url" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="​    废话少说，今天来给大家分享，如何利用Zeek实现对 Sliver Framework 中 HTTP C2 流量的检测。  Sliver是什么？我反手就是一个GPT!  Sliver HTTP C2 流量检测思路我们此次的检测思路是针对Sliver HTTP beacon traffic进行检测，也就是我们俗称的“心跳”包。以下为分析与检测思路：  当你第一次启动时，Client 会通过一">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/Sliver.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231103173433297.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231104203402427.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231104203213374.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231104203502838.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231108103916316.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231108104044549.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231108111232203.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231107175632660.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231108112034359.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231107211334773.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231108110145849.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231108163024578.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231101170122908.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/image-20231103160641641.png">
+<meta property="og:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/iShot_2023-11-08_20.33.42.png">
+<meta property="og:image" content="https://img.5youqu.com/bqimg/5eef6257gy1h3z3zb2kndj20u00u00uj.jpg">
+<meta property="article:published_time" content="2023-11-08T12:42:54.000Z">
+<meta property="article:modified_time" content="2023-11-08T13:55:42.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="Zeek">
+<meta property="article:tag" content="NTA">
+<meta property="article:tag" content="NIDS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2023/11/08/Zeek-Detect-Sliver/Sliver.png">
+
+
+<link rel="canonical" href="http://example.com/2023/11/08/Zeek-Detect-Sliver/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2023&#x2F;11&#x2F;08&#x2F;Zeek-Detect-Sliver&#x2F;&quot;,&quot;path&quot;:&quot;2023&#x2F;11&#x2F;08&#x2F;Zeek-Detect-Sliver&#x2F;&quot;,&quot;title&quot;:&quot;How to use Zeek Detect Sliver HTTP beacon traffic&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>How to use Zeek Detect Sliver HTTP beacon traffic | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Sliver%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E6%88%91%E5%8F%8D%E6%89%8B%E5%B0%B1%E6%98%AF%E4%B8%80%E4%B8%AAGPT"><span class="nav-number">1.</span> <span class="nav-text">Sliver是什么？我反手就是一个GPT!</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Sliver-HTTP-C2-%E6%B5%81%E9%87%8F%E6%A3%80%E6%B5%8B%E6%80%9D%E8%B7%AF"><span class="nav-number">2.</span> <span class="nav-text">Sliver HTTP C2 流量检测思路</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%BA%9F%E8%AF%9D%E5%B0%91%E8%AF%B4%EF%BC%8C%E6%94%BE%E2%80%9C%E7%A0%81%E2%80%9D%E8%BF%87%E6%9D%A5"><span class="nav-number">2.1.</span> <span class="nav-text">废话少说，放“码”过来</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9A%BE%E7%82%B9%EF%BC%9A"><span class="nav-number">3.</span> <span class="nav-text">难点：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Detect-Sliver-HTTP-beacon-traffic-Demo-%E6%A3%80%E6%B5%8B%E4%BB%A3%E7%A0%81"><span class="nav-number">4.</span> <span class="nav-text">Detect Sliver HTTP beacon traffic (Demo) 检测代码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E2%80%9C%E7%9C%8B%E7%96%97%E6%95%88%E2%80%9D"><span class="nav-number">5.</span> <span class="nav-text">“看疗效”</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E6%9C%80%E5%90%8E"><span class="nav-number">6.</span> <span class="nav-text">写在最后</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/11/08/Zeek-Detect-Sliver/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          How to use Zeek Detect Sliver HTTP beacon traffic
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-11-08 20:42:54 / 修改时间：21:55:42" itemprop="dateCreated datePublished" datetime="2023-11-08T20:42:54+08:00">2023-11-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>15k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>14 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>​    废话少说，今天来给大家分享，如何利用Zeek实现对 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/">Sliver</a> Framework 中 HTTP C2 流量的检测。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/Sliver.png" alt="image-20231103173433297"></p>
+<h4 id="Sliver是什么？我反手就是一个GPT"><a href="#Sliver是什么？我反手就是一个GPT" class="headerlink" title="Sliver是什么？我反手就是一个GPT!"></a>Sliver是什么？我反手就是一个GPT!</h4><p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231103173433297.png" alt="image-20231103173433297"></p>
+<hr>
+<h4 id="Sliver-HTTP-C2-流量检测思路"><a href="#Sliver-HTTP-C2-流量检测思路" class="headerlink" title="Sliver HTTP C2 流量检测思路"></a>Sliver HTTP C2 流量检测思路</h4><p>我们此次的检测思路是针对Sliver HTTP beacon traffic进行检测，也就是我们俗称的“<strong>心跳</strong>”包。以下为分析与检测思路：</p>
+<ol>
+<li><p>当你第一次启动时，Client 会通过一个POST请求与Server进行通讯，它的主要目的是与 Server 进行密钥(Session Key)交换。Sliver 为了规避流量检测，Client在每次连接Server时的请求都是随机的。同时 Sliver HTTP C2的定制化程度很高，用户只需修改<code>http-c2.json</code>中的对应配置项即可实现uri部分的定制化。以下截图为分别3次执行Client端后的POST请求，第1张图截图是修改默认配置项之后的uri的样子。</p>
+<p>第一次：</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231104203402427.png" alt="image-20231104203402427"></p>
+<p>第二次：</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231104203213374.png" alt="image-20231104203213374"></p>
+<p>第三次：</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231104203502838.png" alt="image-20231104203502838"></p>
+<p>​    如上所示，如果你想从uri（<code>session_paths/session_files.session_file_ext</code>）这个角度去检测基本不太可能，因为绕过的成本太低了。所以，我们必须另辟蹊径。通过分析源码，我们将检测目标放在了这些看似“随机”生成的请求参数上。以第一次的POST请求来看，参数<code>ib=6578885j6</code>是基于时间戳生成的一次性密钥（TOTP），另一个参数<code>i=8148k7556</code>是经过混淆之后的EncoderID。<em>其实Body的长度也是一个特征，只不过必须在解码之后才能作为特征，这里没有纳入进去是因为Zeek在有些编码上的解码暂时无法实现。</em></p>
+<hr>
+<h5 id="废话少说，放“码”过来"><a href="#废话少说，放“码”过来" class="headerlink" title="废话少说，放“码”过来"></a>废话少说，放“码”过来</h5><ul>
+<li><p>参数<code>ib=6578885j6</code>是怎么来的？</p>
+<p>该参数是由 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/transports/httpclient/httpclient.go#L211">OTPQueryArgument</a> 方法生成。此方法将会基于时间戳随机生成一个长度为2的字符串作为Key，并同时在<code>value</code>（密钥）中插入0到2个随机字符作为Value。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108103916316.png" alt="image-20231108103916316"></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// OTPQueryArgument - Adds an OTP query argument to the URL</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *SliverHTTPClient)</span> <span class="title">OTPQueryArgument</span><span class="params">(uri *url.URL, value <span class="keyword">string</span>)</span> *<span class="title">url</span>.<span class="title">URL</span></span> &#123;</span><br><span class="line">	values := uri.Query()</span><br><span class="line">	key1 := nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))]</span><br><span class="line">	key2 := nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))]</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; insecureRand.Intn(<span class="number">3</span>); i++ &#123;</span><br><span class="line">		index := insecureRand.Intn(<span class="built_in">len</span>(value))</span><br><span class="line">		char := <span class="keyword">string</span>(nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))])</span><br><span class="line">		value = value[:index] + char + value[index:]</span><br><span class="line">	&#125;</span><br><span class="line">	values.Add(<span class="keyword">string</span>([]<span class="keyword">byte</span>&#123;key1, key2&#125;), value)</span><br><span class="line">	uri.RawQuery = values.Encode()</span><br><span class="line">	<span class="keyword">return</span> uri</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>参数<code>i=8148k7556</code>是怎么来的？</p>
+<p>该参数是由 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/transports/httpclient/httpclient.go#L196">NonceQueryArgument</a> 方法生成。此方法将会随机生成一个长度为1的字符串作为Key，并同时在<code>value</code>中插入0到2个随机字符作为Value。此处<code>value</code>实际是通过 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/master/implant/sliver/encoders/encoders.go#L127">RandomEncoder</a> 方法中的<code>(insecureRand.Intn(maxN) * EncoderModulus) + encoderID</code>代码生成的<code>nonce</code>数值。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108104044549.png" alt="image-20231108104044549"></p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// NonceQueryArgument - Adds a nonce query argument to the URL</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *SliverHTTPClient)</span> <span class="title">NonceQueryArgument</span><span class="params">(uri *url.URL, value <span class="keyword">uint64</span>)</span> *<span class="title">url</span>.<span class="title">URL</span></span> &#123;</span><br><span class="line">	values := uri.Query()</span><br><span class="line">	key := nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))]</span><br><span class="line">	argValue := fmt.Sprintf(<span class="string">&quot;%d&quot;</span>, value)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; insecureRand.Intn(<span class="number">3</span>); i++ &#123;</span><br><span class="line">		index := insecureRand.Intn(<span class="built_in">len</span>(argValue))</span><br><span class="line">		char := <span class="keyword">string</span>(nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))])</span><br><span class="line">		argValue = argValue[:index] + char + argValue[index:]</span><br><span class="line">	&#125;</span><br><span class="line">	values.Add(<span class="keyword">string</span>(key), argValue)</span><br><span class="line">	uri.RawQuery = values.Encode()</span><br><span class="line">	<span class="keyword">return</span> uri</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// RandomEncoder - Get a random nonce identifier and a matching encoder</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RandomEncoder</span><span class="params">()</span> <span class="params">(<span class="keyword">int</span>, Encoder)</span></span> &#123;</span><br><span class="line">	keys := <span class="built_in">make</span>([]<span class="keyword">int</span>, <span class="number">0</span>, <span class="built_in">len</span>(EncoderMap))</span><br><span class="line">	<span class="keyword">for</span> k := <span class="keyword">range</span> EncoderMap &#123;</span><br><span class="line">		keys = <span class="built_in">append</span>(keys, k)</span><br><span class="line">	&#125;</span><br><span class="line">	encoderID := keys[insecureRand.Intn(<span class="built_in">len</span>(keys))]</span><br><span class="line">	nonce := (insecureRand.Intn(maxN) * EncoderModulus) + encoderID</span><br><span class="line">	<span class="keyword">return</span> nonce, EncoderMap[encoderID]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>Encoder Map：</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Encoder</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>13</td>
+<td>Base64 with modified alphabet</td>
+</tr>
+<tr>
+<td>22</td>
+<td>PNG</td>
+</tr>
+<tr>
+<td>31</td>
+<td>English words</td>
+</tr>
+<tr>
+<td>43</td>
+<td>Base58 with modified alphabet</td>
+</tr>
+<tr>
+<td>45</td>
+<td>English words + Gzip compression</td>
+</tr>
+<tr>
+<td>49</td>
+<td>Gzip compression</td>
+</tr>
+<tr>
+<td>64</td>
+<td>Base64 + Gzip compression</td>
+</tr>
+<tr>
+<td>65</td>
+<td>Base32 + Gzip compression</td>
+</tr>
+<tr>
+<td>92</td>
+<td>Hex</td>
+</tr>
+</tbody></table>
+<p>所以，我们根据代码片段可以反向推导出这个<code>nonce </code>值实际是对应到了Sliver中的<code>encoderID</code>。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line">encoders = &#123;</span><br><span class="line">    <span class="number">13</span>: <span class="string">&quot;b64&quot;</span>,</span><br><span class="line">    <span class="number">31</span>: <span class="string">&quot;words&quot;</span>,</span><br><span class="line">    <span class="number">22</span>: <span class="string">&quot;png&quot;</span>,</span><br><span class="line">    <span class="number">43</span>: <span class="string">&quot;b58&quot;</span>,</span><br><span class="line">    <span class="number">45</span>: <span class="string">&quot;gzip-words&quot;</span>,</span><br><span class="line">    <span class="number">49</span>: <span class="string">&quot;gzip&quot;</span>,</span><br><span class="line">    <span class="number">64</span>: <span class="string">&quot;gzip-b64&quot;</span>,</span><br><span class="line">    <span class="number">65</span>: <span class="string">&quot;b32&quot;</span>,</span><br><span class="line">    <span class="number">92</span>: <span class="string">&quot;hex&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">decode_nonce</span>(<span class="params">nonce_value</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;Takes a nonce value from a HTTP Request and returns the encoder that was used&quot;&quot;&quot;</span></span><br><span class="line">    nonce_value = <span class="built_in">int</span>(re.sub(<span class="string">&#x27;[^0-9]&#x27;</span>,<span class="string">&#x27;&#x27;</span>, nonce_value))</span><br><span class="line">    encoder_id = nonce_value % <span class="number">101</span></span><br><span class="line">    <span class="keyword">return</span> encoders[encoder_id]</span><br><span class="line">  </span><br><span class="line">In [<span class="number">1</span>]: decode_nonce(<span class="string">&quot;8148k7556&quot;</span>)</span><br><span class="line">Out[<span class="number">1</span>]: <span class="string">&#x27;gzip&#x27;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>POST Body里面有什么？这些数据是怎么来的？</p>
+<ol>
+<li>先回答第一个问题，POST Body里面是一个长度为266个字节的加密数据。</li>
+<li>关于第二个问题，我按照我的理解给大家画了一个POST Body数据生成的Workflow。来来来，我们看图说话：</li>
+</ol>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108111232203.png" alt="image-20231108111232203"></p>
+<ul>
+<li><p>第1步：Client通过 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/cryptography/crypto.go">cryptography.RandomKey()</a> 方法随机生成一个32字节的<code>sKey</code>，这个<code>sKey</code>很重要后续的命令执行都会通过这个<code>sKey</code>进行加密。由于这里采用的是对称加密，所以解密也会用到这个<code>sKey</code>。这也就解释了为什么我们说第一次的POST请求是交换密钥，因为Server需要这个<code>sKey</code>做后续请求内容的解密。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">sKey := cryptography.RandomKey()</span><br><span class="line"></span><br><span class="line"><span class="comment">// RandomKey - Generate random ID of randomIDSize bytes</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">RandomKey</span><span class="params">()</span> [<span class="title">chacha20poly1305</span>.<span class="title">KeySize</span>]<span class="title">byte</span></span> &#123;</span><br><span class="line">	randBuf := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">64</span>)</span><br><span class="line">	rand.Read(randBuf)</span><br><span class="line">	<span class="keyword">return</span> deriveKeyFrom(randBuf)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>第2步：通过 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/transports/httpclient/httpclient.go#L178">proto.Marshal()</a> 方法对第一步生成的<code>sKey</code>进行序列化，这时候<code>sKey</code>的长度从32字节变成了34字节。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">s.SessionCtx = cryptography.NewCipherContext(sKey)</span><br><span class="line">httpSessionInit := &amp;pb.HTTPSessionInit&#123;Key: sKey[:]&#125;</span><br><span class="line">data, _ := proto.Marshal(httpSessionInit)</span><br></pre></td></tr></table></figure>
+
+<p>关于为什么会多出2个字节<code>0a20</code>？我反手就是一个ChatGPT。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231107175632660.png" alt="image-20231107175632660"></p>
+</li>
+<li><p>第3步：通过HMAC（Hash-based Message Authentication Code）来保证<code>sKey</code>完整性和真实性。</p>
+<ul>
+<li>首先创建了一个新的HMAC实例</li>
+<li>接着使用implant’s private key的哈希值作为HMAC的密钥</li>
+<li>最后对<code>plaintext</code>处理得到HMAC值</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">peerKeyPair := GetPeerAgeKeyPair()</span><br><span class="line"></span><br><span class="line"><span class="comment">// First HMAC the plaintext with the hash of the implant&#x27;s private key</span></span><br><span class="line"><span class="comment">// this ensures that the server is talking to a valid implant</span></span><br><span class="line">privateDigest := sha256.New()</span><br><span class="line">privateDigest.Write([]<span class="keyword">byte</span>(peerKeyPair.Private))</span><br><span class="line">mac := hmac.New(sha256.New, privateDigest.Sum(<span class="literal">nil</span>))</span><br><span class="line">mac.Write(plaintext)</span><br></pre></td></tr></table></figure></li>
+<li><p>第4步：通过 <a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/cryptography/crypto.go#L69">AgeEncrypt()</a> 方法，使用Server Public Key对<code>plaintext</code>进行加密。通过源码可以看到这里将HMAC值（32字节）添加到<code>plaintext</code>消息的前面。这样做是为了确保消息的完整性，Server端只需用同样的方法计算HMAC值并与<code>plaintext</code>中的前32字节进行对比，就可以知道消息在传输过程中是否被篡改。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">ciphertext, err := AgeEncrypt(recipientPublicKey, <span class="built_in">append</span>(mac.Sum(<span class="literal">nil</span>), plaintext...))</span><br><span class="line"></span><br><span class="line"><span class="comment">// AgeEncrypt - Encrypt using Nacl Box</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">AgeEncrypt</span><span class="params">(recipientPublicKey <span class="keyword">string</span>, plaintext []<span class="keyword">byte</span>)</span> <span class="params">([]<span class="keyword">byte</span>, error)</span></span> &#123;</span><br><span class="line">	<span class="keyword">if</span> !strings.HasPrefix(recipientPublicKey, agePublicKeyPrefix) &#123;</span><br><span class="line">		recipientPublicKey = agePublicKeyPrefix + recipientPublicKey</span><br><span class="line">	&#125;</span><br><span class="line">	recipient, err := age.ParseX25519Recipient(recipientPublicKey)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	buf := bytes.NewBuffer([]<span class="keyword">byte</span>&#123;&#125;)</span><br><span class="line">	stream, err := age.Encrypt(buf, recipient)</span><br><span class="line">	<span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> _, err := stream.Write(plaintext); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> err := stream.Close(); err != <span class="literal">nil</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="literal">nil</span>, err</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> bytes.TrimPrefix(buf.Bytes(), ageMsgPrefix), <span class="literal">nil</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>第5步：这段代码构建了一个消息<code>msg</code>，这个<code>msg</code>也就是Body在编码之前的样子。该消息包含了implant’s public key的HASH值和加密后的数据，总长度266字节。C2 Server 可以通过对比前32个字节中的HASH值来验证implant’s public key的真实性，并使用Server Pivate Key解密后面的数据。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Sender includes hash of it&#x27;s implant specific peer public key</span></span><br><span class="line">publicDigest := sha256.Sum256([]<span class="keyword">byte</span>(peerKeyPair.Public))</span><br><span class="line">msg := <span class="built_in">make</span>([]<span class="keyword">byte</span>, <span class="number">32</span>+<span class="built_in">len</span>(ciphertext))</span><br><span class="line"><span class="built_in">copy</span>(msg, publicDigest[:])</span><br><span class="line"><span class="built_in">copy</span>(msg[<span class="number">32</span>:], ciphertext)</span><br></pre></td></tr></table></figure>
+
+<p>最后的最后，Client会通过<a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/encoders/encoders.go#L61">encoder.Encode()</a>方法将266个字节的加密数据进行编码，所以我们捕获流量看到的PCAP数据已经不是“最初”的样子了，因为这段数据已经被编码过了。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108112034359.png" alt="image-20231108112034359"></p>
+</li>
+<li><p><strong>结论：</strong>当你看完这部分源码后你其实会发现，整个过程都是为了保护这个sKey不被泄露。最终我们可以得出一个简单的数据结构图，POST Body由截图中的3个部分组成。</p>
+</li>
+</ul>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231107211334773.png" alt="image-20231107211334773"></p>
+<p>​    这是我模拟加密过程的输出，其中每个阶段的字节数都已经打印在界面上。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108110145849.png" alt="image-20231108110145849"></p>
+<p><strong>结合上面的分析，我们可以抽象出对第一个POST请求的检测特征，如下图所示：</strong></p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231108163024578.png" alt="image-20231108163024578"></p>
+<p><strong>Zeek 代码</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &#123;</span><br><span class="line">  if (c$http$method == &quot;POST&quot; &amp;&amp; </span><br><span class="line">      c$http$status_code == 200 &amp;&amp; </span><br><span class="line">      c$http?$set_cookie &amp;&amp; </span><br><span class="line">      is_suspicious_cookie(c$http$set_cookie) &amp;&amp; </span><br><span class="line">      is_suspicious_query(c$http$method, c$http$uri)) &#123;</span><br><span class="line"></span><br><span class="line">    # record suspicious connections</span><br><span class="line">    http_connection_state[c$http$uid] = split_string(c$http$set_cookie, /;/)[0];</span><br><span class="line">  &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+<ol start="2">
+<li><p>在完成第一个可疑连接的捕获之后，接下来我们需要把重心回答如何检测HTTP的”信标“流量上了。（其实这里已经简单很多了，最难的其实是交换密钥的特征）如下图，我们可以把POST之后的GET请求可以看做都是“信标”通信流量。Sliver会采用“抖动”的方式规避基于周期性的检测，当然也包括uri的随机性。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231101170122908.png" alt="image-20231101170122908"></p>
+<ul>
+<li><p>如上图，截图中的3个GET请求中每次的uri都是随机的，每次的编码方式也是随机的。好在这里对于“信标”特征的检测思路，可以复用之前参数检测的部分。所以，GET请求中的参数是通过<a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/v1.5.41/implant/sliver/transports/httpclient/httpclient.go#L196">NonceQueryArgument</a> 方法生成的。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// NonceQueryArgument - Adds a nonce query argument to the URL</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="params">(s *SliverHTTPClient)</span> <span class="title">NonceQueryArgument</span><span class="params">(uri *url.URL, value <span class="keyword">int</span>)</span> *<span class="title">url</span>.<span class="title">URL</span></span> &#123;</span><br><span class="line">	values := uri.Query()</span><br><span class="line">	key := nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))]</span><br><span class="line">	argValue := fmt.Sprintf(<span class="string">&quot;%d&quot;</span>, value)</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; insecureRand.Intn(<span class="number">3</span>); i++ &#123;</span><br><span class="line">		index := insecureRand.Intn(<span class="built_in">len</span>(argValue))</span><br><span class="line">		char := <span class="keyword">string</span>(nonceQueryArgs[insecureRand.Intn(<span class="built_in">len</span>(nonceQueryArgs))])</span><br><span class="line">		argValue = argValue[:index] + char + argValue[index:]</span><br><span class="line">	&#125;</span><br><span class="line">	values.Add(<span class="keyword">string</span>(key), argValue)</span><br><span class="line">	uri.RawQuery = values.Encode()</span><br><span class="line">	<span class="keyword">return</span> uri</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>源码中关于<a target="_blank" rel="noopener" href="https://github.com/BishopFox/sliver/blob/e4ade4e8c982352e1e2b17787b19724bf3903ff7/protobuf/clientpb/client.proto">beacon</a>的默认设置</p>
+<ul>
+<li><code>BeaconInterval</code>： 轮训时间 3s </li>
+<li><code>BeaconJitter</code>：抖动时间 4s</li>
+</ul>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">message ImplantConfig &#123;</span><br><span class="line">  <span class="keyword">string</span> ID = <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">bool</span> IsBeacon = <span class="number">2</span>;</span><br><span class="line">  <span class="keyword">int64</span> BeaconInterval = <span class="number">3</span>;</span><br><span class="line">  <span class="keyword">int64</span> BeaconJitter = <span class="number">4</span>;</span><br><span class="line">  </span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>结合上面的分析，我们可以抽象出对”信标“请求的流量检测特征，如下图所示。</p>
+<p><img src="/2023/11/08/Zeek-Detect-Sliver/image-20231103160641641.png" alt="image-20231103160641641"></p>
+<p><strong>Zeek 代码</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># Event handler to process and inspect completed HTTP messages</span><br><span class="line">event http_message_done(c: connection, is_orig: bool, stat: http_message_stat) &#123;</span><br><span class="line">    if (c$http$method == &quot;GET&quot; &amp;&amp; c$http$status_code == 204 &amp;&amp; c$http?$cookie &amp;&amp; </span><br><span class="line">        (c$http$uid in http_connection_state) &amp;&amp; </span><br><span class="line">        (c$http$cookie == http_connection_state[c$http$uid])) &#123;</span><br><span class="line"></span><br><span class="line">        local key_str = fmt(&quot;%s#####%s#####%s#####%s#####%s&quot;, </span><br><span class="line">                            c$http$uid, c$id$orig_h, c$http$host, c$id$resp_p, c$http$cookie);</span><br><span class="line">        local observe_str = c$http$uri;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ol>
+<h4 id="难点："><a href="#难点：" class="headerlink" title="难点："></a>难点：</h4><ol>
+<li>问：如何在同一个TCP连接中，关联多个HTTP请求的上下文，实现场景的判断？</li>
+</ol>
+<p>​    答：这里可以尝试通过维护一个HTTP状态表来实现同一个uid下的多个HTTP请求关联。例如，将符合<strong>阶段-1</strong>的处理结果存储到<code>http_connection_state</code>中，后续只需通过检查HTTP状态表中的状态来执行之后的逻辑。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## Global table to store cookie state.</span><br><span class="line">global http_connection_state: table[string] of string;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>问：如何避免http_connection_state set无限扩大，降低”无效”uid的填充set？</li>
+</ol>
+<p>​    答：对于这个问题，可以使用Zeek的<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/script-reference/attributes.html#attr-&create_expire"><strong>create_expire</strong></a>属性，用它来管理整个http_connection_state set的生命周期。按照我们之前的分析，Sliver的HTTP C2流量在密钥交换之后，会进行C2数据包轮训，“信标”时间会有1~4秒抖动。所以，我们可以给这个可疑uid设置一个<code>create_expire</code>属性。如：<code>create_expire=300sec</code>，那么300秒之后我们会自动删除http_connection_state 中的 http_uid，通常这个时间内已经足够我们判断该HTTP请求流中是否为Sliver HTTP beacon traffic了。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">## Global table to store cookie state.</span><br><span class="line">global http_connection_state: table[string] of string &amp;create_expire=<span class="number">300</span>sec;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>问：如何实现对规则的快速启停以及调整，避免规则更新重启整个Zeek集群？</li>
+</ol>
+<p>​    答：这里建议使用Zeek的<a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/frameworks/configuration.html#configuration-framework"><strong>Configuration Framework</strong></a>，只需将规则中的配置写入到文件中，后续只需要更改配置文件就可以实现”热“加载，从而不需要对Zeek进行<code>deploy</code>。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">## Define <span class="keyword">module</span>-level configuration options.</span><br><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    ## Option to turn on/off detection.</span><br><span class="line">    option enable: <span class="keyword">bool</span> = T;</span><br><span class="line">    </span><br><span class="line">    ## Path to additional configuration <span class="keyword">for</span> detection.</span><br><span class="line">    redef Config::config_files += &#123; <span class="string">&quot;/usr/local/zeek/share/zeek/site/rules/Sliver/config.dat&quot;</span> &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>问：如何让规则只对指定的Zeek Worker生效？例如，我的环境中有30台Zeek，但是实际接入内对外流量Zeek只有2台，剩下都是外对内的流量。</li>
+</ol>
+<p>​    答：可以在代码中增加针对Zeek机器IP的判断，只针对指定的Zeek Worker IP进行规则的生效。这样一来，该规则也只需要在内对外的2台Zeek上生效，避免在负载很高的外对内的Zeek Worker上进行计算。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">event <span class="title">http_message_done</span><span class="params">(c: connection, is_orig: <span class="keyword">bool</span>, stat: http_message_stat)</span> </span>&#123;</span><br><span class="line">    ## Return early <span class="keyword">if</span> detection is disabled <span class="keyword">or</span> sensor IP is <span class="keyword">not</span> allowed.</span><br><span class="line">    <span class="keyword">if</span> (c$http$sensor_ip ! in allow_sensor)</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li><p>问：如何解码请求参数中的EncoderID？</p>
+<p>答：废话少说，放“码”过来</p>
+<ul>
+<li><p>Zeek Code</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">## Decode nonce value to identify the encoder used in traffic encoding.</span><br><span class="line"></span><br><span class="line"><span class="function">function <span class="title">decode_nonce</span><span class="params">(nonce: string)</span>: int &#123;</span></span><br><span class="line">    local nonce_value = <span class="built_in">to_int</span>(<span class="built_in">gsub</span>(nonce, /[^[:digit:]]/, <span class="string">&quot;&quot;</span>));</span><br><span class="line">    <span class="keyword">return</span> nonce_value % <span class="number">101</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>Python Code</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## Decode nonce value to identify the encoder used in traffic encoding.</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">decode_nonce</span>(<span class="params">nonce_value</span>):</span></span><br><span class="line">    <span class="string">&quot;&quot;&quot;Takes a nonce value from a HTTP Request and returns the encoder that was used&quot;&quot;&quot;</span></span><br><span class="line">    nonce_value = <span class="built_in">int</span>(re.sub(<span class="string">&#x27;[^0-9]&#x27;</span>,<span class="string">&#x27;&#x27;</span>, nonce_value))</span><br><span class="line">    <span class="keyword">return</span> nonce_value % <span class="number">101</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>问：如何解码Post Body中的内容？</p>
+<p>答：详细参考这个文章吧 <a target="_blank" rel="noopener" href="https://www.hackplayers.com/2023/03/solucion-al-reto-sliver-forensics-de.html"><strong>Solución al reto Sliver Forensics de #hc0n2023</strong></a></p>
+</li>
+</ol>
+<h4 id="Detect-Sliver-HTTP-beacon-traffic-Demo-检测代码"><a href="#Detect-Sliver-HTTP-beacon-traffic-Demo-检测代码" class="headerlink" title="Detect Sliver HTTP beacon traffic (Demo) 检测代码"></a>Detect Sliver HTTP beacon traffic (Demo) 检测代码</h4><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br></pre></td><td class="code"><pre><span class="line">## Module to detect Sliver HTTP traffic based on specific criteria.</span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> SliverHttpTraffic;</span><br><span class="line"></span><br><span class="line"># Define a <span class="keyword">new</span> notice type <span class="keyword">for</span> Sliver HTTP beacon traffic.</span><br><span class="line">redef <span class="keyword">enum</span> Notice::Type += &#123;</span><br><span class="line">    Sliver_HTTP_Beacon_Traffic</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"># Global configuration <span class="keyword">and</span> settings</span><br><span class="line">global http_connection_state: table[string] of string &amp;create_expire=<span class="number">3600</span>sec;</span><br><span class="line">global encoder_ids: set[<span class="keyword">int</span>] = [<span class="number">13</span>, <span class="number">22</span>, <span class="number">31</span>, <span class="number">43</span>, <span class="number">45</span>, <span class="number">49</span>, <span class="number">64</span>, <span class="number">65</span>, <span class="number">92</span>];</span><br><span class="line">global cookie_len: <span class="keyword">int</span> = <span class="number">32</span>;</span><br><span class="line"></span><br><span class="line"># Extending the HTTP::Info record to capture cookie-related details</span><br><span class="line">redef record HTTP::Info += &#123;</span><br><span class="line">    cookie:     string &amp;log &amp;optional;   # Value of the Cookie header</span><br><span class="line">    set_cookie: string &amp;log &amp;optional;   # Value of the Set-Cookie header</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"># Extend the <span class="keyword">default</span> notice record to capture specific details related to Sliver traffic.</span><br><span class="line">redef record Notice::Info += &#123;</span><br><span class="line">    host:   string &amp;log &amp;optional;      # Hostname involved in the suspicious activity</span><br><span class="line">    uris:   set[string] &amp;log &amp;optional; # Set of suspicious URIs accessed</span><br><span class="line">    cookie: string &amp;log &amp;optional;      # Suspicious cookie associated with the request</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"># <span class="function">Event handler to capture HTTP header information</span></span><br><span class="line"><span class="function">event <span class="title">http_header</span><span class="params">(c: connection, is_orig: <span class="keyword">bool</span>, name: string, value: string)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (is_orig &amp;&amp; name == <span class="string">&quot;COOKIE&quot;</span>) &#123;</span><br><span class="line">        c$http$cookie = value;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!is_orig &amp;&amp; name == <span class="string">&quot;SET-COOKIE&quot;</span>) &#123;</span><br><span class="line">        c$http$set_cookie = value;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># <span class="function">Utility function to decode nonce values</span></span><br><span class="line"><span class="function">function <span class="title">decode_nonce</span><span class="params">(nonce: string)</span>: int &#123;</span></span><br><span class="line">    local nonce_value = <span class="built_in">to_int</span>(<span class="built_in">gsub</span>(nonce, /[^[:digit:]]/, <span class="string">&quot;&quot;</span>));</span><br><span class="line">    <span class="keyword">return</span> nonce_value % <span class="number">101</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># <span class="function">Function to check <span class="keyword">if</span> an HTTP query is suspicious</span></span><br><span class="line"><span class="function">function <span class="title">is_suspicious_query</span><span class="params">(method: string, uri: string)</span>: bool &#123;</span></span><br><span class="line">    local url = <span class="built_in">decompose_uri</span>(uri);</span><br><span class="line">    local encoder_id: <span class="keyword">int</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!url?$params) <span class="keyword">return</span> F;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (method == <span class="string">&quot;POST&quot;</span> &amp;&amp; |url$params| == <span class="number">2</span>) &#123;</span><br><span class="line">        local key_length: table[count] of string;</span><br><span class="line">        <span class="keyword">for</span> (k, v in url$params) &#123;</span><br><span class="line">            <span class="keyword">if</span> (|k| &gt; <span class="number">2</span>) <span class="keyword">return</span> F;</span><br><span class="line">            key_length[|k|] = v;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> ((<span class="number">2</span> ! in key_length) || (<span class="number">1</span> ! in key_length)) <span class="keyword">return</span> F;</span><br><span class="line"></span><br><span class="line">        encoder_id = <span class="built_in">decode_nonce</span>(key_length[<span class="number">1</span>]);</span><br><span class="line">        <span class="keyword">return</span> encoder_id in encoder_ids;</span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (method == <span class="string">&quot;GET&quot;</span> &amp;&amp; |url$params| == <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (k, v in url$params) &#123;</span><br><span class="line">            <span class="keyword">if</span> (|k| &gt; <span class="number">1</span>) <span class="keyword">return</span> F;</span><br><span class="line"></span><br><span class="line">            encoder_id = <span class="built_in">decode_nonce</span>(v);</span><br><span class="line">            <span class="keyword">return</span> encoder_id in encoder_ids;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> F;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Check <span class="keyword">if</span> a cookie<span class="number">&#x27;</span><span class="function">s structure is suspicious</span></span><br><span class="line"><span class="function">function <span class="title">is_suspicious_cookie</span><span class="params">(cookie: string)</span>: bool &#123;</span></span><br><span class="line">    local cookies = <span class="built_in">split_string</span>(<span class="built_in">split_string</span>(cookie, /;/)[<span class="number">0</span>], /=/);</span><br><span class="line">    <span class="keyword">return</span> (|cookies| == <span class="number">2</span> &amp;&amp; |cookies[<span class="number">1</span>]| == cookie_len);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># <span class="function">Event handler to process <span class="keyword">and</span> inspect completed HTTP messages</span></span><br><span class="line"><span class="function">event <span class="title">http_message_done</span><span class="params">(c: connection, is_orig: <span class="keyword">bool</span>, stat: http_message_stat)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (is_orig || !c?$http || !c$http?$status_code || !c$http?$method || !c$http?$uri) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (c$http$method == <span class="string">&quot;POST&quot;</span> &amp;&amp; c$http$status_code == <span class="number">200</span> &amp;&amp; c$http?$set_cookie &amp;&amp; <span class="built_in">is_suspicious_cookie</span>(c$http$set_cookie) &amp;&amp; <span class="built_in">is_suspicious_query</span>(c$http$method, c$http$uri)) &#123;</span><br><span class="line">        http_connection_state[c$http$uid] = <span class="built_in">split_string</span>(c$http$set_cookie, /;/)[<span class="number">0</span>];</span><br><span class="line">    &#125; </span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (c$http$method == <span class="string">&quot;GET&quot;</span> &amp;&amp; c$http$status_code == <span class="number">204</span> &amp;&amp; c$http?$cookie &amp;&amp; (c$http$uid in http_connection_state) &amp;&amp; (c$http$cookie == http_connection_state[c$http$uid])) &#123;</span><br><span class="line">        local key_str = <span class="built_in">fmt</span>(<span class="string">&quot;%s#####%s#####%s#####%s#####%s&quot;</span>, c$http$uid, c$id$orig_h, c$http$host, c$id$resp_p, c$http$cookie);</span><br><span class="line">        local observe_str = c$http$uri;</span><br><span class="line"></span><br><span class="line">        # <span class="function">Create an observation <span class="keyword">for</span> statistical analysis</span></span><br><span class="line"><span class="function">        <span class="title">SumStats::observe</span><span class="params">(<span class="string">&quot;sliver_http_beacon_traffic_event&quot;</span>, [$str=key_str], [$str=observe_str])</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># <span class="function">Event to initialize <span class="keyword">and</span> configure statistical mechanisms</span></span><br><span class="line"><span class="function">event <span class="title">zeek_init</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    local r1 = SumStats::<span class="built_in">Reducer</span>($stream=<span class="string">&quot;sliver_http_beacon_traffic_event&quot;</span>, $apply=<span class="built_in">set</span>(SumStats::UNIQUE));</span><br><span class="line"></span><br><span class="line">    # <span class="function">Set up the statistical analysis parameters</span></span><br><span class="line"><span class="function">    <span class="title">SumStats::create</span><span class="params">([</span></span></span><br><span class="line"><span class="params"><span class="function">        $name=<span class="string">&quot;sliver_http_beacon_traffic_event.unique&quot;</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        $epoch=<span class="number">10</span>sec,</span></span></span><br><span class="line"><span class="params"><span class="function">        $reducers=set(r1),</span></span></span><br><span class="line"><span class="params"><span class="function">        $threshold=<span class="number">3.0</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        $threshold_val(key: SumStats::Key, result: SumStats::Result) = &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">            <span class="keyword">return</span> result[<span class="string">&quot;sliver_http_beacon_traffic_event&quot;</span>]$num + <span class="number">0.0</span>;</span></span></span><br><span class="line"><span class="params"><span class="function">        &#125;,</span></span></span><br><span class="line"><span class="params"><span class="function">        $threshold_crossed(key: SumStats::Key, result: SumStats::Result) = &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">            <span class="keyword">if</span> (result[<span class="string">&quot;sliver_http_beacon_traffic_event&quot;</span>]$unique == <span class="number">3</span>) &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">                local key_str_vector: vector of string = split_string(key$str, /#####/);</span></span></span><br><span class="line"><span class="params"><span class="function">                local suspicious_uri: set[string];</span></span></span><br><span class="line"><span class="params"><span class="function">                <span class="keyword">for</span> (value in result[<span class="string">&quot;sliver_http_beacon_traffic_event&quot;</span>]$unique_vals) &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">                    <span class="keyword">if</span> (! is_suspicious_query(<span class="string">&quot;GET&quot;</span>, value$str)) <span class="keyword">return</span>;</span></span></span><br><span class="line"><span class="params"><span class="function">                    add suspicious_uri[value$str];</span></span></span><br><span class="line"><span class="params"><span class="function">                &#125;</span></span></span><br><span class="line"><span class="params"><span class="function"></span></span></span><br><span class="line"><span class="params"><span class="function">                # Issue a notice <span class="keyword">if</span> suspicious behavior is observed</span></span></span><br><span class="line"><span class="params"><span class="function">                NOTICE([</span></span></span><br><span class="line"><span class="params"><span class="function">                    $note=Sliver_HTTP_Beacon_Traffic,</span></span></span><br><span class="line"><span class="params"><span class="function">                    $uid=key_str_vector[<span class="number">0</span>],</span></span></span><br><span class="line"><span class="params"><span class="function">                    $src=to_addr(key_str_vector[<span class="number">1</span>]),</span></span></span><br><span class="line"><span class="params"><span class="function">                    $host=key_str_vector[<span class="number">2</span>],</span></span></span><br><span class="line"><span class="params"><span class="function">                    $p=to_port(key_str_vector[<span class="number">3</span>]),</span></span></span><br><span class="line"><span class="params"><span class="function">                    $cookie=key_str_vector[<span class="number">4</span>],</span></span></span><br><span class="line"><span class="params"><span class="function">                    $uris=suspicious_uri,</span></span></span><br><span class="line"><span class="params"><span class="function">                    $msg=fmt(<span class="string">&quot;[+] Sliver HTTP beacon traffic detected, %s -&gt; %s:%s&quot;</span>, key_str_vector[<span class="number">1</span>], key_str_vector[<span class="number">2</span>], key_str_vector[<span class="number">3</span>]),</span></span></span><br><span class="line"><span class="params"><span class="function">                    $sub=cat(<span class="string">&quot;Sliver HTTP beacon traffic&quot;</span>)</span></span></span><br><span class="line"><span class="params"><span class="function">                ]);</span></span></span><br><span class="line"><span class="params"><span class="function">            &#125;</span></span></span><br><span class="line"><span class="params"><span class="function">        &#125;</span></span></span><br><span class="line"><span class="params"><span class="function">    ])</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="“看疗效”"><a href="#“看疗效”" class="headerlink" title="“看疗效”"></a>“看疗效”</h4><p><img src="/2023/11/08/Zeek-Detect-Sliver/iShot_2023-11-08_20.33.42.png" alt="iShot_2023-11-08_20.33.42"></p>
+<h4 id="写在最后"><a href="#写在最后" class="headerlink" title="写在最后"></a>写在最后</h4><p>​    <strong>感觉以后自己越来越少机会写这些了。。。但我还是想说：开源是“理念”，分享是“精神”。请让专业的人做专业的事！</strong></p>
+<p><img src="https://img.5youqu.com/bqimg/5eef6257gy1h3z3zb2kndj20u00u00uj.jpg" alt="你要是闲着没事干 就去把村口的粪挑了"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Zeek/" rel="tag"># Zeek</a>
+              <a href="/tags/NTA/" rel="tag"># NTA</a>
+              <a href="/tags/NIDS/" rel="tag"># NIDS</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/" rel="prev" title="如何“优雅”的设计Playbook">
+                  <i class="fa fa-chevron-left"></i> 如何“优雅”的设计Playbook
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2024/02/25/Zeek-ThreatHunting/" rel="next" title="How to Use Zeek ThreatHunting?">
+                  How to Use Zeek ThreatHunting? <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

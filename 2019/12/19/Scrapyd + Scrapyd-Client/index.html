@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="需求​        由于网站时常遭受黑客攻击, 现准备将手头一些攻击者的IP地址收集起来用做企业内部的威胁情报。既然要着手做威胁情报, 那么就避免不了通过一些网站进行数据的丰富化。要想简单省事儿, 当然是使用购买api账号的方式,不过有的api也很坑, 除非购买的是企业版, 否则个人版的api会受到请求速率的限制。所以这边只能依靠爬虫(Scrapy)来收集数据。但是采用了分布式爬虫, 就避免不了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Scrapyd + Scrapyd-Client">
+<meta property="og:url" content="http://example.com/2019/12/19/Scrapyd%20+%20Scrapyd-Client/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="需求​        由于网站时常遭受黑客攻击, 现准备将手头一些攻击者的IP地址收集起来用做企业内部的威胁情报。既然要着手做威胁情报, 那么就避免不了通过一些网站进行数据的丰富化。要想简单省事儿, 当然是使用购买api账号的方式,不过有的api也很坑, 除非购买的是企业版, 否则个人版的api会受到请求速率的限制。所以这边只能依靠爬虫(Scrapy)来收集数据。但是采用了分布式爬虫, 就避免不了">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-12-19T02:53:37.000Z">
+<meta property="article:modified_time" content="2019-12-24T15:43:13.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="Scrapy">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2019/12/19/Scrapyd%20+%20Scrapyd-Client/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2019&#x2F;12&#x2F;19&#x2F;Scrapyd%20+%20Scrapyd-Client&#x2F;&quot;,&quot;path&quot;:&quot;2019&#x2F;12&#x2F;19&#x2F;Scrapyd + Scrapyd-Client&#x2F;&quot;,&quot;title&quot;:&quot;Scrapyd + Scrapyd-Client&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>Scrapyd + Scrapyd-Client | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9C%80%E6%B1%82"><span class="nav-number">1.</span> <span class="nav-text">需求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Scrapyd"><span class="nav-number">2.</span> <span class="nav-text">Scrapyd</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Scrapyd-Client"><span class="nav-number">3.</span> <span class="nav-text">Scrapyd-Client</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/12/19/Scrapyd%20+%20Scrapyd-Client/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Scrapyd + Scrapyd-Client
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-12-19 10:53:37" itemprop="dateCreated datePublished" datetime="2019-12-19T10:53:37+08:00">2019-12-19</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-12-24 23:43:13" itemprop="dateModified" datetime="2019-12-24T23:43:13+08:00">2019-12-24</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Spider/" itemprop="url" rel="index"><span itemprop="name">Spider</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>4.4k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>4 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>​        由于网站时常遭受黑客攻击, 现准备将手头一些攻击者的IP地址收集起来用做企业内部的威胁情报。既然要着手做威胁情报, 那么就避免不了通过一些网站进行数据的丰富化。要想简单省事儿, 当然是使用购买api账号的方式,不过有的api也很坑, 除非购买的是企业版, 否则个人版的api会受到请求速率的限制。所以这边只能依靠爬虫(<strong>Scrapy</strong>)来收集数据。但是采用了分布式爬虫, 就避免不了需要进行集中管理, 以及统一下等操作。下面就说下利用<strong>Scrapy</strong>官方提供的爬虫管理工具(<strong>Scrapyd</strong>)来满足以上的需求。</p>
+<h1 id="Scrapyd"><a href="#Scrapyd" class="headerlink" title="Scrapyd"></a>Scrapyd</h1><p>​        <strong>Scrapyd</strong>是由<strong>Scrapy</strong> 官方提供的爬虫管理工具，使用它我们可以非常方便地上传、控制爬虫并且查看运行日志。</p>
+<p><strong>安装</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install scrapyd</span><br></pre></td></tr></table></figure>
+
+<p><strong>启动</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ scrapyd</span><br><span class="line">2019-12-19T10:56:06+0800 [-] Loading /Users/canon/anaconda3/lib/python3.7/site-packages/scrapyd/txapp.py...</span><br><span class="line">2019-12-19T10:56:06+0800 [-] Scrapyd web console available at http://127.0.0.1:6800/</span><br><span class="line">2019-12-19T10:56:06+0800 [-] Loaded.</span><br><span class="line">2019-12-19T10:56:06+0800 [twisted.scripts._twistd_unix.UnixAppLogger<span class="comment">#info] twistd 18.9.0 (/Users/canon/anaconda3/bin/python 3.7.1) starting up.</span></span><br><span class="line">2019-12-19T10:56:06+0800 [twisted.scripts._twistd_unix.UnixAppLogger<span class="comment">#info] reactor class: twisted.internet.selectreactor.SelectReactor.</span></span><br><span class="line">2019-12-19T10:56:06+0800 [-] Site starting on 6800</span><br><span class="line">2019-12-19T10:56:06+0800 [twisted.web.server.Site<span class="comment">#info] Starting factory &lt;twisted.web.server.Site object at 0x109efcf98&gt;</span></span><br><span class="line">2019-12-19T10:56:06+0800 [Launcher] Scrapyd 1.2.1 started: max_proc=48, runner=<span class="string">&#x27;scrapyd.runner&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>​        <strong>Scrapyd</strong>是一个服务端，我们需要通过一个客户端(<strong>Scrapyd-Client</strong>)将爬虫项目发送到<strong>Scrapyd</strong>服务中去。这里先修改一下<strong>Scrapyd</strong>服务地址，默认<strong>Scrapyd</strong>启动是通过命令: <code>Scrapyd</code>就可以直接启动，默认绑定的ip地址是<em>127.0.0.1</em>端口是:<em>6800</em>，这里为了其他主机可以访问，需将ip地址设置为<em>0.0.0.0</em>。</p>
+<p>​         根据上图启动的信息, 可以看到默认配置文件是在<code>/Users/canon/anaconda3/lib/python3.7/site-packages/scrapyd/</code>中。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">$ vim default_scrapyd.conf</span><br><span class="line"></span><br><span class="line">[scrapyd]</span><br><span class="line">eggs_dir    = eggs</span><br><span class="line">logs_dir    = logs</span><br><span class="line">items_dir   =</span><br><span class="line">jobs_to_keep = 5</span><br><span class="line">dbs_dir     = dbs</span><br><span class="line">max_proc    = 0</span><br><span class="line">max_proc_per_cpu = 4</span><br><span class="line">finished_to_keep = 100</span><br><span class="line">poll_interval = 5.0</span><br><span class="line">bind_address = 0.0.0.0</span><br><span class="line">http_port   = 6800</span><br><span class="line">debug       = off</span><br><span class="line">runner      = scrapyd.runner</span><br><span class="line">application = scrapyd.app.application</span><br><span class="line">launcher    = scrapyd.launcher.Launcher</span><br><span class="line">webroot     = scrapyd.website.Root</span><br><span class="line"></span><br><span class="line">[services]</span><br><span class="line">schedule.json     = scrapyd.webservice.Schedule</span><br><span class="line">cancel.json       = scrapyd.webservice.Cancel</span><br><span class="line">addversion.json   = scrapyd.webservice.AddVersion</span><br><span class="line">listprojects.json = scrapyd.webservice.ListProjects</span><br><span class="line">listversions.json = scrapyd.webservice.ListVersions</span><br><span class="line">listspiders.json  = scrapyd.webservice.ListSpiders</span><br><span class="line">delproject.json   = scrapyd.webservice.DeleteProject</span><br><span class="line">delversion.json   = scrapyd.webservice.DeleteVersion</span><br><span class="line">listjobs.json     = scrapyd.webservice.ListJobs</span><br><span class="line">daemonstatus.json = scrapyd.webservice.DaemonStatus</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="Scrapyd-Client"><a href="#Scrapyd-Client" class="headerlink" title="Scrapyd-Client"></a>Scrapyd-Client</h1><p>​        <strong>Scrapyd-Client</strong>可以用来部署<strong>Scrapy</strong>项目，它会帮我们把项目打包成<strong>egg</strong>文件，我们不用再动手调用<code>add version.json</code>接口去部署到<strong>Scrapyd</strong>，操作简单。</p>
+<p><strong>安装</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install scrapyd-client</span><br></pre></td></tr></table></figure>
+
+<p><strong>配置</strong></p>
+<p>​        要部署<strong>Scrapy</strong>项目，我们首先需要修改项目的配置文件。首先切换至项目根目录, 会看到有一个<code>scrapy.cfg</code>文件，它的内容如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Automatically created by: scrapy startproject</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># For more information about the [deploy] section see:</span></span><br><span class="line"><span class="comment"># https://scrapyd.readthedocs.io/en/latest/deploy.html</span></span><br><span class="line"></span><br><span class="line">[settings]</span><br><span class="line">default = spider_ti.settings</span><br><span class="line"></span><br><span class="line">[deploy]</span><br><span class="line"><span class="comment">#url = http://localhost:6800/</span></span><br><span class="line">project = spider_ti</span><br></pre></td></tr></table></figure>
+
+<p>这里需要配置一下<code>deploy</code>部分。例如, 我们将项目部署到<em>10.10.10.1</em>的<strong>Scrapyd</strong>上，则修改内容如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[deploy]</span><br><span class="line">url = http://10.10.10.1:6800/</span><br><span class="line">project = spider_ti</span><br></pre></td></tr></table></figure>
+
+<p>这样我们再在<code>scrapy.cf</code>g文件所在路径执行如下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ scrapyd-deploy</span><br><span class="line"></span><br><span class="line">Packing version 1576725163</span><br><span class="line">Deploying to project <span class="string">&quot;spider_ti&quot;</span> <span class="keyword">in</span> http://localhost:6800/addversion.json</span><br><span class="line">Server response (200):</span><br><span class="line">&#123;<span class="string">&quot;node_name&quot;</span>: <span class="string">&quot;CanondeMacBook-Pro.local&quot;</span>, <span class="string">&quot;status&quot;</span>: <span class="string">&quot;ok&quot;</span>, <span class="string">&quot;project&quot;</span>: <span class="string">&quot;spider_ti&quot;</span>, <span class="string">&quot;version&quot;</span>: <span class="string">&quot;1576725163&quot;</span>, <span class="string">&quot;spiders&quot;</span>: 3&#125;</span><br></pre></td></tr></table></figure>
+
+<p>项目版本默认为当前时间戳。我们也可以指定项目版本，通过<code>version</code>参数传递即可。例如:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ scrapyd-deploy --version 201912191114</span><br></pre></td></tr></table></figure>
+
+<p>注: 在Python3的Scrapyd 1.2.0版本中，<strong>版本号不能指定为带字母的字符串，它们必须为纯数字</strong>，否则会出现报错。</p>
+<p>如果有多台主机，我们可以配置各台主机的别名，修改配置文件为:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[deploy:vm1]</span><br><span class="line">url = http://10.10.10.1:6800/</span><br><span class="line">project = spider_ti</span><br><span class="line"></span><br><span class="line">[deploy:vm2]</span><br><span class="line">url = http://10.10.10.2:6800/</span><br><span class="line">project = spider_ti</span><br></pre></td></tr></table></figure>
+
+<p>在此统一配置多台主机，一台主机对应一组配置，在<code>deploy</code>后面加上主机的别名即可。如果想将项目部署到IP为<em>10.10.10.2</em>的<strong>vm2</strong>主机，我们只需要执行如下命令:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">scrapyd-deploy vm2</span><br></pre></td></tr></table></figure>
+
+<p>如此一来，我们只需要在<code>scrapy.cfg</code>文件中配置好各台主机的<strong>Scrapyd</strong>地址，然后调用<code>scrapyd-deploy</code>命令加主机名称即可实现部署。</p>
+<p>如果<strong>Scrapyd</strong>设置了访问限制，我们可以在配置文件中加入用户名和密码的配置，同时修改端口成Nginx代理端口。例如: 在第1章我们使用的是6801，那么这里就需要改成6801，修改如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[deploy:vm1]</span><br><span class="line">url = http://10.10.10.1:6801/</span><br><span class="line">project = spider_ti</span><br><span class="line">username = admin</span><br><span class="line">password = admin</span><br><span class="line"></span><br><span class="line">[deploy:vm2]</span><br><span class="line">url = http://10.10.10.2:6801/</span><br><span class="line">project = spider_ti</span><br><span class="line">username = canon</span><br><span class="line">password = canon</span><br></pre></td></tr></table></figure>
+
+<p>通过加入username和password字段，我们就可以在部署时自动进行Auth验证，然后成功实现部署。</p>
+<p><strong>运行</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://127.0.0.1:6800/schedule.json -d project=spider_ti -d spider=ti</span><br></pre></td></tr></table></figure>
+
+<p><strong>列出任务</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://127.0.0.1:6800/listjobs.json?project=spider_ti | python -m json.tool</span><br></pre></td></tr></table></figure>
+
+<p><strong>列出项目</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://127.0.0.1:6800/listprojects.json</span><br></pre></td></tr></table></figure>
+
+<p><strong>停止</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://127.0.0.1:6800/cancel.json -d project=spider_ti -d job=838dec26222311ea8eb6a5eb893a35a5</span><br></pre></td></tr></table></figure>
+
+<p><strong>删除</strong></p>
+<ul>
+<li><em>版本</em></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://127.0.0.1:6800/delversion.json -d project=spider_ti -d version=1576735972</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><em>项目</em></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl http://127.0.0.1:6800/delproject.json -d project=spider_ti</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://juejin.im/post/5b0f8f6f6fb9a00a2364a020"><strong>分布式爬虫的部署之Scrapyd-Client的使用</strong></a></li>
+<li><a target="_blank" rel="noopener" href="https://link.jianshu.com/?t=http://scrapyd.readthedocs.org/en/latest/api.html"><strong>Scrapyd</strong></a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Scrapy/" rel="tag"># Scrapy</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/10/31/Suricata%20-%20Rules/" rel="prev" title="Suricata Custom Rules">
+                  <i class="fa fa-chevron-left"></i> Suricata Custom Rules
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/12/24/Redis-Key-%E8%BF%87%E6%9C%9F%E4%BA%8B%E4%BB%B6%E8%AE%A2%E9%98%85/" rel="next" title="Redis Key 过期事件订阅">
+                  Redis Key 过期事件订阅 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

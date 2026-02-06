@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="背景XXX  SIEM v0.2 的不足XXX  SIEM v0.3 的改进1. WorkflowXXX  2. NormalizedWorkflow![image-20220218183243830](&#x2F;Users&#x2F;canon&#x2F;Library&#x2F;Application Support&#x2F;typora-user-images&#x2F;image-20220218183243830.png) Configure">
+<meta property="og:type" content="article">
+<meta property="og:title" content="致我心中的 “散装”（开源）SIEM（二）">
+<meta property="og:url" content="http://example.com/2021/02/02/SIEM%EF%BC%88%E4%BA%8C%EF%BC%89/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="背景XXX  SIEM v0.2 的不足XXX  SIEM v0.3 的改进1. WorkflowXXX  2. NormalizedWorkflow![image-20220218183243830](&#x2F;Users&#x2F;canon&#x2F;Library&#x2F;Application Support&#x2F;typora-user-images&#x2F;image-20220218183243830.png) Configure">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-02-02T08:55:52.000Z">
+<meta property="article:modified_time" content="2022-03-30T09:50:56.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="SIEM">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2021/02/02/SIEM%EF%BC%88%E4%BA%8C%EF%BC%89/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2021&#x2F;02&#x2F;02&#x2F;SIEM%EF%BC%88%E4%BA%8C%EF%BC%89&#x2F;&quot;,&quot;path&quot;:&quot;2021&#x2F;02&#x2F;02&#x2F;SIEM（二）&#x2F;&quot;,&quot;title&quot;:&quot;致我心中的 “散装”（开源）SIEM（二）&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>致我心中的 “散装”（开源）SIEM（二） | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SIEM-v0-2-%E7%9A%84%E4%B8%8D%E8%B6%B3"><span class="nav-number">2.</span> <span class="nav-text">SIEM v0.2 的不足</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SIEM-v0-3-%E7%9A%84%E6%94%B9%E8%BF%9B"><span class="nav-number">3.</span> <span class="nav-text">SIEM v0.3 的改进</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Workflow"><span class="nav-number">3.1.</span> <span class="nav-text">1. Workflow</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Normalized"><span class="nav-number">3.2.</span> <span class="nav-text">2. Normalized</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Workflow"><span class="nav-number">3.2.1.</span> <span class="nav-text">Workflow</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Configure"><span class="nav-number">3.2.2.</span> <span class="nav-text">Configure</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Enrichment"><span class="nav-number">3.3.</span> <span class="nav-text">3. Enrichment</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Workflow-1"><span class="nav-number">3.3.1.</span> <span class="nav-text">Workflow</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Configure-1"><span class="nav-number">3.3.2.</span> <span class="nav-text">Configure</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#KillChain"><span class="nav-number">3.3.2.1.</span> <span class="nav-text">KillChain</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Suricata"><span class="nav-number">3.3.2.1.1.</span> <span class="nav-text">Suricata</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Imperva"><span class="nav-number">3.3.2.1.2.</span> <span class="nav-text">Imperva</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Vulnerability"><span class="nav-number">3.3.2.2.</span> <span class="nav-text">Vulnerability</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-ThreatIntel"><span class="nav-number">3.4.</span> <span class="nav-text">4. ThreatIntel</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Workflow-2"><span class="nav-number">3.4.1.</span> <span class="nav-text">Workflow</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Configure-2"><span class="nav-number">3.4.2.</span> <span class="nav-text">Configure</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Shodan"><span class="nav-number">3.4.2.1.</span> <span class="nav-text">Shodan</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Filter"><span class="nav-number">3.5.</span> <span class="nav-text">3. Filter</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-Whitelist"><span class="nav-number">3.5.1.</span> <span class="nav-text">3.1 Whitelist</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-1-IP"><span class="nav-number">3.5.1.1.</span> <span class="nav-text">3.1.1 IP</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-2-Rule"><span class="nav-number">3.5.1.2.</span> <span class="nav-text">3.1.2 Rule</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#3-1-2-1-SID"><span class="nav-number">3.5.1.2.1.</span> <span class="nav-text">3.1.2.1 SID</span></a></li></ol></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/02/SIEM%EF%BC%88%E4%BA%8C%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          致我心中的 “散装”（开源）SIEM（二）
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-02-02 16:55:52" itemprop="dateCreated datePublished" datetime="2021-02-02T16:55:52+08:00">2021-02-02</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-03-30 17:50:56" itemprop="dateModified" datetime="2022-03-30T17:50:56+08:00">2022-03-30</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/SIEM/" itemprop="url" rel="index"><span itemprop="name">SIEM</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>XXX</p>
+<hr>
+<h1 id="SIEM-v0-2-的不足"><a href="#SIEM-v0-2-的不足" class="headerlink" title="SIEM v0.2 的不足"></a>SIEM v0.2 的不足</h1><p>XXX</p>
+<hr>
+<h1 id="SIEM-v0-3-的改进"><a href="#SIEM-v0-3-的改进" class="headerlink" title="SIEM v0.3 的改进"></a>SIEM v0.3 的改进</h1><h2 id="1-Workflow"><a href="#1-Workflow" class="headerlink" title="1. Workflow"></a>1. Workflow</h2><p>XXX</p>
+<hr>
+<h2 id="2-Normalized"><a href="#2-Normalized" class="headerlink" title="2. Normalized"></a>2. Normalized</h2><h3 id="Workflow"><a href="#Workflow" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220218183243830](/Users/canon/Library/Application Support/typora-user-images/image-20220218183243830.png)</p>
+<h3 id="Configure"><a href="#Configure" class="headerlink" title="Configure"></a>Configure</h3><table>
+<thead>
+<tr>
+<th>No</th>
+<th>File</th>
+<th>Script</th>
+<th>Log</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>60_normalized-general.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>61_normalized-alert.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>62_normalized-flow.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>63_normalized-fileinfo.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>64_normalized-http.conf</td>
+<td>64_normalized-http.rb</td>
+<td>64_normalized-http.log</td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>65_normalized-tls.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="3-Enrichment"><a href="#3-Enrichment" class="headerlink" title="3. Enrichment"></a>3. Enrichment</h2><h3 id="Workflow-1"><a href="#Workflow-1" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220221134544143](/Users/canon/Library/Application Support/typora-user-images/image-20220221134544143.png)</p>
+<h3 id="Configure-1"><a href="#Configure-1" class="headerlink" title="Configure"></a>Configure</h3><table>
+<thead>
+<tr>
+<th>No</th>
+<th>File</th>
+<th>Script</th>
+<th>Log</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>70_enrichment-general-geo-1-private_ip.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>70_enrichment-general-geo-2-public_ip.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>71_enrichment-alert-1-direction.conf</td>
+<td>71_enrichment-alert-1-direction.rb</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>71_enrichment-alert-2-killChain.conf</td>
+<td>71_enrichment-alert-2-killChain.rb</td>
+<td>71_enrichment-alert-2-killChain.log</td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>71_enrichment-alert-3-cve.conf</td>
+<td>71_enrichment-alert-3-cve.rb</td>
+<td>71_enrichment-alert-3-cve.log</td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>71_enrichment-alert-4-whitelist_ip.conf</td>
+<td>71_enrichment-alert-4-whitelist_ip.rb</td>
+<td>71_enrichment-alert-4-whitelist_ip.log</td>
+<td>****</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h4 id="KillChain"><a href="#KillChain" class="headerlink" title="KillChain"></a>KillChain</h4><h5 id="Suricata"><a href="#Suricata" class="headerlink" title="Suricata"></a>Suricata</h5><p><strong>Imput</strong></p>
+<ul>
+<li>Redis template</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str killchain:&#123;provider&#125;:&#123;rule id&#125;</span></span><br><span class="line"><span class="comment"># value: json str &#123;&quot;steps&quot;=&gt;&#123;KillChain steps&#125;, &quot;description&quot;=&gt;&#123;KillChain description&#125;, &quot;class&quot;=&gt;&#123;rule class&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> killchain:suricata:2028933 <span class="string">&#x27;&#123;&quot;steps&quot;: 4, &quot;description&quot;: &quot;Exploitation&quot;, &quot;class&quot;=&gt;exploit&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;killchain&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;steps&quot;</span>: <span class="number">1</span>,</span><br><span class="line">            <span class="attr">&quot;description&quot;</span>: <span class="string">&quot;侦查跟踪&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;class&quot;</span>: <span class="string">&quot;scan&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Imperva"><a href="#Imperva" class="headerlink" title="Imperva"></a>Imperva</h5><h4 id="Vulnerability"><a href="#Vulnerability" class="headerlink" title="Vulnerability"></a>Vulnerability</h4><p><strong>Input</strong></p>
+<ul>
+<li>Redis template</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str enrichment:&#123;class&#125;:&#123;cve&#125;</span></span><br><span class="line"><span class="comment"># value: str &#123;create time create user&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> enrichment:cve:CVE-2016-8618 <span class="string">&#x27;2022-02-16 Canon&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;rule&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;cve&quot;</span>: <span class="string">&quot;CVE-2015-9381&quot;</span> <span class="comment">// none</span></span><br><span class="line">    &#125;,</span><br><span class="line">  	<span class="attr">&quot;vulnerability&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;CVE-2015-9381&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;enumeration&quot;</span>: <span class="string">&quot;CVE&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-ThreatIntel"><a href="#4-ThreatIntel" class="headerlink" title="4. ThreatIntel"></a>4. ThreatIntel</h2><h3 id="Workflow-2"><a href="#Workflow-2" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220221105601713](/Users/canon/Library/Application Support/typora-user-images/image-20220221105601713.png)</p>
+<h3 id="Configure-2"><a href="#Configure-2" class="headerlink" title="Configure"></a>Configure</h3><h4 id="Shodan"><a href="#Shodan" class="headerlink" title="Shodan"></a>Shodan</h4><table>
+<thead>
+<tr>
+<th>No</th>
+<th>File</th>
+<th>Script</th>
+<th>Log</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>85_threatintel-siem-event-1-shodan.conf</td>
+<td>85_threatintel-siem-event-1-shodan.rb</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>Input</strong></p>
+<ul>
+<li>Redis template</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: list spider:&#123;provider&#125;:ioc</span></span><br><span class="line"><span class="comment"># value: str ioc</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; LPUSH spider:shodan:ioc 8.8.8.8 <span class="comment"># Spider Queue</span></span><br><span class="line">localhost:6379&gt; SETEX alert:8.8.8.8 86400 <span class="literal">true</span> <span class="comment"># IoC Cache</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;84.17.52.20&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;hunting&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;details&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;tcp&quot;</span>: [</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;http-simple-new&quot;</span>: <span class="number">81</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https&quot;</span>: <span class="number">443</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;http-simple-new&quot;</span>: <span class="number">8080</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https-simple-new&quot;</span>: <span class="number">8081</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https&quot;</span>: <span class="number">8443</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https-simple-new&quot;</span>: <span class="number">9002</span></span><br><span class="line">                    &#125;</span><br><span class="line">                ],</span><br><span class="line">                <span class="attr">&quot;udp&quot;</span>: []</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">&quot;domains&quot;</span>: <span class="string">&quot;cdn77.com&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;hostnames&quot;</span>: <span class="string">&quot;unn-84-17-52-20.cdn77.com&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ports&quot;</span>: [</span><br><span class="line">                <span class="number">8443</span>,</span><br><span class="line">                <span class="number">8081</span>,</span><br><span class="line">                <span class="number">9002</span>,</span><br><span class="line">                <span class="number">8080</span>,</span><br><span class="line">                <span class="number">81</span>,</span><br><span class="line">                <span class="number">443</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;services&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;https&quot;</span>,</span><br><span class="line">                <span class="string">&quot;https-simple-new&quot;</span>,</span><br><span class="line">                <span class="string">&quot;http-simple-new&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3-Filter"><a href="#3-Filter" class="headerlink" title="3. Filter"></a>3. Filter</h2><h3 id="3-1-Whitelist"><a href="#3-1-Whitelist" class="headerlink" title="3.1 Whitelist"></a>3.1 Whitelist</h3><h4 id="3-1-1-IP"><a href="#3-1-1-IP" class="headerlink" title="3.1.1 IP"></a>3.1.1 IP</h4><ul>
+<li>Redis template</li>
+</ul>
+<p><strong>Input</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;ip&#125;</span></span><br><span class="line"><span class="comment"># value: json str &#123;&quot;type&quot;: &quot;cdn&quot;, &quot;action&quot;: &quot;pass|drop&quot;&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> whitelist:ip:8.8.8.8 <span class="string">&#x27;&#123;&quot;type&quot;: &quot;cdn&quot;, &quot;action&quot;: &quot;pass&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;whitelist&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cdn&quot;</span>, <span class="comment">// 描述白名单类型，如：CDN、红队测试IP、办公网出口IP</span></span><br><span class="line">        <span class="attr">&quot;action&quot;</span>: <span class="string">&quot;drop&quot;</span>, <span class="comment">// drop|pass 事件是否需要进入SIEM消费</span></span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;source&quot;</span> <span class="comment">// source|destination 描述实际匹配到白名单来源是&quot;source&quot;还是&quot;destination&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span> <span class="comment">// 仅作为筛选条件</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Differences</strong></p>
+<ul>
+<li>v0.2</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span>,</span><br><span class="line">      	<span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">      	<span class="attr">&quot;whitelistType&quot;</span>: <span class="string">&quot;exit_whitelist&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;destination.&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;y.y.y.y&quot;</span>,</span><br><span class="line">      	<span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">      	<span class="attr">&quot;whitelistType&quot;</span>: <span class="string">&quot;exit_whitelist&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>v0.3</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;whitelist&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cdn&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;action&quot;</span>: <span class="string">&quot;drop&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;source&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3-1-2-Rule"><a href="#3-1-2-Rule" class="headerlink" title="3.1.2 Rule"></a>3.1.2 Rule</h4><h5 id="3-1-2-1-SID"><a href="#3-1-2-1-SID" class="headerlink" title="3.1.2.1 SID"></a>3.1.2.1 SID</h5><ul>
+<li>Redis template</li>
+</ul>
+<p><strong>Input</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;provider&#125;:&#123;rule id&#125;</span></span><br><span class="line"><span class="comment"># value: str &#123;rule name&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> whitelist:sid:suricata:2101201 <span class="string">&quot;GPLWEB_SERVER_403_Forbidden&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Workflow</strong></p>
+<p>![image-20220224143316558](/Users/canon/Library/Application Support/typora-user-images/image-20220224143316558.png)</p>
+<p><strong>Input</strong></p>
+<ul>
+<li>Redis template</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;provider&#125;:&#123;rule name&#125;</span></span><br><span class="line"><span class="comment"># value: str add by &#123;user&#125; &#123;date&#125; &#123;sid&#125; # default</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Suricata</span></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> <span class="string">&quot;whitelist:rule:suricata:GPLWEB_SERVER_403_Forbidden&quot;</span> <span class="string">&quot;add by Canon 2022.02.24 2101201&quot;</span></span><br><span class="line"><span class="comment"># Imperva</span></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> <span class="string">&quot;whitelist:rule:imperva:Suspicious Response Code&quot;</span> <span class="string">&quot;add by Canon 2022.02.24&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Workflow</strong></p>
+<p>![image-20220224150916372](/Users/canon/Library/Application Support/typora-user-images/image-20220224150916372.png)</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/SIEM/" rel="tag"># SIEM</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/06/02/Elastalert-%E6%96%B0%E5%A2%9E%E5%91%A8%E6%9C%9F%E6%80%A7%E6%A3%80%E6%B5%8B%E8%A7%84%E5%88%99/" rel="prev" title="为 Elastalert 增加 参数遍历、周期性检测规则">
+                  <i class="fa fa-chevron-left"></i> 为 Elastalert 增加 参数遍历、周期性检测规则
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/02/02/SIEM%EF%BC%88%E4%B8%80%EF%BC%89/" rel="next" title="致我心中的 “散装”（开源）SIEM（一）">
+                  致我心中的 “散装”（开源）SIEM（一） <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

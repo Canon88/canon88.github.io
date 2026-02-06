@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="背景 本地环境中部署了2台NTA（Suricata）接收内网12台DNS服务器的流量，用于发现DNS请求中存在的安全问题。近一段时间发现2台NTA服务器运行10小时左右就会自动重启Suricata进程，看了一下日志大概意思是说内存不足，需要强制重启释放内存。说起这个问题当时也是花了一些时间去定位。首先DNS这种小包在我这平均流量也就25Mbps，所以大概率不是因为网卡流量过大而导致的。继续定位，由">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zeek - 高度定制化的 DNS事件 + 文件还原">
+<meta property="og:url" content="http://example.com/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="背景 本地环境中部署了2台NTA（Suricata）接收内网12台DNS服务器的流量，用于发现DNS请求中存在的安全问题。近一段时间发现2台NTA服务器运行10小时左右就会自动重启Suricata进程，看了一下日志大概意思是说内存不足，需要强制重启释放内存。说起这个问题当时也是花了一些时间去定位。首先DNS这种小包在我这平均流量也就25Mbps，所以大概率不是因为网卡流量过大而导致的。继续定位，由">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/Zeek-DNS-1.png">
+<meta property="og:image" content="http://example.com/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/Suricata-DNS-1.png">
+<meta property="og:image" content="http://example.com/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/Payload-pic.png">
+<meta property="og:image" content="http://example.com/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/Wazuh-Hash-1.png">
+<meta property="article:published_time" content="2020-05-11T01:39:32.000Z">
+<meta property="article:modified_time" content="2020-06-04T07:53:39.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="Zeek">
+<meta property="article:tag" content="NTA">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/Zeek-DNS-1.png">
+
+
+<link rel="canonical" href="http://example.com/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2020&#x2F;05&#x2F;11&#x2F;Zeek%E5%AE%9E%E6%88%98-1&#x2F;&quot;,&quot;path&quot;:&quot;2020&#x2F;05&#x2F;11&#x2F;Zeek实战-1&#x2F;&quot;,&quot;title&quot;:&quot;Zeek - 高度定制化的 DNS事件 + 文件还原&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>Zeek - 高度定制化的 DNS事件 + 文件还原 | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9C%80%E6%B1%82"><span class="nav-number">2.</span> <span class="nav-text">需求</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E8%BF%87%E6%BB%A4%E6%9C%AC%E5%9C%B0DNS%E8%AF%B7%E6%B1%82"><span class="nav-number">3.1.</span> <span class="nav-text">1. 过滤本地DNS请求</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#DNS%E8%84%9A%E6%9C%AC"><span class="nav-number">3.1.1.</span> <span class="nav-text">DNS脚本</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E8%84%9A%E6%9C%AC%E7%AE%80%E8%BF%B0%EF%BC%9A"><span class="nav-number">3.1.2.</span> <span class="nav-text">脚本简述：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E6%A0%B7%E4%BE%8B%EF%BC%9A"><span class="nav-number">3.1.3.</span> <span class="nav-text">日志样例：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="nav-number">3.1.4.</span> <span class="nav-text">总结：</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-%E6%9B%B4%E7%81%B5%E6%B4%BB%E7%9A%84%E6%96%87%E4%BB%B6%E8%BF%98%E5%8E%9F%E4%B8%8E%E6%8F%90%E5%8F%96%E6%96%87%E4%BB%B6HASH"><span class="nav-number">3.2.</span> <span class="nav-text">2. 更灵活的文件还原与提取文件HASH</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E8%BF%98%E5%8E%9F%E8%84%9A%E6%9C%AC"><span class="nav-number">3.2.1.</span> <span class="nav-text">文件还原脚本</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E8%84%9A%E6%9C%AC%E7%AE%80%E8%BF%B0%EF%BC%9A-1"><span class="nav-number">3.2.2.</span> <span class="nav-text">脚本简述：</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E6%A0%B7%E4%BE%8B"><span class="nav-number">3.2.3.</span> <span class="nav-text">日志样例</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E8%BF%98%E5%8E%9F"><span class="nav-number">3.2.4.</span> <span class="nav-text">文件还原</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A-1"><span class="nav-number">3.2.5.</span> <span class="nav-text">总结：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%B4%E8%84%91%E9%A3%8E%E6%9A%B4"><span class="nav-number">4.</span> <span class="nav-text">头脑风暴</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Zeek - 高度定制化的 DNS事件 + 文件还原
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-05-11 09:39:32" itemprop="dateCreated datePublished" datetime="2020-05-11T09:39:32+08:00">2020-05-11</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2020-06-04 15:53:39" itemprop="dateModified" datetime="2020-06-04T15:53:39+08:00">2020-06-04</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NIDS/" itemprop="url" rel="index"><span itemprop="name">NIDS</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>11k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>10 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><ol>
+<li><p>本地环境中部署了2台NTA（<strong>Suricata</strong>）接收内网12台DNS服务器的流量，用于发现DNS请求中存在的安全问题。近一段时间发现2台NTA服务器运行10小时左右就会自动重启<strong>Suricata</strong>进程，看了一下日志大概意思是说内存不足，需要强制重启释放内存。说起这个问题当时也是花了一些时间去定位。首先DNS这种小包在我这平均流量也就25Mbps，所以大概率不是因为网卡流量过大而导致的。继续定位，由于我们这各个应用服务器会通过内网域名的形式进行接口调用，所以DNS请求量很大。<strong>Kibana</strong>上看了一下目前<code>dns_type: query</code>事件的数据量<strong>320,000,000/天 ~ 350,000,000/天</strong>（这仅仅是<code>dns_type: query</code>数据量，<code>dns_type: answer </code>数据量<strong>也超级大</strong>）。由于<strong>Suricata</strong>不能在数据输出之前对指定域名进行过滤，这一点确实<strong>很傻</strong>，<strong>必须吐槽</strong>。当时的规避做法就是只保留<code>dns_type: query</code>事件，既保证了<strong>Suricata</strong>的正常运行也暂时满足了需求。</p>
+</li>
+<li><p>近一段时间网站的某个上传接口被上传了包含<strong>恶意Payload</strong>的jpg与png。虽然<strong>Suricata</strong>有检测到，但也延伸了新的需求，如何判断文件是否上传成功以及文件还原与提取<strong>HASH</strong>。虽然这两点<strong>Suricata</strong>自身都可以做，但是有一个弊端不得不说。例如<strong>Suricata</strong>只要开启<code>file_info</code>就会对所有支持文件还原的协议进行<strong>HASH</strong>提取。由于我们是电商，外部访问的数据量会很大，<strong>Suricata</strong>默认不支持过滤，针对用户访问的HTML网页这种也会被计算一个<strong>HASH</strong>，这个量就非常的<strong>恐怖</strong>了。</p>
+</li>
+</ol>
+<p><strong>总结：</strong>针对以上2个问题，我需要的是一个更加灵活的NTA框架，下面请来本次主角 - <strong>Zeek</strong>。</p>
+<hr>
+<h4 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h4><ol>
+<li>过滤内部DNS域名，只保留外部DNS域名的请求与响应数据；</li>
+<li>更灵活的文件还原与提取HASH;</li>
+</ol>
+<hr>
+<h4 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h4><h5 id="1-过滤本地DNS请求"><a href="#1-过滤本地DNS请求" class="headerlink" title="1. 过滤本地DNS请求"></a>1. 过滤本地DNS请求</h5><h6 id="DNS脚本"><a href="#DNS脚本" class="headerlink" title="DNS脚本"></a>DNS脚本</h6><p><strong>dns-filter_external.zeek</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">redef Site::local_zones = &#123;<span class="string">&quot;canon88.github.io&quot;</span>, <span class="string">&quot;baidu.com&quot;</span>, <span class="string">&quot;google.com&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> dns_filter(rec: DNS::Info): bool</span><br><span class="line">  &#123;</span><br><span class="line">  <span class="built_in">return</span> ! Site::is_local_name(rec<span class="variable">$query</span>);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">redef Analyzer::disable_all = T</span><br><span class="line"></span><br><span class="line">event <span class="function"><span class="title">zeek_init</span></span>()</span><br><span class="line">  &#123;</span><br><span class="line">  Analyzer::enable_analyzer(Analyzer::ANALYZER_VXLAN);</span><br><span class="line">  Analyzer::enable_analyzer(Analyzer::ANALYZER_DNS);</span><br><span class="line">  Log::remove_default_filter(DNS::LOG);</span><br><span class="line">  <span class="built_in">local</span> filter: Log::Filter = [<span class="variable">$name</span>=<span class="string">&quot;dns_split&quot;</span>, <span class="variable">$path</span>=<span class="string">&quot;/data/logs/zeek/dns_remotezone&quot;</span>, <span class="variable">$pred</span>=dns_filter];</span><br><span class="line">  Log::add_filter(DNS::LOG, filter);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="脚本简述："><a href="#脚本简述：" class="headerlink" title="脚本简述："></a>脚本简述：</h6><ol>
+<li><p>通过<code>Site::local_zones</code>定义一个内部的域名，这些域名默认都是我们需要过滤掉的。例如，在我的需求中，多为内网的域名；</p>
+<ol start="2">
+<li>优化性能， 只开启DNS流量解析。由于这2台NTA只负责解析DNS流量，为了保留针对域名特征检测的能力，我选择了<strong>Suricata</strong>与<strong>Zeek</strong>共存，当然<strong>Zeek</strong>也可以做特征检测，只是我懒。。。通过<code>Analyzer::enable_analyzer(Analyzer::ANALYZER_DNS);</code>指定了只对DNS流量进行分析；</li>
+<li>过滤日志并输出；</li>
+</ol>
+</li>
+</ol>
+<h6 id="日志样例："><a href="#日志样例：" class="headerlink" title="日志样例："></a>日志样例：</h6><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;ts&quot;</span>: <span class="number">1589175829.994196</span>,</span><br><span class="line">  <span class="attr">&quot;uid&quot;</span>: <span class="string">&quot;CPRxOZ2RtkPYhjz8R9&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;id.orig_h&quot;</span>: <span class="string">&quot;1.1.1.1&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;id.orig_p&quot;</span>: <span class="number">40411</span>,</span><br><span class="line">  <span class="attr">&quot;id.resp_h&quot;</span>: <span class="string">&quot;2.2.2.2&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;id.resp_p&quot;</span>: <span class="number">53</span>,</span><br><span class="line">  <span class="attr">&quot;proto&quot;</span>: <span class="string">&quot;udp&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;trans_id&quot;</span>: <span class="number">696</span>,</span><br><span class="line">  <span class="attr">&quot;rtt&quot;</span>: <span class="number">1.3113021850585938e-05</span>,</span><br><span class="line">  <span class="attr">&quot;query&quot;</span>: <span class="string">&quot;graph.facebook.com&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;qclass&quot;</span>: <span class="number">1</span>,</span><br><span class="line">  <span class="attr">&quot;qclass_name&quot;</span>: <span class="string">&quot;C_INTERNET&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;qtype&quot;</span>: <span class="number">1</span>,</span><br><span class="line">  <span class="attr">&quot;qtype_name&quot;</span>: <span class="string">&quot;A&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;rcode&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;rcode_name&quot;</span>: <span class="string">&quot;NOERROR&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;AA&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">&quot;TC&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">&quot;RD&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">&quot;RA&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">&quot;Z&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;answers&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;api.facebook.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;star.c10r.facebook.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;157.240.22.19&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;TTLs&quot;</span>: [</span><br><span class="line">    <span class="number">540</span>,</span><br><span class="line">    <span class="number">770</span>,</span><br><span class="line">    <span class="number">54</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;rejected&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">&quot;event_type&quot;</span>: <span class="string">&quot;dns&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h6><p>当采用Zeek过滤了DNS请求后，现在每天的DNS数据量 <strong>6,300,000/天 ~ 6,800,000/天</strong>（query + answer），对比之前的数据量<strong>320,000,000/天 ~ 350,000,000/天</strong>（query）。数据量减少很明显，同时也减少了后端ES存储的压力。</p>
+<ul>
+<li>Zeek DNS （query + answer）</li>
+</ul>
+<p><img src="/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/Zeek-DNS-1.png" alt="image-20200511135508651"></p>
+<ul>
+<li>Suricata DNS （query）</li>
+</ul>
+<p><img src="/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/Suricata-DNS-1.png" alt="image-20200511140015791"></p>
+<hr>
+<h5 id="2-更灵活的文件还原与提取文件HASH"><a href="#2-更灵活的文件还原与提取文件HASH" class="headerlink" title="2. 更灵活的文件还原与提取文件HASH"></a>2. 更灵活的文件还原与提取文件HASH</h5><h6 id="文件还原脚本"><a href="#文件还原脚本" class="headerlink" title="文件还原脚本"></a>文件还原脚本</h6><p><strong>file_extraction.zeek</strong> </p>
+<p><strong>Demo脚本，语法并不是很优雅，切勿纠结。</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br></pre></td><td class="code"><pre><span class="line">@load base/frameworks/files/main</span><br><span class="line">@load base/protocols/http/main</span><br><span class="line"></span><br><span class="line">module Files;</span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> &#123;</span><br><span class="line">    redef record Info += &#123;</span><br><span class="line">        hostname:         string &amp;<span class="built_in">log</span> &amp;optional;</span><br><span class="line">        proxied:          <span class="built_in">set</span>[string] &amp;<span class="built_in">log</span> &amp;optional;</span><br><span class="line">        url:              string &amp;<span class="built_in">log</span> &amp;optional;</span><br><span class="line">        method:           string &amp;<span class="built_in">log</span> &amp;optional;</span><br><span class="line">        true_client_ip:   string &amp;<span class="built_in">log</span> &amp;optional;</span><br><span class="line">        logs:             bool &amp;<span class="built_in">log</span> &amp;optional;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    option http_info = T;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">redef FileExtract::prefix = <span class="string">&quot;/data/logs/zeek/extracted_files/&quot;</span>;</span><br><span class="line"></span><br><span class="line">global mime_to_ext: table[string] of string = &#123;</span><br><span class="line">    [<span class="string">&quot;text/plain&quot;</span>] = <span class="string">&quot;txt&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;application/x-executable&quot;</span>] = <span class="string">&quot;&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;application/x-dosexec&quot;</span>] = <span class="string">&quot;exe&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;image/jpeg&quot;</span>] = <span class="string">&quot;jpg&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;image/png&quot;</span>] = <span class="string">&quot;png&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;application/pdf&quot;</span>] = <span class="string">&quot;pdf&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;application/java-archive&quot;</span>] = <span class="string">&quot;jar&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;application/x-java-applet&quot;</span>] = <span class="string">&quot;jar&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;application/x-java-jnlp-file&quot;</span>] = <span class="string">&quot;jnlp&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;application/msword&quot;</span>] = <span class="string">&quot;doc&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.wordprocessingml.document&quot;</span>] = <span class="string">&quot;docs&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;</span>] = <span class="string">&quot;xlsx&quot;</span>,</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.presentationml.presentation&quot;</span>] = <span class="string">&quot;pptx&quot;</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">global file_analyzer: table[string] of bool = &#123;</span><br><span class="line">    [<span class="string">&quot;Extraction&quot;</span>] = T,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">global http_method: <span class="built_in">set</span>[string] = &#123;</span><br><span class="line">    <span class="string">&quot;GET&quot;</span>,</span><br><span class="line">    <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">global http_hostname: <span class="built_in">set</span>[string] = &#123;</span><br><span class="line">  <span class="string">&quot;canon88.github.io&quot;</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">global http_uri: <span class="built_in">set</span>[string] = &#123;</span><br><span class="line">  <span class="string">&quot;/index.php&quot;</span>,</span><br><span class="line">  <span class="string">&quot;/account.php&quot;</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> files_filter(rec: Files::Info): bool</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="built_in">return</span> rec?<span class="variable">$logs</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">event <span class="function"><span class="title">zeek_init</span></span>()</span><br><span class="line">    &#123;</span><br><span class="line">    Log::remove_default_filter(Files::LOG);</span><br><span class="line">    <span class="built_in">local</span> filter: Log::Filter = [<span class="variable">$name</span>=<span class="string">&quot;file_extraction&quot;</span>, <span class="variable">$path</span>=<span class="string">&quot;/data/logs/zeek/file_extraction&quot;</span>, <span class="variable">$pred</span>=files_filter];</span><br><span class="line">    Log::add_filter(Files::LOG, filter);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">event file_sniff(f: fa_file, meta: fa_metadata) &amp;priority=3</span><br><span class="line">    &#123;</span><br><span class="line">    <span class="keyword">if</span> ( f<span class="variable">$source</span> != <span class="string">&quot;HTTP&quot;</span> )</span><br><span class="line">        <span class="built_in">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( ! f<span class="variable">$http</span>?<span class="variable">$method</span> )</span><br><span class="line">        <span class="built_in">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( f$http<span class="variable">$method</span> !<span class="keyword">in</span> http_method )</span><br><span class="line">        <span class="built_in">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( ! f<span class="variable">$http</span>?<span class="variable">$host</span> )</span><br><span class="line">        <span class="built_in">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( f$http<span class="variable">$host</span> !<span class="keyword">in</span> http_hostname )</span><br><span class="line">        <span class="built_in">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( ! meta?<span class="variable">$mime_type</span> )</span><br><span class="line">        <span class="built_in">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( meta<span class="variable">$mime_type</span> !<span class="keyword">in</span> mime_to_ext )</span><br><span class="line">        <span class="built_in">return</span>;</span><br><span class="line"></span><br><span class="line">    f$info<span class="variable">$logs</span> = T;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( file_analyzer[<span class="string">&quot;Extraction&quot;</span>] )</span><br><span class="line">        &#123;</span><br><span class="line">        <span class="built_in">local</span> fname = fmt(<span class="string">&quot;%s-%s.%s&quot;</span>, f<span class="variable">$source</span>, f<span class="variable">$id</span>, mime_to_ext[meta<span class="variable">$mime_type</span>]);</span><br><span class="line">        Files::add_analyzer(f, Files::ANALYZER_EXTRACT, [<span class="variable">$extract_filename</span>=fname]);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    Files::add_analyzer(f, Files::ANALYZER_MD5);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( http_info )</span><br><span class="line">        &#123;</span><br><span class="line">        <span class="keyword">if</span> ( f<span class="variable">$http</span>?<span class="variable">$host</span> )</span><br><span class="line">            f$info<span class="variable">$hostname</span> = f$http<span class="variable">$host</span>;</span><br><span class="line">        <span class="keyword">if</span> ( f<span class="variable">$http</span>?<span class="variable">$proxied</span> )</span><br><span class="line">            f$info<span class="variable">$proxied</span> = f$http<span class="variable">$proxied</span>;</span><br><span class="line">        <span class="keyword">if</span> ( f<span class="variable">$http</span>?<span class="variable">$method</span> )</span><br><span class="line">            f$info<span class="variable">$method</span> = f$http<span class="variable">$method</span>;</span><br><span class="line">        <span class="keyword">if</span> ( f<span class="variable">$http</span>?<span class="variable">$uri</span> )</span><br><span class="line">            f$info<span class="variable">$url</span> = f$http<span class="variable">$uri</span>;</span><br><span class="line">        <span class="keyword">if</span> ( f<span class="variable">$http</span>?<span class="variable">$true_client_ip</span> )</span><br><span class="line">            f$info<span class="variable">$true_client_ip</span> = f$http<span class="variable">$true_client_ip</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">event file_state_remove(f: fa_file)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> ( !f<span class="variable">$info</span>?<span class="variable">$extracted</span> || !f<span class="variable">$info</span>?<span class="variable">$md5</span> || FileExtract::prefix == <span class="string">&quot;&quot;</span> || !f<span class="variable">$info</span>?<span class="variable">$logs</span> )</span><br><span class="line">            <span class="built_in">return</span>;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">local</span> orig = f$info<span class="variable">$extracted</span>;</span><br><span class="line">        <span class="built_in">local</span> split_orig = split_string(f$info<span class="variable">$extracted</span>, /\./);</span><br><span class="line">        <span class="built_in">local</span> extension = split_orig[|split_orig|-1];</span><br><span class="line">        <span class="built_in">local</span> ntime = fmt(<span class="string">&quot;%D&quot;</span>, network_time());</span><br><span class="line">        <span class="built_in">local</span> ndate = sub_bytes(ntime, 1, 10);</span><br><span class="line">        <span class="built_in">local</span> dest_dir = fmt(<span class="string">&quot;%s%s&quot;</span>, FileExtract::prefix, ndate);</span><br><span class="line">        mkdir(dest_dir);</span><br><span class="line">        <span class="built_in">local</span> dest = fmt(<span class="string">&quot;%s/%s.%s&quot;</span>, dest_dir, f$info<span class="variable">$md5</span>, extension);</span><br><span class="line">        <span class="built_in">local</span> cmd = fmt(<span class="string">&quot;mv %s/%s %s&quot;</span>, FileExtract::prefix, orig, dest);</span><br><span class="line">        when ( <span class="built_in">local</span> result = Exec::run([<span class="variable">$cmd</span>=cmd]) )</span><br><span class="line">        &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        f$info<span class="variable">$extracted</span> = dest;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="脚本简述：-1"><a href="#脚本简述：-1" class="headerlink" title="脚本简述："></a>脚本简述：</h6><pre><code> 1. 支持针对指定hostname，method，url，文件头进行hash的提取以及文件还原；
+ 2. 默认文件还原按照年月日进行数据的存储，保存名字按照MD5名称命名；
+ 3. 丰富化了文件还原的日志，增加HTTP相关字段；
+</code></pre>
+<h6 id="日志样例"><a href="#日志样例" class="headerlink" title="日志样例"></a>日志样例</h6><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;ts&quot;</span>: <span class="number">1588891497.173108</span>,</span><br><span class="line">  <span class="attr">&quot;fuid&quot;</span>: <span class="string">&quot;FhOGNc2zDdlF3AP5c&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;tx_hosts&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;1.1.1.1&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;rx_hosts&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;2.2.2.2&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;conn_uids&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;CItQs61wvvtPqSB0Ub&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;source&quot;</span>: <span class="string">&quot;HTTP&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;depth&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;analyzers&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;MD5&quot;</span>,</span><br><span class="line">    <span class="string">&quot;SHA1&quot;</span>,</span><br><span class="line">    <span class="string">&quot;EXTRACT&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;mime_type&quot;</span>: <span class="string">&quot;image/png&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;duration&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;local_orig&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">&quot;is_orig&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">&quot;seen_bytes&quot;</span>: <span class="number">353</span>,</span><br><span class="line">  <span class="attr">&quot;total_bytes&quot;</span>: <span class="number">353</span>,</span><br><span class="line">  <span class="attr">&quot;missing_bytes&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;overflow_bytes&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;timedout&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">&quot;md5&quot;</span>: <span class="string">&quot;fd0229d400049449084b3864359c445a&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;sha1&quot;</span>: <span class="string">&quot;d836d3f06c0fc075cf0f5d95f50b79cac1dac97d&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;extracted&quot;</span>: <span class="string">&quot;/data/logs/zeek/extracted_files/2020-05-07/fd0229d400049449084b3864359c445a.png&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;extracted_cutoff&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">&quot;hostname&quot;</span>: <span class="string">&quot;canon88.github.io&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;proxied&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;TRUE-CLIENT-IP -&gt; 3.3.3.3&quot;</span>,</span><br><span class="line">    <span class="string">&quot;X-FORWARDED-FOR -&gt; 4.4.4.4&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;url&quot;</span>: <span class="string">&quot;/image/close.png&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;method&quot;</span>: <span class="string">&quot;GET&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;true_client_ip&quot;</span>: <span class="string">&quot;3.3.3.3&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;logs&quot;</span>: <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h6 id="文件还原"><a href="#文件还原" class="headerlink" title="文件还原"></a>文件还原</h6><p><strong>这是其中一个包含恶意Payload还原出的图片样例</strong></p>
+<p><img src="/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/Payload-pic.png" alt="image-20200511150738194"></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">$ ll /data/logs/zeek/extracted_files/</span><br><span class="line">total 89916</span><br><span class="line">drwxr-xr-x 10 root root      150 May 11 06:14 ./</span><br><span class="line">drwxr-xr-x  4 root root       67 May 11 06:00 ../</span><br><span class="line">drwxr-xr-x  2 root root       50 May  5 07:54 2020-05-04/</span><br><span class="line">drwxr-xr-x  2 root root     4096 May  5 23:51 2020-05-05/</span><br><span class="line">drwxr-xr-x  2 root root   671744 May  6 23:41 2020-05-06/</span><br><span class="line">drwxr-xr-x  2 root root     4096 May  7 22:44 2020-05-07/</span><br><span class="line">drwxr-xr-x  2 root root   741376 May  8 23:59 2020-05-08/</span><br><span class="line">drwxr-xr-x  2 root root 23425024 May  9 23:59 2020-05-09/</span><br><span class="line">drwxr-xr-x  2 root root 25047040 May 10 23:59 2020-05-10/</span><br><span class="line">drwxr-xr-x  2 root root 24846336 May 11 06:14 2020-05-11/</span><br><span class="line"></span><br><span class="line">$ xxd /data/logs/zeek/extracted_files/2020-05-07/884d9474180e5b49f851643cb2442bce.jpg</span><br><span class="line">00000000: 8950 4e47 0d0a 1a0a 0000 000d 4948 4452  .PNG........IHDR</span><br><span class="line">00000010: 0000 003c 0000 003c 0806 0000 003a fcd9  ...&lt;...&lt;.....:..</span><br><span class="line">00000020: 7200 0000 1974 4558 7453 6f66 7477 6172  r....tEXtSoftwar</span><br><span class="line">00000030: 6500 4164 6f62 6520 496d 6167 6552 6561  e.Adobe ImageRea</span><br><span class="line">00000040: 6479 71c9 653c 0000 0320 6954 5874 584d  dyq.e&lt;... iTXtXM</span><br><span class="line">00000050: 4c3a 636f 6d2e 6164 6f62 652e 786d 7000  L:com.adobe.xmp.</span><br><span class="line">..........</span><br><span class="line">00001030: 8916 ce5f 7480 2f38 c073 69f1 5c14 83fb  ..._t./8.si.\...</span><br><span class="line">00001040: aa9d 42a3 8f4b ff05 e012 e04b 802f 01be  ..B..K.....K./..</span><br><span class="line">00001050: 04b8 91c7 ff04 1800 bcae 819f d1da 1896  ................</span><br><span class="line">00001060: 0000 0000 4945 4e44 ae42 6082 3c3f 7068  ....IEND.B`.&lt;?ph</span><br><span class="line">00001070: 7020 7068 7069 6e66 6f28 293b 3f3e 1a    p phpinfo();?&gt;.</span><br></pre></td></tr></table></figure>
+
+<h6 id="总结：-1"><a href="#总结：-1" class="headerlink" title="总结："></a>总结：</h6><p>通过Zeek脚本扩展后，可以<strong>“随意所欲”</strong>的获取各种类型文件的Hash以及定制化的进行文件还原。</p>
+<h4 id="头脑风暴"><a href="#头脑风暴" class="headerlink" title="头脑风暴"></a>头脑风暴</h4><p>当获取文件上传的Hash之后，可以尝试扩展出以下2个安全事件：</p>
+<ol>
+<li><p>判断文件是否上传成功。</p>
+<p>通常第一时间会需要定位文件是否上传成功，若上传成功需要进行相关的事件输出，这个时候我们可以通过采用HIDS进行文件落地事件的关联。</p>
+</li>
+<li><p>关联杀毒引擎/威胁情报。</p>
+<p>将第一个关联好的事件进行Hash的碰撞，最常见的是将HASH送到VT或威胁情报。</p>
+</li>
+</ol>
+<p>这里以<strong>Wazuh</strong>事件为例，将<strong>Zeek</strong>的文件还原事件与<strong>Wazuh</strong>的新增文件事件进行关联，关联指标采用<strong>Hash</strong>。</p>
+<p><strong>a. Zeek事件</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;ts&quot;</span>: <span class="number">1589158812.471443</span>,</span><br><span class="line">  <span class="attr">&quot;fuid&quot;</span>: <span class="string">&quot;FBkqzM2AFg0jrioji6&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;tx_hosts&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;1.1.1.1&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;rx_hosts&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;2.2.2.2&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;conn_uids&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;CcOyQo2ziEuoLBNIb9&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;source&quot;</span>: <span class="string">&quot;HTTP&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;depth&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;analyzers&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;SHA1&quot;</span>,</span><br><span class="line">    <span class="string">&quot;EXTRACT&quot;</span>,</span><br><span class="line">    <span class="string">&quot;MD5&quot;</span>,</span><br><span class="line">    <span class="string">&quot;DATA_EVENT&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;mime_type&quot;</span>: <span class="string">&quot;text/plain&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;duration&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;local_orig&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">&quot;is_orig&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">  <span class="attr">&quot;seen_bytes&quot;</span>: <span class="number">31</span>,</span><br><span class="line">  <span class="attr">&quot;total_bytes&quot;</span>: <span class="number">31</span>,</span><br><span class="line">  <span class="attr">&quot;missing_bytes&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;overflow_bytes&quot;</span>: <span class="number">0</span>,</span><br><span class="line">  <span class="attr">&quot;timedout&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">&quot;md5&quot;</span>: <span class="string">&quot;37a74f452f1c49854a2951fd605687c5&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;extracted&quot;</span>: <span class="string">&quot;/data/logs/zeek/extracted_files/2020-05-11/37a74f452f1c49854a2951fd605687c5.txt&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;extracted_cutoff&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">  <span class="attr">&quot;hostname&quot;</span>: <span class="string">&quot;canon88.github.io&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;proxied&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;X-FORWARDED-FOR -&gt; 3.3.3.3&quot;</span>,</span><br><span class="line">    <span class="string">&quot;TRUE-CLIENT-IP -&gt; 4.4.4.4&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="attr">&quot;url&quot;</span>: <span class="string">&quot;/index.php&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;method&quot;</span>: <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;true_client_ip&quot;</span>: <span class="string">&quot;4.4.4.4&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;logs&quot;</span>: <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>b. Wazuh 事件</strong></p>
+<p><img src="/2020/05/11/Zeek%E5%AE%9E%E6%88%98-1/Wazuh-Hash-1.png" alt="image-20200511144805354"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Zeek/" rel="tag"># Zeek</a>
+              <a href="/tags/NTA/" rel="tag"># NTA</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/03/29/Elasticsearch-alias%E4%B8%8Ereindex%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF/" rel="prev" title="Elasticsearch-alias与reindex的使用场景">
+                  <i class="fa fa-chevron-left"></i> Elasticsearch-alias与reindex的使用场景
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/06/02/Elastalert-%E6%96%B0%E5%A2%9E%E5%91%A8%E6%9C%9F%E6%80%A7%E6%A3%80%E6%B5%8B%E8%A7%84%E5%88%99/" rel="next" title="为 Elastalert 增加 参数遍历、周期性检测规则">
+                  为 Elastalert 增加 参数遍历、周期性检测规则 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

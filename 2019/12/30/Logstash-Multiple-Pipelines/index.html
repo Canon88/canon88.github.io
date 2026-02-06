@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="背景当Logstash要处理的多个input类型时, 最常见的两种解决方案(不推荐):  通过条件判断解决问题  通过多实例解决问题   负面影响:  条件判断  条件地狱。已知的在一个管道中实现多个独立流的方法是使用条件判断。主要方式是在输入部分通过标签标记事件，然后在过滤器中和输出阶段创建条件分支，对贴有不同标签的事件，应用不同的插件集。这种方式虽然可以解决问题，但在实际的使用中却非常的痛苦！">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Logstash Multiple Pipelines">
+<meta property="og:url" content="http://example.com/2019/12/30/Logstash-Multiple-Pipelines/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="背景当Logstash要处理的多个input类型时, 最常见的两种解决方案(不推荐):  通过条件判断解决问题  通过多实例解决问题   负面影响:  条件判断  条件地狱。已知的在一个管道中实现多个独立流的方法是使用条件判断。主要方式是在输入部分通过标签标记事件，然后在过滤器中和输出阶段创建条件分支，对贴有不同标签的事件，应用不同的插件集。这种方式虽然可以解决问题，但在实际的使用中却非常的痛苦！">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-12-30T07:17:17.000Z">
+<meta property="article:modified_time" content="2019-12-30T07:21:12.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="Logstash">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2019/12/30/Logstash-Multiple-Pipelines/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2019&#x2F;12&#x2F;30&#x2F;Logstash-Multiple-Pipelines&#x2F;&quot;,&quot;path&quot;:&quot;2019&#x2F;12&#x2F;30&#x2F;Logstash-Multiple-Pipelines&#x2F;&quot;,&quot;title&quot;:&quot;Logstash Multiple Pipelines&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>Logstash Multiple Pipelines | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">2.</span> <span class="nav-text">解决方案</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE"><span class="nav-number">2.1.</span> <span class="nav-text">配置</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%8A%A0%E8%BD%BD%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6"><span class="nav-number">2.2.</span> <span class="nav-text">加载配置文件</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/12/30/Logstash-Multiple-Pipelines/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Logstash Multiple Pipelines
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2019-12-30 15:17:17 / 修改时间：15:21:12" itemprop="dateCreated datePublished" datetime="2019-12-30T15:17:17+08:00">2019-12-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/ELK/" itemprop="url" rel="index"><span itemprop="name">ELK</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>2 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>当Logstash要处理的多个input类型时, 最常见的两种解决方案(<strong>不推荐</strong>):</p>
+<ol>
+<li><p>通过条件判断解决问题</p>
+</li>
+<li><p>通过多实例解决问题</p>
+</li>
+</ol>
+<p><strong>负面影响:</strong></p>
+<ol>
+<li><p>条件判断</p>
+<ol>
+<li>条件地狱。已知的在一个管道中实现多个独立流的方法是使用条件判断。主要方式是在输入部分通过标签标记事件，然后在过滤器中和输出阶段创建条件分支，对贴有不同标签的事件，应用不同的插件集。这种方式虽然可以解决问题，但在实际的使用中却非常的痛苦！下面是一个简单的 demo 片段：</li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">input &#123;</span><br><span class="line">    beats &#123; </span><br><span class="line">        port =&gt; 3444  </span><br><span class="line">        tag =&gt; apache </span><br><span class="line">    &#125;</span><br><span class="line">    tcp &#123; </span><br><span class="line">        port =&gt; 4222</span><br><span class="line">        tag =&gt; firewall</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">filter &#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;apache&quot;</span> <span class="keyword">in</span> [tags] &#123;</span><br><span class="line">        dissect &#123; ... &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> <span class="string">&quot;firewall&quot;</span> <span class="keyword">in</span> [tags] &#123;</span><br><span class="line">        grok &#123; ... &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">output &#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="string">&quot;apache&quot;</span> <span class="keyword">in</span> [tags] &#123;</span><br><span class="line">        elasticsearch &#123; ... &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> <span class="string">&quot;firewall&quot;</span> <span class="keyword">in</span> [tags] &#123;</span><br><span class="line">        tcp &#123; ... &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ol>
+<li>缺乏拥塞管理。Logstash在所有事件和完成所有输出之前不会移动到下一批事件。这意味着，对于上面的管道，如果 TCP 套接字目标不可达，Logstash将不会处理其他批次的事件，这也就意味着 Elasticsearch 将不会接收事件，并且会对 TCP 输入和 Beats 输入施加反压力。</li>
+<li>不同的数据流需要以不同的方式处理。如果 TCP - &gt; Grok - &gt; TCP 数据流处理大量的小数据，而 Beats -&gt; Dissect -&gt; ES 数据流中的单个数据体积大但是数量少。那么前一个数据流希望有多个 worker 并行并其每一批次处理更多事件，第二个数据流则期望使用少量的 worker 和每批次处理少量的事件。使用单个管道，无法为单个数据流指定独立的管道配置。</li>
+</ol>
+</li>
+<li><p>多实例</p>
+<ol>
+<li>需要管理多个实例(通过 init 系统管理多个后台服务)</li>
+<li>每个 Logstash 的实例也意味着一个独立的 JVM</li>
+<li>需要监视每个 Logstash 实例</li>
+</ol>
+</li>
+</ol>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h4><p>​        通过配置多管道(Multiple Pipelines), 解决以上的所有问题。</p>
+<h5 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h5><p><code>/usr/share/logstash/config/pipelines.yml</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># This file is where you define your pipelines. You can define multiple.</span></span><br><span class="line"><span class="comment"># For more information on multiple pipelines, see the documentation:</span></span><br><span class="line"><span class="comment">#   https://www.elastic.co/guide/en/logstash/current/multiple-pipelines.html</span></span><br><span class="line"></span><br><span class="line">- pipeline.id: dsiem</span><br><span class="line">  path.config: <span class="string">&quot;/etc/logstash/conf.d_siem/*.conf&quot;</span></span><br><span class="line">  pipeline.workers: 16</span><br><span class="line">  queue.type: persisted</span><br><span class="line">  queue.max_bytes: 300gb</span><br><span class="line"></span><br><span class="line">- pipeline.id: cloudflare</span><br><span class="line">  path.config: <span class="string">&quot;/etc/logstash/conf.d_cf/*.conf&quot;</span></span><br><span class="line">  pipeline.workers: 8</span><br><span class="line">  queue.type: persisted</span><br><span class="line">  queue.max_bytes: 100gb</span><br><span class="line"></span><br><span class="line">- pipeline.id: ti</span><br><span class="line">  path.config: <span class="string">&quot;/etc/logstash/conf.d_ti/*.conf&quot;</span></span><br><span class="line">  pipeline.workers: 8</span><br><span class="line">  queue.type: persisted</span><br><span class="line">  queue.max_bytes: 50gb</span><br></pre></td></tr></table></figure>
+
+<p><code>/etc/supervisord.d/logstash.ini</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[program:logstash]</span><br><span class="line"><span class="built_in">command</span>=/usr/share/logstash/bin/logstash --path.data /lingtian/data/logstash/</span><br><span class="line"><span class="comment">#user=logstash</span></span><br><span class="line">numprocs=1</span><br><span class="line">autostart=<span class="literal">true</span></span><br><span class="line">autorestart=<span class="literal">true</span></span><br><span class="line">startsecs=1</span><br><span class="line">startretries=3</span><br><span class="line">exitcodes=0,2</span><br><span class="line">stopsignal=INT</span><br><span class="line">redirect_stderr=<span class="literal">true</span></span><br><span class="line">stdout_logfile_maxbytes=1MB</span><br><span class="line">stdout_logfile_backups=5</span><br><span class="line">stdout_capture_maxbytes=1MB</span><br><span class="line">stdout_logfile=/lingtian/logs/logstash/logstash.log</span><br></pre></td></tr></table></figure>
+
+<h5 id="加载配置文件"><a href="#加载配置文件" class="headerlink" title="加载配置文件"></a>加载配置文件</h5><p>可通过使用参数, <code>--config.reload.automatic</code> or <code>-r</code> 在配置文件发生更改后自动检测并重新加载配置。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ bin/logstash -f apache.config --config.reload.automatic</span><br></pre></td></tr></table></figure>
+
+<p>默认3秒检查配置文件, 可以通过使用参数, <code>--config.reload.interval </code>修改秒数。</p>
+<p>如果Logstash已经在没有启用自动重载的情况下运行，则可以通过向运行Logstash的进程发送SIGHUP（信号挂起）来强制Logstash重载配置文件并重新启动管道。例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">kill</span> -SIGHUP <span class="variable">$logstash_pid</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><ul>
+<li><p><strong><a target="_blank" rel="noopener" href="https://github.com/elastic/logstash/blob/master/config/pipelines.yml">Pipelines 参数</a></strong></p>
+</li>
+<li><p><strong><a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/logstash/6.7/multiple-pipelines.html">Multiple Pipelines</a></strong></p>
+</li>
+<li><p><strong><a target="_blank" rel="noopener" href="https://www.elastic.co/cn/blog/logstash-multiple-pipelines">Introducing Multiple Pipelines in Logstash - 原文</a></strong></p>
+</li>
+<li><p><strong><a target="_blank" rel="noopener" href="https://www.cnblogs.com/sparkdev/p/11073980.html">Introducing Multiple Pipelines in Logstash - 中文</a></strong></p>
+</li>
+<li><p><strong><a target="_blank" rel="noopener" href="https://www.elastic.co/guide/en/logstash/current/reloading-config.html">Reloading the Config Fileedit </a></strong></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://www.51niux.com/?id=205"><strong>Logstash详细记录（五</strong>）</a></p>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Logstash/" rel="tag"># Logstash</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/12/30/Scrapy-%E5%A4%9A%E4%B8%AAitem%E5%AF%B9%E5%BA%94%E4%B8%80%E4%B8%AApipeline/" rel="prev" title="Scrapy 多个item对应一个pipeline">
+                  <i class="fa fa-chevron-left"></i> Scrapy 多个item对应一个pipeline
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/12/30/Logstash-Event-API/" rel="next" title="Logstash Event API">
+                  Logstash Event API <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

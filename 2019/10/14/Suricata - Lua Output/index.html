@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="背景​    由于近期网站遭受大量撞库攻击, 想监控一下登录接口中的异常行为。通过alert并不能起到很好的效果, 所以采用Lua脚本进行扩展, 写了一个审计登录接口的脚本。通过登录接口事件, 再配合Wazuh进行一些简单的关联告警,  效果还是不错的。 需求 由于审计内容涉及到用户敏感信息, 因此需要对敏感信息进行Hash之后再输出; 除通用HTTP Header字段外支持对自定义字段进行选择性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Suricata - Lua Output Script">
+<meta property="og:url" content="http://example.com/2019/10/14/Suricata%20-%20Lua%20Output/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="背景​    由于近期网站遭受大量撞库攻击, 想监控一下登录接口中的异常行为。通过alert并不能起到很好的效果, 所以采用Lua脚本进行扩展, 写了一个审计登录接口的脚本。通过登录接口事件, 再配合Wazuh进行一些简单的关联告警,  效果还是不错的。 需求 由于审计内容涉及到用户敏感信息, 因此需要对敏感信息进行Hash之后再输出; 除通用HTTP Header字段外支持对自定义字段进行选择性">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-10-14T02:45:12.000Z">
+<meta property="article:modified_time" content="2019-10-18T03:29:51.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="Suricata">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://example.com/2019/10/14/Suricata%20-%20Lua%20Output/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2019&#x2F;10&#x2F;14&#x2F;Suricata%20-%20Lua%20Output&#x2F;&quot;,&quot;path&quot;:&quot;2019&#x2F;10&#x2F;14&#x2F;Suricata - Lua Output&#x2F;&quot;,&quot;title&quot;:&quot;Suricata - Lua Output Script&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>Suricata - Lua Output Script | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9C%80%E6%B1%82"><span class="nav-number">2.</span> <span class="nav-text">需求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81"><span class="nav-number">3.</span> <span class="nav-text">代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-number">4.</span> <span class="nav-text">示例</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/10/14/Suricata%20-%20Lua%20Output/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Suricata - Lua Output Script
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-10-14 10:45:12" itemprop="dateCreated datePublished" datetime="2019-10-14T10:45:12+08:00">2019-10-14</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-10-18 11:29:51" itemprop="dateModified" datetime="2019-10-18T11:29:51+08:00">2019-10-18</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NIDS/" itemprop="url" rel="index"><span itemprop="name">NIDS</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>9.9k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>9 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>​    由于近期网站遭受大量撞库攻击, 想监控一下登录接口中的异常行为。通过<strong>alert</strong>并不能起到很好的效果, 所以采用<strong>Lua</strong>脚本进行扩展, 写了一个审计登录接口的脚本。通过登录接口事件, 再配合<strong>Wazuh</strong>进行一些简单的关联告警,  效果还是不错的。</p>
+<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><ul>
+<li>由于审计内容涉及到用户敏感信息, 因此需要对敏感信息进行<strong>Hash</strong>之后再输出;</li>
+<li>除通用<strong>HTTP Header</strong>字段外支持对自定义字段进行选择性输出;</li>
+</ul>
+<h1 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h1><figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br></pre></td><td class="code"><pre><span class="line">json = <span class="built_in">require</span> <span class="string">&quot;json&quot;</span></span><br><span class="line">md5 = <span class="built_in">require</span> <span class="string">&quot;md5&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 登录接口</span></span><br><span class="line">login_url = <span class="string">&quot;/login&quot;</span></span><br><span class="line"><span class="comment">-- 登录状态码</span></span><br><span class="line">success_code = <span class="number">0</span></span><br><span class="line"><span class="comment">-- event_name</span></span><br><span class="line">event_name = <span class="string">&quot;login_audit&quot;</span></span><br><span class="line"><span class="comment">-- event_type</span></span><br><span class="line">event_type = <span class="string">&quot;lua&quot;</span></span><br><span class="line"><span class="comment">-- app_type</span></span><br><span class="line">app_type = <span class="string">&quot;web&quot;</span></span><br><span class="line"><span class="comment">-- logs</span></span><br><span class="line">name = <span class="string">&quot;web_login_audit.json&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- common_mapping</span></span><br><span class="line">http_common_mapping = <span class="string">&#x27;&#123;&quot;accept&quot;:&quot;accept&quot;,&quot;accept-charset&quot;:&quot;accept_charset&quot;,&quot;accept-encoding&quot;:&quot;accept_encoding&quot;,&quot;accept-language&quot;:&quot;accept_language&quot;,&quot;accept-datetime&quot;:&quot;accept_datetime&quot;,&quot;authorization&quot;:&quot;authorization&quot;,&quot;cache-control&quot;:&quot;cache_control&quot;,&quot;from&quot;:&quot;from&quot;,&quot;max-forwards&quot;:&quot;max_forwards&quot;,&quot;origin&quot;:&quot;origin&quot;,&quot;pragma&quot;:&quot;pragma&quot;,&quot;proxy-authorization&quot;:&quot;proxy_authorization&quot;,&quot;via&quot;:&quot;via&quot;,&quot;vary&quot;:&quot;vary&quot;,&quot;x-requested-with&quot;:&quot;x_requested_with&quot;,&quot;x-forwarded-proto&quot;:&quot;x_forwarded_proto&quot;,&quot;accept-range&quot;:&quot;accept_range&quot;,&quot;allow&quot;:&quot;allow&quot;,&quot;connection&quot;:&quot;connection&quot;,&quot;content-encoding&quot;:&quot;content_encoding&quot;,&quot;content-language&quot;:&quot;content_language&quot;,&quot;content-location&quot;:&quot;content_location&quot;,&quot;content-md5&quot;:&quot;content_md5&quot;,&quot;content-range&quot;:&quot;content_range&quot;,&quot;date&quot;:&quot;date&quot;,&quot;last-modified&quot;:&quot;last_modified&quot;,&quot;location&quot;:&quot;location&quot;,&quot;proxy-authenticate&quot;:&quot;proxy_authenticate&quot;,&quot;referrer&quot;:&quot;refer&quot;,&quot;retry-after&quot;:&quot;retry_after&quot;,&quot;server&quot;:&quot;server&quot;,&quot;transfer-encoding&quot;:&quot;transfer_encoding&quot;,&quot;upgrade&quot;:&quot;upgrade&quot;,&quot;www-authenticate&quot;:&quot;www_authenticate&quot;,&quot;x-authenticated-user&quot;:&quot;x_authenticated_user&quot;,&quot;user-agent&quot;:&quot;user_agent&quot;&#125;&#x27;</span></span><br><span class="line">common_mapping_table = json.decode(http_common_mapping)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- request_mapping</span></span><br><span class="line">http_request_mapping = <span class="string">&#x27;&#123;&quot;content-length&quot;:&quot;request_content_length&quot;,&quot;content-type&quot;:&quot;request_content_type&quot;&#125;&#x27;</span></span><br><span class="line">request_mapping_table = json.decode(http_request_mapping)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- response_mapping</span></span><br><span class="line">http_response_mapping = <span class="string">&#x27;&#123;&quot;content-length&quot;:&quot;response_content_length&quot;,&quot;content-type&quot;:&quot;response_content_type&quot;&#125;&#x27;</span></span><br><span class="line">response_mapping_table = json.decode(http_response_mapping)</span><br><span class="line"></span><br><span class="line"><span class="comment">-- defind functioin</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">md5Encode</span><span class="params">(args)</span></span></span><br><span class="line">    m = md5.new()</span><br><span class="line">    m:update(args)</span><br><span class="line">    <span class="keyword">return</span> md5.tohex(m:finish())</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">urlDecode</span><span class="params">(args)</span></span></span><br><span class="line">    s = <span class="built_in">string</span>.<span class="built_in">gsub</span>(args, <span class="string">&quot;%%(%x%x)&quot;</span>, <span class="function"><span class="keyword">function</span><span class="params">(h)</span></span> <span class="keyword">return</span> <span class="built_in">string</span>.<span class="built_in">char</span>(<span class="built_in">tonumber</span>(h, <span class="number">16</span>)) <span class="keyword">end</span>)</span><br><span class="line">    <span class="keyword">return</span> s</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- email=xxx@yyy.com&amp;password=zzz</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">formatStr</span><span class="params">(args)</span></span></span><br><span class="line">    t = &#123;&#125;</span><br><span class="line">    data = <span class="built_in">string</span>.split(args, <span class="string">&#x27;&amp;&#x27;</span>)</span><br><span class="line">    <span class="keyword">for</span> n, v <span class="keyword">in</span> <span class="built_in">ipairs</span>(data) <span class="keyword">do</span></span><br><span class="line">        d = <span class="built_in">string</span>.split(v, <span class="string">&#x27;=&#x27;</span>)</span><br><span class="line">        t[d[<span class="number">1</span>]] = d[<span class="number">2</span>]</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">return</span> t</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">string.split</span><span class="params">(s, p)</span></span></span><br><span class="line">    <span class="keyword">local</span> rt = &#123;&#125;</span><br><span class="line">    <span class="built_in">string</span>.<span class="built_in">gsub</span>(s, <span class="string">&#x27;[^&#x27;</span>..p..<span class="string">&#x27;]+&#x27;</span>, <span class="function"><span class="keyword">function</span><span class="params">(w)</span></span> <span class="built_in">table</span>.<span class="built_in">insert</span>(rt, w) <span class="keyword">end</span> )</span><br><span class="line">    <span class="keyword">return</span> rt</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">trim</span><span class="params">(s)</span></span></span><br><span class="line">    <span class="keyword">return</span> (<span class="built_in">string</span>.<span class="built_in">gsub</span>(s, <span class="string">&quot;^%s*(.-)%s*$&quot;</span>, <span class="string">&quot;%1&quot;</span>))</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">formatCookie</span><span class="params">(args)</span></span></span><br><span class="line">    t = &#123;&#125;</span><br><span class="line">    data = <span class="built_in">string</span>.split(args, <span class="string">&quot;;&quot;</span>)</span><br><span class="line">    <span class="keyword">for</span> n, v <span class="keyword">in</span> <span class="built_in">ipairs</span>(data) <span class="keyword">do</span></span><br><span class="line">        v = trim(v)</span><br><span class="line">        d = <span class="built_in">string</span>.split(v, <span class="string">&quot;=&quot;</span>)</span><br><span class="line">        t[d[<span class="number">1</span>]] = d[<span class="number">2</span>]</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">return</span> t</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- default function</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">init</span> <span class="params">(args)</span></span></span><br><span class="line">    <span class="keyword">local</span> needs = &#123;&#125;</span><br><span class="line">    needs[<span class="string">&quot;protocol&quot;</span>] = <span class="string">&quot;http&quot;</span></span><br><span class="line">    <span class="keyword">return</span> needs</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">setup</span> <span class="params">(args)</span></span></span><br><span class="line">    filename = SCLogPath() .. <span class="string">&quot;/&quot;</span> .. name</span><br><span class="line">    file = <span class="built_in">assert</span>(<span class="built_in">io</span>.<span class="built_in">open</span>(filename, <span class="string">&quot;a&quot;</span>))</span><br><span class="line">    SCLogInfo(<span class="string">&quot;Web Login Log Filename &quot;</span> .. filename)</span><br><span class="line">    http = <span class="number">0</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">log</span><span class="params">(args)</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">-- init tables</span></span><br><span class="line">    http_table = &#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- http_hostname</span></span><br><span class="line">    http_hostname = HttpGetRequestHost()</span><br><span class="line">    http_table[<span class="string">&quot;hostname&quot;</span>] = http_hostname</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- http_url</span></span><br><span class="line">    http_url = HttpGetRequestUriNormalized()</span><br><span class="line">    <span class="keyword">if</span> http_url ~= login_url <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    http_table[<span class="string">&quot;url&quot;</span>] = login_url</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- http_url_path</span></span><br><span class="line">    http_table[<span class="string">&quot;url_path&quot;</span>] = http_url</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- http_method</span></span><br><span class="line">    rl = HttpGetRequestLine()</span><br><span class="line">    http_method = <span class="built_in">string</span>.<span class="built_in">match</span>(rl, <span class="string">&quot;%w+&quot;</span>)</span><br><span class="line">    http_table[<span class="string">&quot;method&quot;</span>] = http_method</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- http_status</span></span><br><span class="line">    rsl = HttpGetResponseLine()</span><br><span class="line">    status_code = <span class="built_in">string</span>.<span class="built_in">match</span>(rsl, <span class="string">&quot;%s(%d+)%s&quot;</span>)</span><br><span class="line">    http_status = <span class="built_in">tonumber</span>(status_code)</span><br><span class="line">    http_table[<span class="string">&quot;status&quot;</span>] = http_status</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- http_protocol</span></span><br><span class="line">    http_protocol = <span class="built_in">string</span>.<span class="built_in">match</span>(rsl, <span class="string">&quot;(.-)%s&quot;</span>)</span><br><span class="line">    http_table[<span class="string">&quot;protocol&quot;</span>] = http_protocol</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- request_token</span></span><br><span class="line">    cookie = HttpGetRequestHeader(<span class="string">&quot;Cookie&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> cookie ~= <span class="literal">nil</span> <span class="keyword">then</span></span><br><span class="line">        session_id = <span class="built_in">string</span>.<span class="built_in">match</span>(cookie, <span class="string">&quot;sessionID=(.-);&quot;</span>)</span><br><span class="line">        <span class="keyword">if</span> session_id ~= <span class="literal">nil</span> <span class="keyword">then</span></span><br><span class="line">            http_table[<span class="string">&quot;request_token&quot;</span>] = md5Encode(session_id)</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            http_table[<span class="string">&quot;request_token&quot;</span>]  = <span class="literal">nil</span></span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">-- response_token &amp;&amp; member_id</span></span><br><span class="line">    set_cookie = HttpGetResponseHeader(<span class="string">&quot;Set-Cookie&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> set_cookie ~= <span class="literal">nil</span> <span class="keyword">then</span></span><br><span class="line">        session_id = <span class="built_in">string</span>.<span class="built_in">match</span>(set_cookie, <span class="string">&quot;sessionID=(.-);&quot;</span>)</span><br><span class="line">        http_table[<span class="string">&quot;response_token&quot;</span>]  = md5Encode(session_id)</span><br><span class="line">        member_id = <span class="built_in">string</span>.<span class="built_in">match</span>(set_cookie, <span class="string">&quot;memberId=(.-);&quot;</span>)</span><br><span class="line">        http_table[<span class="string">&quot;member_id&quot;</span>] = <span class="built_in">tonumber</span>(member_id)</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">-- login_results</span></span><br><span class="line">    a, o, e = HttpGetResponseBody()</span><br><span class="line">    <span class="keyword">for</span> n, v <span class="keyword">in</span> <span class="built_in">ipairs</span>(a) <span class="keyword">do</span></span><br><span class="line">        body = json.decode(v)</span><br><span class="line">        results_code = <span class="built_in">tonumber</span>(body[<span class="string">&quot;code&quot;</span>])</span><br><span class="line">        <span class="keyword">if</span> results_code == success_code <span class="keyword">then</span></span><br><span class="line">            results = <span class="string">&quot;success&quot;</span></span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            results = <span class="string">&quot;failed&quot;</span></span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    http_table[<span class="string">&quot;results&quot;</span>] = results</span><br><span class="line">    http_table[<span class="string">&quot;results_code&quot;</span>] = results_code</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- email &amp; password</span></span><br><span class="line">    a, o, e = HttpGetRequestBody()</span><br><span class="line">    <span class="keyword">for</span> n, v <span class="keyword">in</span> <span class="built_in">ipairs</span>(a) <span class="keyword">do</span></span><br><span class="line">        res = formatStr(v)</span><br><span class="line">        mail = urlDecode(res[<span class="string">&#x27;email&#x27;</span>])</span><br><span class="line">        pass = md5Encode(res[<span class="string">&#x27;password&#x27;</span>])</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">    http_table[<span class="string">&quot;email&quot;</span>] = mail</span><br><span class="line">    http_table[<span class="string">&quot;password&quot;</span>] = pass</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- RequestHeaders</span></span><br><span class="line">    rh = HttpGetRequestHeaders()</span><br><span class="line">    <span class="keyword">for</span> k, v <span class="keyword">in</span> <span class="built_in">pairs</span>(rh) <span class="keyword">do</span></span><br><span class="line">        key = <span class="built_in">string</span>.<span class="built_in">lower</span>(k)</span><br><span class="line"></span><br><span class="line">        common_var = common_mapping_table[key]</span><br><span class="line">        <span class="keyword">if</span> common_var ~= <span class="literal">nil</span> <span class="keyword">then</span></span><br><span class="line">            http_table[common_var] = v</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">        request_var = request_mapping_table[key]</span><br><span class="line">        <span class="keyword">if</span> request_var ~= <span class="literal">nil</span> <span class="keyword">then</span></span><br><span class="line">            http_table[request_var] = v</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">-- ResponseHeaders</span></span><br><span class="line">    rsh = HttpGetResponseHeaders()</span><br><span class="line">    <span class="keyword">for</span> k, v <span class="keyword">in</span> <span class="built_in">pairs</span>(rsh) <span class="keyword">do</span></span><br><span class="line">        key = <span class="built_in">string</span>.<span class="built_in">lower</span>(k)</span><br><span class="line"></span><br><span class="line">        common_var = common_mapping_table[key]</span><br><span class="line">        <span class="keyword">if</span> common_var ~= <span class="literal">nil</span> <span class="keyword">then</span></span><br><span class="line">            http_table[common_var] = v</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">        response_var = response_mapping_table[key]</span><br><span class="line">        <span class="keyword">if</span> response_var ~= <span class="literal">nil</span> <span class="keyword">then</span></span><br><span class="line">            http_table[response_var] = v</span><br><span class="line">        <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">-- timestring = SCPacketTimeString() 2019-09-10T06:08:35.582449+0000</span></span><br><span class="line">    sec, usec = SCPacketTimestamp()</span><br><span class="line">    timestring = <span class="built_in">os</span>.<span class="built_in">date</span>(<span class="string">&quot;!%Y-%m-%dT%T&quot;</span>, sec) .. <span class="string">&quot;.&quot;</span> .. usec .. <span class="string">&quot;+0000&quot;</span></span><br><span class="line">    </span><br><span class="line">    ip_version, src_ip, dst_ip, protocol, src_port, dst_port = SCFlowTuple()</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- flow_id</span></span><br><span class="line">    id = SCFlowId()</span><br><span class="line">    flow_id = <span class="built_in">string</span>.<span class="built_in">format</span>(<span class="string">&quot;%.0f&quot;</span>, id)</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- true_ip</span></span><br><span class="line">    true_client_ip = HttpGetRequestHeader(<span class="string">&quot;True-Client-IP&quot;</span>)</span><br><span class="line">    <span class="keyword">if</span> true_client_ip ~= <span class="literal">nil</span> <span class="keyword">then</span></span><br><span class="line">        src_ip = true_client_ip</span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">-- table</span></span><br><span class="line">    raw_data = &#123;</span><br><span class="line">        timestamp = timestring,</span><br><span class="line">        flow_id = flow_id,</span><br><span class="line">        src_ip = src_ip,</span><br><span class="line">        src_port = src_port,</span><br><span class="line">        dest_ip = dst_ip,</span><br><span class="line">        dest_port = dst_port,</span><br><span class="line">        event_name = event_name,</span><br><span class="line">        event_type = event_type,</span><br><span class="line">        app_type = app_type,</span><br><span class="line">        http = http_table,</span><br><span class="line">        proto = <span class="string">&quot;TCP&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">-- json encode</span></span><br><span class="line">    data = json.encode(raw_data)</span><br><span class="line"></span><br><span class="line">    file:<span class="built_in">write</span>(data .. <span class="string">&quot;\n&quot;</span>)</span><br><span class="line">    file:<span class="built_in">flush</span>()</span><br><span class="line"></span><br><span class="line">    http = http + <span class="number">1</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">deinit</span> <span class="params">(args)</span></span></span><br><span class="line">    SCLogInfo (<span class="string">&quot;HTTP transactions logged: &quot;</span> .. http);</span><br><span class="line">    file:<span class="built_in">close</span>(file)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h1><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;src_port&quot;</span>: <span class="number">34963</span>,</span><br><span class="line">    <span class="attr">&quot;event_type&quot;</span>: <span class="string">&quot;lua&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;proto&quot;</span>: <span class="string">&quot;TCP&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;flow_id&quot;</span>: <span class="string">&quot;471693756052529&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;timestamp&quot;</span>: <span class="string">&quot;2019-10-07T13:51:01.560556+0000&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;event_name&quot;</span>: <span class="string">&quot;login_audit&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;dest_port&quot;</span>: <span class="number">3007</span>,</span><br><span class="line">    <span class="attr">&quot;http&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;response_content_length&quot;</span>: <span class="string">&quot;446&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;response_content_type&quot;</span>: <span class="string">&quot;application/json; charset=utf-8&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept_encoding&quot;</span>: <span class="string">&quot;gzip&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept&quot;</span>: <span class="string">&quot;*/*&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;server&quot;</span>: <span class="string">&quot;nginx&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;results_code&quot;</span>: <span class="number">0</span>,</span><br><span class="line">        <span class="attr">&quot;vary&quot;</span>: <span class="string">&quot;Accept-Encoding&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;password&quot;</span>: <span class="string">&quot;420ce28ef813a2dc05e52a7e24eb0d5c&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;date&quot;</span>: <span class="string">&quot;Mon, 07 Oct 2019 13:51:01 GMT&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;request_content_type&quot;</span>: <span class="string">&quot;application/x-www-form-urlencoded; charset=UTF-8&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept_language&quot;</span>: <span class="string">&quot;en-US,en;q=0.9&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;url&quot;</span>: <span class="string">&quot;/login&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;x_requested_with&quot;</span>: <span class="string">&quot;XMLHttpRequest&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;x_forwarded_proto&quot;</span>: <span class="string">&quot;https&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;user_agent&quot;</span>: <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;https://www.canon.com&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;response_token&quot;</span>: <span class="string">&quot;4f5f386aec34e877ce63fce7ddd3f15f&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;pragma&quot;</span>: <span class="string">&quot;no-cache&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;connection&quot;</span>: <span class="string">&quot;close&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;status&quot;</span>: <span class="number">200</span>,</span><br><span class="line">        <span class="attr">&quot;protocol&quot;</span>: <span class="string">&quot;HTTP/1.1&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;hostname&quot;</span>: <span class="string">&quot;www.canon.com&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;url_path&quot;</span>: <span class="string">&quot;/login&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;cache_control&quot;</span>: <span class="string">&quot;no-cache, max-age=0, no-store, must-revalidate&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;method&quot;</span>: <span class="string">&quot;POST&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;email&quot;</span>: <span class="string">&quot;admin@canon.com&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;request_token&quot;</span>: <span class="string">&quot;109464370570b23fa9768078ab1ac8a9&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;member_id&quot;</span>: <span class="number">123456</span>,</span><br><span class="line">        <span class="attr">&quot;results&quot;</span>: <span class="string">&quot;success&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;request_content_length&quot;</span>: <span class="string">&quot;49&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;src_ip&quot;</span>: <span class="string">&quot;77.99.22.17&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;dest_ip&quot;</span>: <span class="string">&quot;1.1.1.1&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;app_type&quot;</span>: <span class="string">&quot;web&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Suricata/" rel="tag"># Suricata</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90%20-%20Zeek%E9%83%A8%E7%BD%B2/" rel="prev" title="我在'云'上的日子 - Zeek(部署)">
+                  <i class="fa fa-chevron-left"></i> 我在'云'上的日子 - Zeek(部署)
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/" rel="next" title="我在'云'上的日子 - AWS上流量镜像遇到的坑">
+                  我在'云'上的日子 - AWS上流量镜像遇到的坑 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="写在最前面​    开源是“理念”，分享是“精神”。拒绝一切“对号入座”！     背景​    之前有写过一篇Blog（致我心中的“散装”SOAR，当Thehive遇到n8n），主要是介绍如何通过Thehive + n8n形成最“简（基）陋（础）”的SOAR。本篇Blog灵感主要是来源自己平时的思考与总结。那么，让我带领你深入浅出地探索编排的“艺术”，并展示如何“优雅”的设计一个剧本。说实话，当">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何“优雅”的设计Playbook">
+<meta property="og:url" content="http://example.com/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="写在最前面​    开源是“理念”，分享是“精神”。拒绝一切“对号入座”！     背景​    之前有写过一篇Blog（致我心中的“散装”SOAR，当Thehive遇到n8n），主要是介绍如何通过Thehive + n8n形成最“简（基）陋（础）”的SOAR。本篇Blog灵感主要是来源自己平时的思考与总结。那么，让我带领你深入浅出地探索编排的“艺术”，并展示如何“优雅”的设计一个剧本。说实话，当">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img.5youqu.com/bqimg/5eef6257gy1h3z3zb2kndj20u00u00uj.jpg">
+<meta property="og:image" content="https://img.soogif.com/eDyFGAzcPeRXrw8fF98FICfJs2l4XFTO.jpg">
+<meta property="og:image" content="http://example.com/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230618231406229.png">
+<meta property="og:image" content="http://example.com/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230612003234529.png">
+<meta property="og:image" content="http://example.com/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230620145914433.png">
+<meta property="og:image" content="http://example.com/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230620171551885.png">
+<meta property="og:image" content="http://example.com/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230621000301500.png">
+<meta property="og:image" content="http://example.com/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230620174335657.png">
+<meta property="og:image" content="https://t12.baidu.com/it/u=1684898709,179869982&fm=30&app=106&f=JPEG?w=640&h=272&s=D5AABD5712015CE6C48964680300E072">
+<meta property="article:published_time" content="2023-06-20T16:39:50.000Z">
+<meta property="article:modified_time" content="2023-06-20T17:39:33.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="SIEM">
+<meta property="article:tag" content="SOAR">
+<meta property="article:tag" content="Thehive">
+<meta property="article:tag" content="n8n">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img.5youqu.com/bqimg/5eef6257gy1h3z3zb2kndj20u00u00uj.jpg">
+
+
+<link rel="canonical" href="http://example.com/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2023&#x2F;06&#x2F;21&#x2F;n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D&#x2F;&quot;,&quot;path&quot;:&quot;2023&#x2F;06&#x2F;21&#x2F;n8n-编排的“艺术”&#x2F;&quot;,&quot;title&quot;:&quot;如何“优雅”的设计Playbook&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>如何“优雅”的设计Playbook | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E6%9C%80%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在最前面</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">2.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%98%E9%9B%85%E7%9A%84%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E5%89%A7%E6%9C%AC"><span class="nav-number">3.</span> <span class="nav-text">优雅的设计一个剧本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          如何“优雅”的设计Playbook
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2023-06-21 00:39:50 / 修改时间：01:39:33" itemprop="dateCreated datePublished" datetime="2023-06-21T00:39:50+08:00">2023-06-21</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/SOC/" itemprop="url" rel="index"><span itemprop="name">SOC</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>2.5k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>2 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h4 id="写在最前面"><a href="#写在最前面" class="headerlink" title="写在最前面"></a>写在最前面</h4><p>​    开源是“理念”，分享是“精神”。拒绝一切“对号入座”！</p>
+<img src="https://img.5youqu.com/bqimg/5eef6257gy1h3z3zb2kndj20u00u00uj.jpg" alt="你要是闲着没事干 就去把村口的粪挑了" style="zoom:40%;">
+
+
+
+<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>​    之前有写过一篇Blog（<a target="_blank" rel="noopener" href="https://canon88.github.io/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/">致我心中的“散装”SOAR，当Thehive遇到n8n</a>），主要是介绍如何通过Thehive + n8n形成最“简（基）陋（础）”的SOAR。本篇Blog灵感主要是来源自己平时的思考与总结。那么，让我带领你深入浅出地探索编排的“艺术”，并展示如何“优雅”的设计一个剧本。说实话，当我说出这些“骚”话的时候，我竟一点都不觉得害臊。。。</p>
+<img src="https://img.soogif.com/eDyFGAzcPeRXrw8fF98FICfJs2l4XFTO.jpg" alt="img" style="zoom:100%;">
+
+<h4 id="优雅的设计一个剧本"><a href="#优雅的设计一个剧本" class="headerlink" title="优雅的设计一个剧本"></a>优雅的设计一个剧本</h4><ol>
+<li><p>设置一个<strong>Layer1</strong> Workflow，作为告警的入口。同时指定一个<strong>Layer2</strong> Workflow，作为结果的输出。这个Workflow中我的Kafka Topic是根据设备类型进行区分的，目的是便于后期进行扩展与维护。</p>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230618231406229.png" alt="image-20230618231406229"></p>
+<ul>
+<li><p>Q：为什么选择按照设备类型进行接入？</p>
+<p>A：主要是出于<strong>性能</strong>方面的考虑。试想如果你日常的告警数据量比较大，很可能会频繁“拉起”这个Workflow，其实并不是每个告警都“值得”你去跑Workflow。当然你的告警数据量不大的话，可以不用区分。在这里，我选择了按照设备类型来区分，这也方便我后续按照设备类型的不同做一些微调。</p>
+</li>
+<li><p>Q： 为什么不直接扩展Layer1 Workflow？</p>
+<p>A：主要还是考虑到可<strong>扩展性</strong>。我个人理解的“编排”就和你写代码的思维方式差不多，你得让你的Workflow足够的健壮以及剧本一定的伸缩性。应尽量避免因为某个需求，而导致你需要对现有Workflow进行“手术”。相信我，你会很痛苦的！正因如此，我没有选择直接在Layer1进行扩展。避免出现“屎山”代码，剧本也一样如此。</p>
+</li>
+<li><p>Q：为什么图中Threat Intelligence用的是Webhook，而Threat Hunting是Workflow？</p>
+<p>A：至于原因嘛，主要是n8n不支持在同一个Workflow中并行运行Node，且也并不是所有Node都支持异步。好在HTTP Node是支持异步的，所以，当有异步需求或者并行处理需求的时候，我们可以使用Webhook这种方式调用Workflow。算是“曲线救国”吧，不知道未来版本会不会支持。当时在社区也专门开贴讨论过，更多请戳：<a target="_blank" rel="noopener" href="https://community.n8n.io/t/does-n8n-workflow-support-parallel-execution/22596">Does n8n Workflow support parallel execution?</a></p>
+</li>
+</ul>
+<hr>
+</li>
+<li><p>设置一个<strong>Layer2</strong> Workflow，它用于承载Layer1的“<strong>需求</strong>”。</p>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230612003234529.png" alt="image-20230612003234529"></p>
+<ul>
+<li><p>Q：为什么你会选择创建Threat Intelligence、Threat Hunting做为Layer2的Workflow？</p>
+<p>A：其实这里还是考虑到可<strong>扩展性</strong>的关系，Layer2 Workflow它即要承接Layer1 Workflow的“需求”，同时也要为Layer3 Workflow提供“支撑”。所以，Layer2本身就必须有很强的扩展性，我建议你可以把它想象成编程中的“Class”。</p>
+</li>
+<li><p>Q：编写Workflow有什么参考规范吗？</p>
+<p>A：编写Workflow并没有固定的规范，其设计完全依赖于作者的逻辑。但是，当我们将其用于事件响应（Incident Response, IR）时，我认为可以参考NIST发布的<a target="_blank" rel="noopener" href="https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-61r2.pdf">《计算机安全事件处理指南 (SP 800-61)》</a>作为框架。这将帮助我们将当前的Workflow映射到IR的各个阶段，使我们在设计Workflow时更明确其“主要职责”。如果可以每个阶段都可以设计Workflow，以便更有效地应对特定的安全事件，当然这太过于理想化。以下是各阶段的详细介绍：</p>
+<ul>
+<li><strong>准备阶段（Preparation）</strong>：这个阶段包括配置和维护所有必要的安全工具和系统，以便能够有效地检测和应对安全事件。这包括设置和配置SOAR工具，以便它们能够与其他安全系统（如防火墙，入侵检测系统等）集成，并且能够接收并处理威胁情报。</li>
+<li><strong>检测与分析阶段（Detection &amp; Analysis）</strong>：这是威胁情报和威胁狩猎最活跃的阶段。威胁情报可以帮助你识别和了解新的或已知的威胁，而威胁狩猎则是一个主动寻找未被发现的威胁的过程。</li>
+<li><strong>遏制阶段（Containment）</strong>：一旦检测到威胁，即应用预设的自动化流程去遏制威胁，例如隔离受影响的系统或阻止恶意的网络流量。</li>
+<li><strong>消除阶段（Eradication）</strong>：在这个阶段，会移除系统中的威胁组件，修复漏洞并应用补丁。</li>
+<li><strong>恢复阶段（Recovery）</strong>：这个阶段的目标是恢复被攻击的系统和服务，确保一切回到正常状态。</li>
+<li><strong>经验总结阶段（Lessons Learned）</strong>：在应急响应结束后，应对整个事件进行回顾，总结经验教训，提升未来的应急响应效率。</li>
+</ul>
+</li>
+</ul>
+<hr>
+</li>
+<li><p>我通常将剧本会分为3层（Layer1 ~ Layer3），通常Layer3这一层的都是底层“打工仔”，就跟此刻的你一样。</p>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230620145914433.png" alt="image-20230620145914433"></p>
+<ul>
+<li><p>Q：设计Layer3的Workflow时，要足够灵活且尽可能的“独立”。</p>
+<p>A：灵活是指，Layer3即支持被Layer2调用，也要支持通过从HTTP API的方式进行调用，便于后期与自动化进行整合。例如，通过TheHive的Cortex调用Layer3的Workflow，它不香？独立是指：在设计Layer3的时候，需要考虑与Layer2的“亲（耦）密（合）度”，尽可能的模块化，便于其他场景的Workflow单独引用与封装。</p>
+</li>
+</ul>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230620171551885.png" alt="image-20230620171551885"></p>
+<ul>
+<li><p>Q：Layer3是最后一层吗？之后会有Layer4、Layer5吗？</p>
+<p>A：这完全取决于Layer3的“规模”，如果你的Layer3比较复杂，为了更加精细化管理Layer3。可以考虑新增Layer4，此时Layer3将从“底层打工人”升级成了“头号打工仔”，升职加薪，指日可待！</p>
+</li>
+</ul>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230621000301500.png" alt="image-20230621000301500"></p>
+</li>
+</ol>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li><p>我认为一个“优雅”的IR Playbook框架，至少需要3层。为什么？其实，你尝试以编程的逻辑去理解它就很容易了。Layer1就是功能“入口”，Layer2则是Class，而Layer3就应该是Function。</p>
+<p><img src="/2023/06/21/n8n-%E7%BC%96%E6%8E%92%E7%9A%84%E2%80%9C%E8%89%BA%E6%9C%AF%E2%80%9D/image-20230620174335657.png" alt="image-20230620174335657"></p>
+</li>
+<li><p>一个优秀的Playbook，像极你的老板对你的要求：“<strong>既要、又要、还要</strong>”</p>
+<ul>
+<li><strong>既要</strong>：具有高效的自动化流程，优化安全团队的响应时间</li>
+<li><strong>又要</strong>：有灵活的设计，以便适应各种安全事件的特性</li>
+<li><strong>还要</strong>：易于维护和更新，以便随着威胁场景的变化和组织需求的变化进行调整</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://t12.baidu.com/it/u=1684898709,179869982&fm=30&app=106&f=JPEG?w=640&h=272&s=D5AABD5712015CE6C48964680300E072" alt="img"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/SIEM/" rel="tag"># SIEM</a>
+              <a href="/tags/SOAR/" rel="tag"># SOAR</a>
+              <a href="/tags/Thehive/" rel="tag"># Thehive</a>
+              <a href="/tags/n8n/" rel="tag"># n8n</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/04/07/Zeek-PF-RING-Load-Balance/" rel="prev" title="Zeek-PF_RING inner-5-tuple Load Balance">
+                  <i class="fa fa-chevron-left"></i> Zeek-PF_RING inner-5-tuple Load Balance
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2023/11/08/Zeek-Detect-Sliver/" rel="next" title="How to use Zeek Detect Sliver HTTP beacon traffic">
+                  How to use Zeek Detect Sliver HTTP beacon traffic <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

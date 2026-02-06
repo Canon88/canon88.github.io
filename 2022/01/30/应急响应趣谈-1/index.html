@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="背景​    回首2021年工作，主要重心是放在了安全运营上。既然负责安全运营自然也逃不开应急响应这一茬。在这个用数字“说话”的时代，那必须是要把应急响应KPI给整的明明白白的。领导们爱看，同行们也可以用来参考。 ​    首先需要明确的一点是，我个人是不排斥数字“说话”的，前提是大家对于应急响应KPI的理解必须一致。为什么这样说？主要是避免后期在复盘的时候在KPI的时间上进行过多的“Battle">
+<meta property="og:type" content="article">
+<meta property="og:title" content="应急响应 - 你该关注哪些指标？">
+<meta property="og:url" content="http://example.com/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="背景​    回首2021年工作，主要重心是放在了安全运营上。既然负责安全运营自然也逃不开应急响应这一茬。在这个用数字“说话”的时代，那必须是要把应急响应KPI给整的明明白白的。领导们爱看，同行们也可以用来参考。 ​    首先需要明确的一点是，我个人是不排斥数字“说话”的，前提是大家对于应急响应KPI的理解必须一致。为什么这样说？主要是避免后期在复盘的时候在KPI的时间上进行过多的“Battle">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/nist-incident-response-process-1.png">
+<meta property="og:image" content="http://example.com/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/IR-KPI.png">
+<meta property="article:published_time" content="2022-01-30T03:33:15.000Z">
+<meta property="article:modified_time" content="2022-03-15T05:48:32.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="应急响应">
+<meta property="article:tag" content="安全运营">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/nist-incident-response-process-1.png">
+
+
+<link rel="canonical" href="http://example.com/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2022&#x2F;01&#x2F;30&#x2F;%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1&#x2F;&quot;,&quot;path&quot;:&quot;2022&#x2F;01&#x2F;30&#x2F;应急响应趣谈-1&#x2F;&quot;,&quot;title&quot;:&quot;应急响应 - 你该关注哪些指标？&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>应急响应 - 你该关注哪些指标？ | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94"><span class="nav-number">2.</span> <span class="nav-text">应急响应</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%EF%BC%9F"><span class="nav-number">2.1.</span> <span class="nav-text">什么是应急响应？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E6%B5%81%E7%A8%8B"><span class="nav-number">2.2.</span> <span class="nav-text">应急响应流程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E6%8C%87%E6%A0%87"><span class="nav-number">3.</span> <span class="nav-text">应急响应指标</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MTTD"><span class="nav-number">3.1.</span> <span class="nav-text">MTTD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MTTA"><span class="nav-number">3.2.</span> <span class="nav-text">MTTA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MTTI"><span class="nav-number">3.3.</span> <span class="nav-text">MTTI</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MTTC"><span class="nav-number">3.4.</span> <span class="nav-text">MTTC</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MTTR"><span class="nav-number">3.5.</span> <span class="nav-text">MTTR</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BE%E4%B8%AA%E2%80%9C%E6%A0%97%E5%AD%90%E2%80%9D"><span class="nav-number">4.</span> <span class="nav-text">举个“栗子”</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          应急响应 - 你该关注哪些指标？
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-01-30 11:33:15" itemprop="dateCreated datePublished" datetime="2022-01-30T11:33:15+08:00">2022-01-30</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-03-15 13:48:32" itemprop="dateModified" datetime="2022-03-15T13:48:32+08:00">2022-03-15</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/SOC/" itemprop="url" rel="index"><span itemprop="name">SOC</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>3.2k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>3 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>​    回首2021年工作，主要重心是放在了安全运营上。既然负责安全运营自然也逃不开应急响应这一茬。在这个用数字“说话”的时代，那必须是要把应急响应KPI给整的明明白白的。领导们爱看，同行们也可以用来参考。</p>
+<p>​    首先需要明确的一点是，我个人是不排斥数字“说话”的，前提是大家对于应急响应KPI的理解必须一致。为什么这样说？主要是避免后期在复盘的时候在KPI的时间上进行过多的“Battle”。同时也是希望大家可以真正理解这些KPI的含义，更好的去制定这些KPI。</p>
+<p>​    今天这一篇文章主要就是介绍应急响应中的KPI。不过在讨论之前，还是得简单的介绍一下什么是应急响应。</p>
+<h1 id="应急响应"><a href="#应急响应" class="headerlink" title="应急响应"></a>应急响应</h1><h2 id="什么是应急响应？"><a href="#什么是应急响应？" class="headerlink" title="什么是应急响应？"></a>什么是应急响应？</h2><p>​    “应急响应”对应的英文是“Incident Response”（IR），是一种处理安全事件、漏洞和网络威胁的结构化<strong>方法</strong>。通常是指一个组织为了应对各种意外事件的发生所做的准备以及在事件发生后所采取的<strong>措施</strong>。</p>
+<h2 id="应急响应流程"><a href="#应急响应流程" class="headerlink" title="应急响应流程"></a>应急响应流程</h2><p>​    应急响应流程可以参考NIST发布的<a href="%5D(https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-61r2.pdf)"><em><strong>《计算机安全事件处理指南 (SP 800-61)》</strong></em></a>其中明确了应急响应4个阶段并细分出了6个步骤。</p>
+<p><img src="/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/nist-incident-response-process-1.png" alt="img"></p>
+<ul>
+<li>准备阶段：人员、预案手册（Playbook）、工具；</li>
+<li>检测与分析阶段：确认安全事件类型，明确事件等级；</li>
+<li>遏制、根除和恢复阶段：立即止损，根据安全事件类型选择对应的遏制方法并制定恢复计划；</li>
+<li>事后总结：从本次的安全事件中改进流程，并将新数据反馈到应急响应流程的准备阶段。你应该询问、调查并记录以下问题的答案：<ul>
+<li>发生了什么，在什么时候？</li>
+<li>事件响应小组对事件的处理情况如何？是否遵循了流程，是否足够？</li>
+<li>更早地发现还需要哪些信息？</li>
+<li>是否采取了任何导致损坏或阻碍恢复的错误操作？</li>
+<li>如果下次发生同样的事件，我们可以采取哪些不同的做法？</li>
+<li>我们能否与其他组织或其他部门更好地分享信息？</li>
+<li>我们是否学会了防止类似事件再次发生的方法？</li>
+<li>我们是否发现了类似事件的新预兆或迹象，以供将来观察？</li>
+<li>需要哪些额外的工具或资源来帮助预防或减轻类似事件？</li>
+</ul>
+</li>
+</ul>
+<h1 id="应急响应指标"><a href="#应急响应指标" class="headerlink" title="应急响应指标"></a>应急响应指标</h1><h2 id="MTTD"><a href="#MTTD" class="headerlink" title="MTTD"></a>MTTD</h2><ul>
+<li><p>什么是MTTD？</p>
+<p>MTTD：平均检测时间（Mean time to detect ）。MTTD是指从系统故障到检测或告警所需的平均时间。</p>
+</li>
+<li><p>如何计算MTTD？</p>
+<p><strong>MTTD = 故障与检测之间的总时间/事件数量</strong></p>
+<p><strong>例如：</strong>某系统在12:00发生故障，但直到12:10才有人注意到或被提醒，那么此时MTTD是10分钟。</p>
+</li>
+</ul>
+<h2 id="MTTA"><a href="#MTTA" class="headerlink" title="MTTA"></a>MTTA</h2><ul>
+<li><p>什么是MTTA？</p>
+<p>MTTA：平均确认时间（Mean time to acknowledge）。MTTA是指从系统产生告警到人员开始注意并处理的平均时间。</p>
+</li>
+<li><p>如何计算MTTA？</p>
+<p><strong>MTTA = 检测与确认之间的总时间/事件数量</strong></p>
+<p><strong>例如：</strong>安全组件在12:10检测并发送告警后，应急响应人员在12:15开始处理该事件。那么此时MTTA是5分钟。</p>
+</li>
+</ul>
+<h2 id="MTTI"><a href="#MTTI" class="headerlink" title="MTTI"></a>MTTI</h2><ul>
+<li><p>什么是MTTI？</p>
+<p>MTTI：平均调查时间（Mean time to investigate）。MTTI是指从确认一个安全事件到开始调查其原因和解决方案的平均时间。</p>
+</li>
+<li><p>如何计算MTTI？</p>
+<p><strong>MTTI = 确认告警与分析调查之间的总时间/事件数量</strong></p>
+<p><strong>例如：</strong>某安全运营人员在12:15开始处理告警并在12:30完成初步分析及拟定止损方案。那么此时MTTI是15分钟。</p>
+</li>
+</ul>
+<h2 id="MTTC"><a href="#MTTC" class="headerlink" title="MTTC"></a>MTTC</h2><ul>
+<li><p>什么是MTTC？</p>
+<p>MTTC：平均遏制时间（Mean Time to contain）。MTTC是指安全团队找到威胁者并阻止他们进一步进入你的系统和网络所需的时间。</p>
+</li>
+<li><p>如何计算MTTC？</p>
+<p><strong>MTTC = 分析调查与快速止损之间的总时间/事件数量</strong></p>
+<p><strong>例如</strong>：自安全事件在12:10被检测到后，应急响应人员在12:45成功遏制了攻击者的利用方式并阻断了通讯隧道，有效地防止攻击者进行下一步入侵。</p>
+<p><strong>注意：</strong>遏制可能是隔离一个电子邮件账户，重设一个用户密码，或关闭一个服务器。遏制是走向恢复的第一步。应急响应团队越快遏制住威胁行为者，越能降低企业受到更大风险的可能性。</p>
+</li>
+</ul>
+<h2 id="MTTR"><a href="#MTTR" class="headerlink" title="MTTR"></a>MTTR</h2><p>​    <strong>MTTR</strong>有4种不同的测量方法，这是由于<strong>R</strong>可以代表修复（repair）、恢复（recovery/restore）、响应（respond）和解决（resolve）。虽然这4个指标有重叠，但它们都有各自的含义和细微差别。安全人员通常关注的是<strong>平均响应时间</strong>这个指标。</p>
+<ul>
+<li><p>平均修复时间（Mean time to repair）</p>
+<ul>
+<li><p>什么是MTTR（平均修复时间）？</p>
+<p>MTTR是修复一个系统的平均时间。它包括维修时间和测试时间，直到系统再次完全运作。</p>
+</li>
+<li><p>如何计算MTTR（平均修复时间）？</p>
+<p><strong>MTTR = 将修复时间与恢复时间相加/修复次数</strong></p>
+<p><strong>例如：</strong>一周内有10次停电，修复系统花费了4个小时。四个小时是240分钟。240除以10是24。这意味着在这种情况下，修复的平均时间是24分钟。</p>
+<p><strong>注意</strong>：平均修复时间并不总是与系统中断本身的时间相同。在某些情况下，修复这个动作是在产品故障或系统中断后的几分钟内开始。</p>
+</li>
+</ul>
+</li>
+<li><p>平均恢复时间（Mean time to recovery/restore）</p>
+<ul>
+<li><p>什么是MTTR（平均恢复时间）？</p>
+<p>MTTR（平均恢复时间）是指从产品或系统故障中恢复的平均时间。这包括从系统或产品发生故障到其重新完全运作的整个中断时间。</p>
+</li>
+<li><p>如何计算MTTR（平均恢复时间）？</p>
+<p><strong>MTTR = 将故障时间与恢复时间相加/故障数量</strong></p>
+<p><strong>例如：</strong>我们的系统在24小时内在两个独立事件中停机了30分钟。30除以2是15，所以我们的MTTR是15分钟。</p>
+<p><strong>注意：</strong>这个指标它包括故障现象出现到告警发出的这段延迟时间与respond有着明显的区别。</p>
+</li>
+</ul>
+</li>
+<li><p>平均解决时间（Mean time to resolve）</p>
+<ul>
+<li><p>什么是MTTR（平均解决时间）？</p>
+<p>MTTR（平均解决时间）是指完全解决一个故障所需的平均时间。这不仅包括检测故障、诊断问题和修复问题的时间，还包括确保故障不会再次发生的时间。<strong>这个指标代表从“救火”到“防火”的转变。</strong></p>
+</li>
+<li><p>如何计算MTTR（平均解决时间）？</p>
+<p><strong>MTTR = 将故障时间与完全解决之间的时间相加/故障数量</strong></p>
+<p><strong>例如：</strong>你的系统在24小时内的一次事件中总共瘫痪了两个小时，而团队又花了两个小时进行修复，以确保系统中断不会再次发生，这就是解决该问题的总时间。这意味着你的MTTR是四个小时。</p>
+<p><strong>注意：</strong>MTTR 最常使用工作时间（8小时）计算（假设你在下班时将故障恢复，并在第二天上班时解决潜在问题，那么你的 MTTR 将不包括下班的16小时）。如果你的团队在能够7X24小时，或者有值班员工在下班后工作，那么这个指标将可以进行适当的微调。</p>
+</li>
+</ul>
+</li>
+<li><p>平均响应时间（Mean time to respond）</p>
+<ul>
+<li><p>什么是MTTR（平均响应时间）？</p>
+<p>MTTR（平均响应时间）是指从第一次收到警报时起，直到产品或系统从故障中恢复所需的平均时间。</p>
+</li>
+<li><p>如何计算MTTR（平均响应时间）？</p>
+<p><strong>MTTR = 检测告警与服务恢复之间的总时间/事件数量</strong></p>
+<p><strong>示例：</strong>如果你在一个40小时的工作周里发生了四起事件，并且在这些事件上总共花了一个小时（从警报到恢复），那么你那一周的MTTR将是15分钟。</p>
+<p><strong>注意：</strong>平均响应时间不考虑问题已经存在但未被识别的时间。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="举个“栗子”"><a href="#举个“栗子”" class="headerlink" title="举个“栗子”"></a>举个“栗子”</h1><p><strong>应急响应KPI时间线</strong></p>
+<p><img src="/2022/01/30/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94%E8%B6%A3%E8%B0%88-1/IR-KPI.png" alt="image-20220208010258629"></p>
+<ol>
+<li><strong>MTTD：</strong>告警群在12:05上报一起安全告警，（假设告警每5分钟同步一次到群里，理想情况下告警应近乎实时）。MTTD：5分钟（<em>12:05 - 12:00 = 5</em>）</li>
+<li><strong>MTTA：</strong>安全运营团队在12:10开始处理此告警并确认这是一起真实的网络入侵事件，同一时间应急响应团队介入。MTTA：5分钟（<em>12:10 - 12:05 = 5</em>）</li>
+<li><strong>MTTI：</strong>应急响应团队在12:25完成初步分析并根据已有应急预案拟定遏制方案。MTTI：15分钟（<em>12:25 - 12:10 = 15</em>）</li>
+<li><strong>MTTC：</strong>根据预案安全运营团队在12:35完成了安全组件的规则调整，并删除已识别的后门木马遏制了攻击者的利用“路径”。为后续的根除威胁争取到了充足的时间。MTTC：30分钟（<em>12:35 - 12:05 = 30</em>）</li>
+<li><strong>MTTR：</strong>12:50正式通知重新上线业务恢复对外服务。MTTR（Respond）：45分钟（<em>12:50 - 12:05 = 45</em>）、MTTR（Recovery）：50分钟（<em>12:50 - 12:00 = 50</em>）；</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/" rel="tag"># 应急响应</a>
+              <a href="/tags/%E5%AE%89%E5%85%A8%E8%BF%90%E8%90%A5/" rel="tag"># 安全运营</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/12/31/Zeek-File-Extraction-Plus/" rel="prev" title="Zeek - File Extraction Plus">
+                  <i class="fa fa-chevron-left"></i> Zeek - File Extraction Plus
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/" rel="next" title="Zeek-Kafka 之 硬盘舒服了!">
+                  Zeek-Kafka 之 硬盘舒服了! <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

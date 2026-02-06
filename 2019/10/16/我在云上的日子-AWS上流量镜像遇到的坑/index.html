@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="​     ​        自从AWS在6月份新出了Traffic Mirroring功能后, 我也算是第一时间使用了这个功能。与传统的交换机流量镜像不同的是, AWS上是将流量镜像后的数据通过VXLAN协议发送至流量分析引擎(Suricata、Zeek)。正是由于这一点让我碰到了以下几个问题, 这里写出来希望对大家有所帮助。  接收流量镜像的目标端, 也就是我们常说的流量分析引擎端是有接收限制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="我在&#39;云&#39;上的日子 - AWS上流量镜像遇到的坑">
+<meta property="og:url" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="​     ​        自从AWS在6月份新出了Traffic Mirroring功能后, 我也算是第一时间使用了这个功能。与传统的交换机流量镜像不同的是, AWS上是将流量镜像后的数据通过VXLAN协议发送至流量分析引擎(Suricata、Zeek)。正是由于这一点让我碰到了以下几个问题, 这里写出来希望对大家有所帮助。  接收流量镜像的目标端, 也就是我们常说的流量分析引擎端是有接收限制">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016164935291.png">
+<meta property="og:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016160923628.png">
+<meta property="og:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191014095249725.png">
+<meta property="og:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191014094741753.png">
+<meta property="og:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016103409831.png">
+<meta property="og:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016104502919.png">
+<meta property="og:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016105636906.png">
+<meta property="og:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016150322620.png">
+<meta property="og:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016105948606.png">
+<meta property="og:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016154823748.png">
+<meta property="og:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016155112376.png">
+<meta property="article:published_time" content="2019-10-16T09:24:30.000Z">
+<meta property="article:modified_time" content="2019-10-18T03:29:55.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="Suricata">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016164935291.png">
+
+
+<link rel="canonical" href="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2019&#x2F;10&#x2F;16&#x2F;%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91&#x2F;&quot;,&quot;path&quot;:&quot;2019&#x2F;10&#x2F;16&#x2F;我在云上的日子-AWS上流量镜像遇到的坑&#x2F;&quot;,&quot;title&quot;:&quot;我在&#39;云&#39;上的日子 - AWS上流量镜像遇到的坑&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>我在'云'上的日子 - AWS上流量镜像遇到的坑 | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          我在'云'上的日子 - AWS上流量镜像遇到的坑
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2019-10-16 17:24:30" itemprop="dateCreated datePublished" datetime="2019-10-16T17:24:30+08:00">2019-10-16</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2019-10-18 11:29:55" itemprop="dateModified" datetime="2019-10-18T11:29:55+08:00">2019-10-18</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NIDS/" itemprop="url" rel="index"><span itemprop="name">NIDS</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>6.9k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>6 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>​    </p>
+<p>​        自从AWS在6月份新出了<strong>Traffic Mirroring</strong>功能后, 我也算是第一时间使用了这个功能。与传统的交换机流量镜像不同的是, AWS上是将流量镜像后的数据通过<strong>VXLAN</strong>协议发送至流量分析引擎(<strong>Suricata</strong>、<strong>Zeek</strong>)。正是由于这一点让我碰到了以下几个问题, 这里写出来希望对大家有所帮助。</p>
+<ol>
+<li>接收流量镜像的目标端, 也就是我们常说的流量分析引擎端是有接收限制的。</li>
+</ol>
+<p>​       如果你是在一个非专用实例上部署的Suricata、Zeek。那么你只能最多同时接收10个源的流量镜像, 也就是你只能接收10个网卡的数据。很不巧的是我们碰上了这个问题, 解决方案也很简单, 使用专用实例(<strong>Dedicated instance</strong>) 或者 使用AWS的网络负载均衡(<strong>Network Load Balancer</strong>)。前者可以将Limit提升到<strong>100</strong>, 后者将<strong>不受限</strong>。如图:</p>
+<p><img src="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016164935291.png" alt="image-20191016164935291"></p>
+<hr>
+<ol start="2">
+<li>C5与C4实例的差异</li>
+</ol>
+<p>​        就我目前使用的实例而言, 分别测试过C5 与 C4两种实例。他们的网卡驱动有所区别的, 如图:</p>
+<p><img src="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016160923628.png" alt="image-20191016160923628"></p>
+<p>​        我这使用下来最直观的区别, 在C4实例上若不使用PF_RING捕包模式的话, Suricata丢包率感人, 0.5 Gbps就开始丢包。测试的机器配置: 32C 60G的机器, 切换到PF_RING捕包模式无此问题。反之C5实例就不存在这个问题, AF-PACKET直接上到2 Gbps的纯HTTP流量都没有丢包。硬件配置: 16C 32G的机器。</p>
+<hr>
+<ol start="3">
+<li>超过<strong>MTU: 9001</strong>数据包被截断</li>
+</ol>
+<p>​      这几天在排查安全事件时, 发现监控的同一台Nginx上解析出的流量(HTTP事件)与日志(HTTP事件)数量相差较大。经过两天的排查终于定位了问题, Suricata kernel 并没有丢包, 所以怀疑是不是Suricata HTTP解析出错导致。最终通过抓包发现导致该问题的”罪魁祸首”就是<strong>VXLAN</strong>, 由于AWS在流量镜像时采用了<strong>VXLAN</strong>协议进行封装, 导致在原有<strong>MTU</strong>的基础上<strong>增加了50个字节</strong>, 造成数据包被截断, 无法还原出HTTP事件。以下截图就是一个无法被正确还原HTTP事件的数据包, 我用Suricata载入数据包后, 只还原出了长度<strong>9015</strong>数据包之前的HTTP信息, 长度<strong>9015</strong>数据包之后的所有事件均无法被还原。</p>
+<p><img src="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191014095249725.png" alt="image-20191014095249725"></p>
+<p><img src="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191014094741753.png" alt="image-20191014094741753"></p>
+<p><strong>官方描述:</strong></p>
+<p>​        For example, if an 8996 byte packet is mirrored, and the traffic mirror target MTU value is 9001 bytes, the mirror encapsulation results in the mirrored packet being greater than the MTU value. In this case, the mirror packet is truncated. To prevent mirror packets from being truncated, set the traffic mirror source interface MTU value to 54 bytes less than the traffic mirror target MTU value. For more information about configuring the network MTU value, see Network Maximum Transmission Unit (MTU) for Your EC2 Instance in the <em>Amazon EC2 User Guide for Linux Instances</em>.</p>
+<p>​        例如，如果对8996字节的数据包进行了镜像，并且流量镜像目标MTU值为9001字节，则镜像封装会导致镜像的数据包大于MTU值。在这种情况下，镜像数据包将被截断。为防止镜像数据包被截断，请将流量镜像源接口的MTU值设置为比流量镜像目标MTU值小54个字节。有关配置网络MTU值的更多信息，请参阅Amazon EC2 Linux实例用户指南中的EC2实例的网络最大传输单位（MTU）。</p>
+<hr>
+<p><strong>关于VXLAN导致Suricata无法正常解析数据的问题, 特地进行了测试:</strong></p>
+<p>准备工作:</p>
+<ul>
+<li>新建了<strong>test_files</strong>文件, 该文件只包含内容’<strong>hello, world!</strong>‘;</li>
+<li>为了使数据包在传输时满足<strong>MTU: 9001</strong>, 手动生成了一个10MB空文件<strong>10mb_exist_files</strong>. </li>
+</ul>
+<p>共计访问: 14次</p>
+<p>访问顺序:</p>
+<ol>
+<li>Client -&gt; Web Server -&gt; <strong>test_files</strong>  3 (次)</li>
+<li>Client -&gt; Web Server -&gt; <strong>10mb_exist_files</strong> 1 (次)</li>
+<li>Client -&gt; Web Server -&gt; <strong>test_files</strong> 10 (次)</li>
+</ol>
+<p>正常情况:</p>
+<ul>
+<li>Client -&gt; Web Server -&gt; <strong>test_files</strong>  3 (次) - 正常</li>
+<li>Client -&gt; Web Server -&gt; <strong>10mb_exist_files</strong> 1 (次) - 正常</li>
+<li>Client -&gt; Web Server -&gt; <strong>test_files</strong> 10 (次) - 正常</li>
+</ul>
+<p>异常情况:</p>
+<ul>
+<li>Client -&gt; Web Server -&gt; <strong>test_files</strong>  3 (次) - 正常</li>
+<li>Client -&gt; Web Server -&gt; <strong>10mb_exist_files</strong> 1 (次) - 异常</li>
+<li>Client -&gt; Web Server -&gt; <strong>test_files</strong> 10 (次) - 丢失</li>
+</ul>
+<p><strong>MTU: 9001</strong></p>
+<ul>
+<li>非镜像流量的数据包详情:</li>
+</ul>
+<p>可以看到从数据包<strong>20</strong>到数据包<strong>6126</strong>之间都是在进行<strong>10MB</strong>文件(<strong>10mb_exist_files</strong>)的传输过程。</p>
+<p><img src="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016103409831.png" alt="image-20191016103409831"></p>
+<hr>
+<p>从http数据包中可以看出, 这里请求包与响应包都可以正常被还原出来。</p>
+<p><img src="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016104502919.png" alt="image-20191016104502919"></p>
+<hr>
+<p>数据包在Suricata上的解析结果:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat http-2019-10-16.json | wc -l</span><br><span class="line">14</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;timestamp&quot;</span>: <span class="string">&quot;2019-10-15T22:52:10.180505+0800&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;flow_id&quot;</span>: <span class="number">415026399241324</span>,</span><br><span class="line">    <span class="attr">&quot;pcap_cnt&quot;</span>: <span class="number">6127</span>,</span><br><span class="line">    <span class="attr">&quot;event_type&quot;</span>: <span class="string">&quot;http&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;src_ip&quot;</span>: <span class="string">&quot;y.y.y.y&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;src_port&quot;</span>: <span class="number">43418</span>,</span><br><span class="line">    <span class="attr">&quot;dest_ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;dest_port&quot;</span>: <span class="number">8000</span>,</span><br><span class="line">    <span class="attr">&quot;proto&quot;</span>: <span class="string">&quot;TCP&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;tx_id&quot;</span>: <span class="number">3</span>,</span><br><span class="line">    <span class="attr">&quot;http&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;hostname&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;http_port&quot;</span>: <span class="number">8000</span>,</span><br><span class="line">        <span class="attr">&quot;url&quot;</span>: <span class="string">&quot;/file/10mb_exist_files&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;http_user_agent&quot;</span>: <span class="string">&quot;python-requests/1.2.3 CPython/2.7.16 Linux/4.14.123-86.109.amzn1.x86_64&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;http_content_type&quot;</span>: <span class="string">&quot;text/html&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept&quot;</span>: <span class="string">&quot;*/*&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept_encoding&quot;</span>: <span class="string">&quot;gzip, deflate, compress&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;content_length&quot;</span>: <span class="string">&quot;41943044&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;content_type&quot;</span>: <span class="string">&quot;text/html; charset=utf-8&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;date&quot;</span>: <span class="string">&quot;Tue, 15 Oct 2019 14:52:10 GMT&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;server&quot;</span>: <span class="string">&quot;Werkzeug/0.16.0 Python/2.7.16&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;http_method&quot;</span>: <span class="string">&quot;GET&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;protocol&quot;</span>: <span class="string">&quot;HTTP/1.1&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;status&quot;</span>: <span class="number">200</span>,</span><br><span class="line">        <span class="attr">&quot;length&quot;</span>: <span class="number">41943044</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<ul>
+<li><strong>镜像流量的数据包详情:</strong>(也就是<strong>VXLAN</strong>封装后的数据包)</li>
+</ul>
+<p>同样可以看到从数据包<strong>26</strong>到数据包<strong>6170</strong>之间都是在进行<strong>10MB</strong>文件(<strong>10mb_exist_files</strong>)的传输过程。但是在第<strong>34</strong>个数据包中可以看到, 已经标注了数据超出了最大长度。</p>
+<p><img src="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016105636906.png" alt="image-20191016105636906"></p>
+<hr>
+<p>超出长度的数据将会被截断, 标注: <strong>50 bytes missing in capture file</strong>。</p>
+<p><img src="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016150322620.png" alt="image-20191016150322620"></p>
+<p>从HTTP数据包中可以看出, 这里只有请求包, 由于后续的响应包超出了<strong>MTU: 9001</strong>,  因此并没有响应包。</p>
+<p><img src="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016105948606.png" alt="image-20191016105948606"></p>
+<hr>
+<p>数据包在Suricata上的解析结果:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat http-2019-10-16.json | wc -l</span><br><span class="line">4</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;timestamp&quot;</span>: <span class="string">&quot;2019-10-15T22:52:48.295823+0800&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;flow_id&quot;</span>: <span class="number">1746715371266426</span>,</span><br><span class="line">    <span class="attr">&quot;event_type&quot;</span>: <span class="string">&quot;http&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;src_ip&quot;</span>: <span class="string">&quot;y.y.y.y&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;src_port&quot;</span>: <span class="number">43420</span>,</span><br><span class="line">    <span class="attr">&quot;dest_ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;dest_port&quot;</span>: <span class="number">8000</span>,</span><br><span class="line">    <span class="attr">&quot;proto&quot;</span>: <span class="string">&quot;TCP&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;tx_id&quot;</span>: <span class="number">3</span>,</span><br><span class="line">    <span class="attr">&quot;http&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;hostname&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;http_port&quot;</span>: <span class="number">8000</span>,</span><br><span class="line">        <span class="attr">&quot;url&quot;</span>: <span class="string">&quot;/file/10mb_exist_files&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;http_user_agent&quot;</span>: <span class="string">&quot;python-requests/1.2.3 CPython/2.7.16 Linux/4.14.123-86.109.amzn1.x86_64&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept&quot;</span>: <span class="string">&quot;*/*&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept_encoding&quot;</span>: <span class="string">&quot;gzip, deflate, compress&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;http_method&quot;</span>: <span class="string">&quot;GET&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;protocol&quot;</span>: <span class="string">&quot;HTTP/1.1&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;status&quot;</span>: <span class="number">200</span>,</span><br><span class="line">        <span class="attr">&quot;length&quot;</span>: <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>结论:</strong></p>
+<p>​        相比非镜像流量的数据包, Suricata 少了后续10条http请求的数据解析。针对访问<strong>10mb_exist_files</strong>的请求, 由于超过了MTU, 数据包被阶段了, http的解析数据也是不完整的。</p>
+<p><strong>解决方案:</strong></p>
+<p>​        这里直接引用AWS的官方文档描述。如果对8996字节的数据包进行了镜像，并且流量镜像目标MTU值为9001字节，则镜像封装会导致镜像的数据包大于MTU值。在这种情况下，镜像数据包将被截断。为防止镜像数据包被截断，请将流量镜像源接口的MTU值设置为比流量镜像目标MTU值小54个字节。有关配置网络MTU值的更多信息，请参阅Amazon EC2 Linux实例用户指南中的EC2实例的网络最大传输单位（MTU）。</p>
+<p>​        一般来说，降低 MTU 的话，有可能发现网路传输效能有下降，这是因为每个封包 size 变小，所以传送同样的资料量，封包数就会变多，造成 overhead 变多。但是对于传输是不会产生错误的状况的。</p>
+<hr>
+<p><strong>MTU:1500</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ ip link show eth0</span><br><span class="line">2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 9001 qdisc mq state UP mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 02:8a:2d:87:02:8e brd ff:ff:ff:ff:ff:ff</span><br><span class="line"></span><br><span class="line">$ sudo ip link <span class="built_in">set</span> dev eth0 mtu 1500</span><br><span class="line"></span><br><span class="line">$ ip link show eth0</span><br><span class="line">2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc mq state UP mode DEFAULT group default qlen 1000</span><br><span class="line">    link/ether 02:8a:2d:87:02:8e brd ff:ff:ff:ff:ff:ff</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016154823748.png" alt="image-20191016154823748"></p>
+<p><img src="/2019/10/16/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90-AWS%E4%B8%8A%E6%B5%81%E9%87%8F%E9%95%9C%E5%83%8F%E9%81%87%E5%88%B0%E7%9A%84%E5%9D%91/image-20191016155112376.png" alt="image-20191016155112376"></p>
+<p>数据包在Suricata上的解析结果:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ cat http-2019-10-16.json | wc -l</span><br><span class="line">14</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;timestamp&quot;</span>: <span class="string">&quot;2019-10-16T15:14:15.576656+0800&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;flow_id&quot;</span>: <span class="number">1135596924232203</span>,</span><br><span class="line">    <span class="attr">&quot;event_type&quot;</span>: <span class="string">&quot;http&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;src_ip&quot;</span>: <span class="string">&quot;y.y.y.y&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;src_port&quot;</span>: <span class="number">43554</span>,</span><br><span class="line">    <span class="attr">&quot;dest_ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;dest_port&quot;</span>: <span class="number">8000</span>,</span><br><span class="line">    <span class="attr">&quot;proto&quot;</span>: <span class="string">&quot;TCP&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;tx_id&quot;</span>: <span class="number">3</span>,</span><br><span class="line">    <span class="attr">&quot;http&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;hostname&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;http_port&quot;</span>: <span class="number">8000</span>,</span><br><span class="line">        <span class="attr">&quot;url&quot;</span>: <span class="string">&quot;/file/10mb_exist_files&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;http_user_agent&quot;</span>: <span class="string">&quot;python-requests/1.2.3 CPython/2.7.16 Linux/4.14.123-86.109.amzn1.x86_64&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;http_content_type&quot;</span>: <span class="string">&quot;text/html&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept&quot;</span>: <span class="string">&quot;*/*&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;accept_encoding&quot;</span>: <span class="string">&quot;gzip, deflate, compress\n&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;content_length&quot;</span>: <span class="string">&quot;41943044&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;content_type&quot;</span>: <span class="string">&quot;text/html; charset=utf-8&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;date&quot;</span>: <span class="string">&quot;Wed, 16 Oct 2019 07:14:15 GMT&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;server&quot;</span>: <span class="string">&quot;Werkzeug/0.16.0 Python/2.7.16&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;http_method&quot;</span>: <span class="string">&quot;GET&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;protocol&quot;</span>: <span class="string">&quot;HTTP/1.1&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;status&quot;</span>: <span class="number">200</span>,</span><br><span class="line">        <span class="attr">&quot;length&quot;</span>: <span class="number">41943044</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​        结论: <strong>MTU减小到1500时</strong>, 无论从WireShark来查看或者Suricata协议还原的角度来说, 都是可以的。</p>
+<hr>
+<p>​        写在最后, 说实话AWS提供了在云上的流量镜像确实很不错, 至少比传统在云上每一台机器通过安装agent把流量外发的形式强, 似乎<strong>国内</strong>的云厂商现在也没有这个功能! </p>
+<p>​        不过通过VXLAN将数据包封装后导致MTU超过最大值这问题也确实有点坑。你让已经成型的架构去调整MTU值, 虽然理论上是可行, 但实际生产环境中网络的调整都是比较慎重的, 除非企业现在必须得上流量镜像, 否则不太能说服运维的小伙伴去调整, 要是真出了什么问题, 都是大问题。</p>
+<p><strong>参考</strong></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://docs.aws.amazon.com/vpc/latest/mirroring/vpc-tm.pdf">Amazon Virtual Private Cloud Traffic Mirroring</a></li>
+<li><a target="_blank" rel="noopener" href="https://community.emc.com/community/support/chinese/teamblog/blog/2016/05/12/%E5%A4%A7%E5%92%96%E8%AE%B2%E7%BD%91%E7%BB%9C-mtu%E5%AF%BC%E8%87%B4%E7%9A%84%E6%82%B2%E5%89%A7">大咖讲网络-mtu导致的悲剧</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/sammyliu/p/5079898.html">Neutron VxLAN + Linux Bridge 环境中的网络 MTU</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Suricata/" rel="tag"># Suricata</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/10/14/Suricata%20-%20Lua%20Output/" rel="prev" title="Suricata - Lua Output Script">
+                  <i class="fa fa-chevron-left"></i> Suricata - Lua Output Script
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/10/16/Scrapy%20+%20Splash%20%E5%AE%9E%E7%8E%B0%E5%8A%A8%E6%80%81%E7%BD%91%E9%A1%B5%E7%88%AC%E5%8F%96/" rel="next" title="Scrapy + Splash 实现动态网页爬取">
+                  Scrapy + Splash 实现动态网页爬取 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

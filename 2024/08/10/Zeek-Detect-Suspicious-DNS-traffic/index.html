@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{&quot;hostname&quot;:&quot;example.com&quot;,&quot;root&quot;:&quot;&#x2F;&quot;,&quot;images&quot;:&quot;&#x2F;images&quot;,&quot;scheme&quot;:&quot;Mist&quot;,&quot;version&quot;:&quot;8.4.0&quot;,&quot;exturl&quot;:false,&quot;sidebar&quot;:{&quot;position&quot;:&quot;left&quot;,&quot;display&quot;:&quot;post&quot;,&quot;padding&quot;:18,&quot;offset&quot;:12},&quot;copycode&quot;:true,&quot;bookmark&quot;:{&quot;enable&quot;:false,&quot;color&quot;:&quot;#222&quot;,&quot;save&quot;:&quot;auto&quot;},&quot;fancybox&quot;:false,&quot;mediumzoom&quot;:false,&quot;lazyload&quot;:false,&quot;pangu&quot;:false,&quot;comments&quot;:{&quot;style&quot;:&quot;tabs&quot;,&quot;active&quot;:null,&quot;storage&quot;:true,&quot;lazyload&quot;:false,&quot;nav&quot;:null},&quot;motion&quot;:{&quot;enable&quot;:true,&quot;async&quot;:false,&quot;transition&quot;:{&quot;post_block&quot;:&quot;fadeIn&quot;,&quot;post_header&quot;:&quot;fadeInDown&quot;,&quot;post_body&quot;:&quot;fadeInDown&quot;,&quot;coll_header&quot;:&quot;fadeInLeft&quot;,&quot;sidebar&quot;:&quot;fadeInUp&quot;}},&quot;prism&quot;:false,&quot;i18n&quot;:{&quot;placeholder&quot;:&quot;搜索...&quot;,&quot;empty&quot;:&quot;没有找到任何搜索结果：${query}&quot;,&quot;hits_time&quot;:&quot;找到 ${hits} 个搜索结果（用时 ${time} 毫秒）&quot;,&quot;hits&quot;:&quot;找到 ${hits} 个搜索结果&quot;},&quot;path&quot;:&quot;&#x2F;search.xml&quot;,&quot;localsearch&quot;:{&quot;enable&quot;:true,&quot;trigger&quot;:&quot;auto&quot;,&quot;top_n_per_article&quot;:1,&quot;unescape&quot;:false,&quot;preload&quot;:false}}</script>
+<meta name="description" content="写在前面：​    我嘞个去！小不在意都已经到了2024的下半年了，近期花了一些时间研究了DNS异常流量的检测模型。老样子依旧是放在Zeek上来实现，Zeek作为网络流量的“瑞士军刀”可玩性还是很大的。由于现在写Blog时间太少了，这里将会通过分期的形式进行更新。 ​    本期主题是：如何通过 Zeek Summary Statistics 实现动态基线，检测 DNS Payload 请求长度上">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to use Zeek Detect Suspicious DNS traffic">
+<meta property="og:url" content="http://example.com/2024/08/10/Zeek-Detect-Suspicious-DNS-traffic/index.html">
+<meta property="og:site_name" content="Canon&#39;s Blog">
+<meta property="og:description" content="写在前面：​    我嘞个去！小不在意都已经到了2024的下半年了，近期花了一些时间研究了DNS异常流量的检测模型。老样子依旧是放在Zeek上来实现，Zeek作为网络流量的“瑞士军刀”可玩性还是很大的。由于现在写Blog时间太少了，这里将会通过分期的形式进行更新。 ​    本期主题是：如何通过 Zeek Summary Statistics 实现动态基线，检测 DNS Payload 请求长度上">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic.vjshi.com/2021-12-23/33ac8590ed1844d5bf0251349ea6da19/online/main.jpg?x-oss-process=style/video_cover_20231101">
+<meta property="article:published_time" content="2024-08-10T06:41:21.000Z">
+<meta property="article:modified_time" content="2024-08-16T08:08:50.000Z">
+<meta property="article:author" content="Canon">
+<meta property="article:tag" content="Zeek">
+<meta property="article:tag" content="NTA">
+<meta property="article:tag" content="NIDS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.vjshi.com/2021-12-23/33ac8590ed1844d5bf0251349ea6da19/online/main.jpg?x-oss-process=style/video_cover_20231101">
+
+
+<link rel="canonical" href="http://example.com/2024/08/10/Zeek-Detect-Suspicious-DNS-traffic/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{&quot;sidebar&quot;:&quot;&quot;,&quot;isHome&quot;:false,&quot;isPost&quot;:true,&quot;lang&quot;:&quot;zh-CN&quot;,&quot;comments&quot;:true,&quot;permalink&quot;:&quot;http:&#x2F;&#x2F;example.com&#x2F;2024&#x2F;08&#x2F;10&#x2F;Zeek-Detect-Suspicious-DNS-traffic&#x2F;&quot;,&quot;path&quot;:&quot;2024&#x2F;08&#x2F;10&#x2F;Zeek-Detect-Suspicious-DNS-traffic&#x2F;&quot;,&quot;title&quot;:&quot;How to use Zeek Detect Suspicious DNS traffic&quot;}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">&quot;&quot;</script>
+<title>How to use Zeek Detect Suspicious DNS traffic | Canon's Blog</title><script src="/js/config.js"></script>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Canon's Blog</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2%EF%BC%9A"><span class="nav-number">1.</span> <span class="nav-text">写在前面：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A3%80%E6%B5%8B%E7%BB%B4%E5%BA%A6"><span class="nav-number">2.</span> <span class="nav-text">检测维度</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-%E8%AF%B7%E6%B1%82%E5%8C%85%E9%95%BF%E5%BA%A6%E5%BC%82%E5%B8%B8"><span class="nav-number">2.1.</span> <span class="nav-text">1. 请求包长度异常</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-%E8%AF%B7%E6%B1%82%E5%9F%9F%E5%90%8D%E9%95%BF%E5%BA%A6%E5%BC%82%E5%B8%B8"><span class="nav-number">2.2.</span> <span class="nav-text">2. 请求域名长度异常</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-%E9%9D%9E%E5%B8%B8%E8%A7%81%E5%9F%9F%E5%90%8D%E7%9B%91%E6%8E%A7"><span class="nav-number">2.3.</span> <span class="nav-text">3. 非常见域名监控</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-Fast-Flux"><span class="nav-number">2.4.</span> <span class="nav-text">4. Fast Flux</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#5-%E9%9D%9E%E5%B8%B8%E8%A7%81%E8%AF%B7%E6%B1%82%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.5.</span> <span class="nav-text">5. 非常见请求类型</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#6-%E5%9F%9F%E5%90%8D%E4%BF%A1%E8%AA%89%E5%BA%A6"><span class="nav-number">2.6.</span> <span class="nav-text">6. 域名信誉度</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Canon</p>
+  <div class="site-description" itemprop="description">一个热爱健身的安全分析师</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">36</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2024/08/10/Zeek-Detect-Suspicious-DNS-traffic/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          How to use Zeek Detect Suspicious DNS traffic
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2024-08-10 14:41:21" itemprop="dateCreated datePublished" datetime="2024-08-10T14:41:21+08:00">2024-08-10</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2024-08-16 16:08:50" itemprop="dateModified" datetime="2024-08-16T16:08:50+08:00">2024-08-16</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/NTA/" itemprop="url" rel="index"><span itemprop="name">NTA</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.3k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h4 id="写在前面："><a href="#写在前面：" class="headerlink" title="写在前面："></a>写在前面：</h4><p>​    我嘞个去！小不在意都已经到了2024的下半年了，近期花了一些时间研究了DNS异常流量的检测模型。老样子依旧是放在Zeek上来实现，Zeek作为网络流量的“瑞士军刀”可玩性还是很大的。由于现在写Blog时间太少了，这里将会通过分期的形式进行更新。</p>
+<p>​    本期主题是：如何通过 Zeek <a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 实现<strong>动态基线</strong>，检测 DNS Payload 请求长度上的异常。</p>
+<h4 id="检测维度"><a href="#检测维度" class="headerlink" title="检测维度"></a>检测维度</h4><h5 id="1-请求包长度异常"><a href="#1-请求包长度异常" class="headerlink" title="1. 请求包长度异常"></a>1. 请求包长度异常</h5><p>​    通常最简单粗暴的方式就是通过手动指定一个<strong>『长度』</strong>作为告警阈值。但是难点就是<strong>『长度』</strong>设置为多少才算合适？长度设置较小，告警量多，误报率就会增加。长度设置较大，告警量少，但不一定会有告警。所以最好的方式就是能够动态计算一段时间内的<strong>『长度』</strong>作为阈值，以这个为基线去计算标准差和平均值再进行比对。</p>
+<ul>
+<li><p>定义一个动态基线时间窗口</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># Global variable <span class="keyword">for</span> baseline interval</span><br><span class="line"><span class="keyword">const</span> baseline_interval: interval = <span class="number">300</span>sec &amp;redef; # Baseline interval <span class="keyword">for</span> SumStats collection</span><br></pre></td></tr></table></figure></li>
+<li><p>由于DNS在不同的请求类型下Payload长度也会有明显的差异，所以为了避免这类“干扰项”我们将按照DNS请求类型进行聚合来计算动态基线</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    # Define a record type to store the average <span class="keyword">and</span> standard deviation</span><br><span class="line">    type Stats: record &#123;</span><br><span class="line">        prev_avg: count; # Previous average payload size</span><br><span class="line">        prev_sd: count;  # Previous standard deviation of payload size</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    # Define a table to store the data</span><br><span class="line">    option data: table[string] of Stats;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>考虑到实际环境中DNS的请求数量会非常的多，我们也需要考虑代码在上线后对集群负载带来的影响。所以，这里将会通过<code>local_domain</code>、<code>ignore_qtypes</code>、<code>ignore_querys</code>、<code>ignore_subdomains</code>、<code>ignore_domains</code>、<code>ignore_tlds</code>等多个条件进行控制。</p>
+<ul>
+<li><strong>local_domian</strong>：代表实际环境中的内部域名，这些域名通常用于企业内网或者内部业务系统之间的通讯和API调用。通常这些域名不需要被列入到动态基线的计算范围内，因为它们在多数情况下都是在内部网络环境中使用，而非公开互联网访问。这有助于减少不必要的噪音和误报，提高基线计算的准确性。</li>
+<li><strong>ignore_qtypes</strong>：代表你需要忽略的DNS请求类型。</li>
+<li><strong>ignore_querys</strong>：代表你需要忽略的完整DNS请求。如：<code>canon88.github.io</code> 就是一个完整的域名请求</li>
+<li><strong>ignore_subdomains</strong>：代表你需要忽略的子域名。例如：在 <code>canon88.github.io</code> 中，<code>canon88</code> 就是子域名</li>
+<li><strong>ignore_domains</strong>：代表你需要忽略的主域名或二级域名。例如：在 <code>canon88.github.io</code> 中，<code>github.io</code> 是主域</li>
+<li><strong>ignore_tlds</strong>：代表你需要忽略的顶级域名（TLD）。例如：在 <code>canon88.github.io</code> 中，<code>io</code> 就是顶级域名。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123; </span><br><span class="line">		# Return early if the domain is local</span><br><span class="line">    if (c$dns$is_local_domain)</span><br><span class="line">        return;</span><br><span class="line">  </span><br><span class="line">    # Filter out queries of types that should be ignored</span><br><span class="line">    if (c$dns$qtype_name in SuspiciousDNSTraffic::ignore_qtypes)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted queries</span><br><span class="line">    if (c$dns$query in SuspiciousDNSTraffic::ignore_querys)</span><br><span class="line">        return;</span><br><span class="line">    </span><br><span class="line">    #  Ignore trusted subdomains</span><br><span class="line">    if ( (c$dns?$subdomain) &amp;&amp; (c$dns$subdomain in SuspiciousDNSTraffic::ignore_subdomains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted domains</span><br><span class="line">    if ( (c$dns?$domain) &amp;&amp; (c$dns$domain in SuspiciousDNSTraffic::ignore_domains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted top-level domains</span><br><span class="line">    if ( (c$dns?$tld) &amp;&amp; ( (c$dns$tld in SuspiciousDNSTraffic::ignore_tlds) || (SuspiciousDNSTraffic::ignore_tlds_regex in c$dns$tld) ) )</span><br><span class="line">        return;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>下面开始进入“正题”，通过Zeek <a target="_blank" rel="noopener" href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 进行 DNS Payload 动态基线的计算。</p>
+<ul>
+<li><p><strong>计算基线数据</strong>：使用 <code>SumStats</code> 模块每隔 <code>baseline_interval</code>（300秒） 计算一次 DNS 负载大小的平均值和标准差，并将这些数据存储在 <code>data</code> 表中。</p>
+</li>
+<li><p><strong>比对当前负载大小</strong>：在处理每个 DNS 消息时，当前负载大小（<code>len</code>）会与数据表中的先前平均值（<code>prev_avg</code>）和标准差（<code>prev_sd</code>）进行比对。</p>
+</li>
+<li><p><strong>比对阈值计算</strong>：</p>
+<ul>
+<li><p>最大平均值阈值：<code>avg * multiplier_threshold</code></p>
+</li>
+<li><p>最小平均值阈值：<code>avg / multiplier_threshold</code></p>
+</li>
+<li><p>最大标准差阈值：<code>avg + sd * deviation_threshold</code></p>
+</li>
+<li><p>最小标准差阈值：<code>avg - sd * deviation_threshold</code></p>
+</li>
+</ul>
+</li>
+<li><p><strong>确定可疑负载</strong>：</p>
+<ul>
+<li><p>如果当前负载大小超过最大平均值阈值或小于最小平均值阈值，则标记为可疑。</p>
+</li>
+<li><p>如果当前负载大小超过最大标准差阈值或小于最小标准差阈值，则标记为可疑。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"># Event handler for DNS messages</span><br><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123;</span><br><span class="line">    # Store the payload size in the DNS::Info record</span><br><span class="line">    c$dns$payload_len = len;</span><br><span class="line"></span><br><span class="line">    # Observe the payload size for SumStats calculations</span><br><span class="line">    SumStats::observe(&quot;dns_payload_len&quot;, SumStats::Key($str=c$dns$qtype_name), SumStats::Observation($num=len));</span><br><span class="line"></span><br><span class="line">    if (c$dns$qtype_name in data) &#123;</span><br><span class="line">        local avg = data[c$dns$qtype_name]$prev_avg;</span><br><span class="line">        local sd = data[c$dns$qtype_name]$prev_sd;</span><br><span class="line"></span><br><span class="line">        local max_avg_threshold = avg * SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local min_avg_threshold = avg / SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local max_sd_threshold = avg + sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line">        local min_sd_threshold = avg - sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line"></span><br><span class="line">        # Compare the current payload size with the calculated average and standard deviation</span><br><span class="line">        if ( avg != 0.0 ) &#123;</span><br><span class="line">            local alert_reason: set[string] = set();</span><br><span class="line">            if ( len &gt; max_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = max_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; avg_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = min_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; avg_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( len &gt; max_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = max_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; sd_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = min_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; sd_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( |alert_reason| &gt; 0 ) &#123;</span><br><span class="line">                c$dns$alert_reason = alert_reason;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        # c$dns$payload_prev_avg = avg;</span><br><span class="line">        # c$dns$payload_prev_sd = sd;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Initialize the event handler for analyzing DNS requests</span><br><span class="line">event zeek_init() &#123;</span><br><span class="line">    # Define a reducer to calculate the standard deviation of DNS payload sizes</span><br><span class="line">    local r_std_dev = SumStats::Reducer($stream=&quot;dns_payload_len&quot;, $apply=set(SumStats::STD_DEV));</span><br><span class="line"></span><br><span class="line">    # Create a SumStats object to collect data every baseline_interval (e.g. 5 minutes)</span><br><span class="line">    SumStats::create([</span><br><span class="line">        $name = &quot;dns_payload_len.std_dev&quot;,</span><br><span class="line">        $epoch = baseline_interval,</span><br><span class="line">        $reducers = set(r_std_dev),</span><br><span class="line">        $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = &#123; </span><br><span class="line">            local current_avg = double_to_count(result[&quot;dns_payload_len&quot;]$average);</span><br><span class="line">            local current_std_dev = double_to_count(result[&quot;dns_payload_len&quot;]$std_dev);</span><br><span class="line"></span><br><span class="line">            # Initialize the table with the given data</span><br><span class="line">            data[key$str] = [$prev_avg = current_avg, $prev_sd = current_std_dev];</span><br><span class="line"></span><br><span class="line">            # Update the data table with the new values</span><br><span class="line">            Config::set_value(&quot;SuspiciousDNSTraffic::data&quot;, data);</span><br><span class="line">        &#125;</span><br><span class="line">    ]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://pic.vjshi.com/2021-12-23/33ac8590ed1844d5bf0251349ea6da19/online/main.jpg?x-oss-process=style/video_cover_20231101" alt="未完待续视频素材下载, 未完待续AE模板下载_光厂(VJ师网)"></p>
+<h5 id="2-请求域名长度异常"><a href="#2-请求域名长度异常" class="headerlink" title="2. 请求域名长度异常"></a>2. 请求域名长度异常</h5><h5 id="3-非常见域名监控"><a href="#3-非常见域名监控" class="headerlink" title="3. 非常见域名监控"></a>3. 非常见域名监控</h5><h5 id="4-Fast-Flux"><a href="#4-Fast-Flux" class="headerlink" title="4. Fast Flux"></a>4. Fast Flux</h5><h5 id="5-非常见请求类型"><a href="#5-非常见请求类型" class="headerlink" title="5. 非常见请求类型"></a>5. 非常见请求类型</h5><h5 id="6-域名信誉度"><a href="#6-域名信誉度" class="headerlink" title="6. 域名信誉度"></a>6. 域名信誉度</h5>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Zeek/" rel="tag"># Zeek</a>
+              <a href="/tags/NTA/" rel="tag"># NTA</a>
+              <a href="/tags/NIDS/" rel="tag"># NIDS</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2024/02/25/Zeek-ThreatHunting/" rel="prev" title="How to Use Zeek ThreatHunting?">
+                  <i class="fa fa-chevron-left"></i> How to Use Zeek ThreatHunting?
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" rel="next" title="自动化之后，SOC 该如何迈向智能化？">
+                  自动化之后，SOC 该如何迈向智能化？ <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+<script src="/js/comments.js"></script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Canon</span>
+</div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+    <span title="站点总字数">230k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">3:29</span>
+  </span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
