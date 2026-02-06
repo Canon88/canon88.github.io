@@ -1240,6 +1240,308 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/02/SIEM%EF%BC%88%E4%BA%8C%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Canon">
+      <meta itemprop="description" content="一个热爱健身的安全分析师">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Canon's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/02/02/SIEM%EF%BC%88%E4%BA%8C%EF%BC%89/" class="post-title-link" itemprop="url">致我心中的 “散装”（开源）SIEM（二）</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-02-02 16:55:52" itemprop="dateCreated datePublished" datetime="2021-02-02T16:55:52+08:00">2021-02-02</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-03-30 17:50:56" itemprop="dateModified" datetime="2022-03-30T17:50:56+08:00">2022-03-30</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/SIEM/" itemprop="url" rel="index"><span itemprop="name">SIEM</span></a>
+        </span>
+    </span>
+
+  
+      </div>
+      <div class="post-meta">
+    <span class="post-meta-item" title="本文字数">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">本文字数：</span>
+      <span>5.6k</span>
+    </span>
+    <span class="post-meta-item" title="阅读时长">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">阅读时长 &asymp;</span>
+      <span>5 分钟</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>XXX</p>
+<hr>
+<h1 id="SIEM-v0-2-的不足"><a href="#SIEM-v0-2-的不足" class="headerlink" title="SIEM v0.2 的不足"></a>SIEM v0.2 的不足</h1><p>XXX</p>
+<hr>
+<h1 id="SIEM-v0-3-的改进"><a href="#SIEM-v0-3-的改进" class="headerlink" title="SIEM v0.3 的改进"></a>SIEM v0.3 的改进</h1><h2 id="1-Workflow"><a href="#1-Workflow" class="headerlink" title="1. Workflow"></a>1. Workflow</h2><p>XXX</p>
+<hr>
+<h2 id="2-Normalized"><a href="#2-Normalized" class="headerlink" title="2. Normalized"></a>2. Normalized</h2><h3 id="Workflow"><a href="#Workflow" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220218183243830](/Users/canon/Library/Application Support/typora-user-images/image-20220218183243830.png)</p>
+<h3 id="Configure"><a href="#Configure" class="headerlink" title="Configure"></a>Configure</h3><table>
+<thead>
+<tr>
+<th>No</th>
+<th>File</th>
+<th>Script</th>
+<th>Log</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>60_normalized-general.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>61_normalized-alert.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>62_normalized-flow.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>63_normalized-fileinfo.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>64_normalized-http.conf</td>
+<td>64_normalized-http.rb</td>
+<td>64_normalized-http.log</td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>65_normalized-tls.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="3-Enrichment"><a href="#3-Enrichment" class="headerlink" title="3. Enrichment"></a>3. Enrichment</h2><h3 id="Workflow-1"><a href="#Workflow-1" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220221134544143](/Users/canon/Library/Application Support/typora-user-images/image-20220221134544143.png)</p>
+<h3 id="Configure-1"><a href="#Configure-1" class="headerlink" title="Configure"></a>Configure</h3><table>
+<thead>
+<tr>
+<th>No</th>
+<th>File</th>
+<th>Script</th>
+<th>Log</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>70_enrichment-general-geo-1-private_ip.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>70_enrichment-general-geo-2-public_ip.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>71_enrichment-alert-1-direction.conf</td>
+<td>71_enrichment-alert-1-direction.rb</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>71_enrichment-alert-2-killChain.conf</td>
+<td>71_enrichment-alert-2-killChain.rb</td>
+<td>71_enrichment-alert-2-killChain.log</td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>71_enrichment-alert-3-cve.conf</td>
+<td>71_enrichment-alert-3-cve.rb</td>
+<td>71_enrichment-alert-3-cve.log</td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>71_enrichment-alert-4-whitelist_ip.conf</td>
+<td>71_enrichment-alert-4-whitelist_ip.rb</td>
+<td>71_enrichment-alert-4-whitelist_ip.log</td>
+<td>****</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h4 id="KillChain"><a href="#KillChain" class="headerlink" title="KillChain"></a>KillChain</h4><h5 id="Suricata"><a href="#Suricata" class="headerlink" title="Suricata"></a>Suricata</h5><p><strong>Imput</strong></p>
+<ul>
+<li>Redis template</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str killchain:&#123;provider&#125;:&#123;rule id&#125;</span></span><br><span class="line"><span class="comment"># value: json str &#123;&quot;steps&quot;=&gt;&#123;KillChain steps&#125;, &quot;description&quot;=&gt;&#123;KillChain description&#125;, &quot;class&quot;=&gt;&#123;rule class&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> killchain:suricata:2028933 <span class="string">&#x27;&#123;&quot;steps&quot;: 4, &quot;description&quot;: &quot;Exploitation&quot;, &quot;class&quot;=&gt;exploit&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;killchain&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;steps&quot;</span>: <span class="number">1</span>,</span><br><span class="line">            <span class="attr">&quot;description&quot;</span>: <span class="string">&quot;侦查跟踪&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;class&quot;</span>: <span class="string">&quot;scan&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Imperva"><a href="#Imperva" class="headerlink" title="Imperva"></a>Imperva</h5><h4 id="Vulnerability"><a href="#Vulnerability" class="headerlink" title="Vulnerability"></a>Vulnerability</h4><p><strong>Input</strong></p>
+<ul>
+<li>Redis template</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str enrichment:&#123;class&#125;:&#123;cve&#125;</span></span><br><span class="line"><span class="comment"># value: str &#123;create time create user&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> enrichment:cve:CVE-2016-8618 <span class="string">&#x27;2022-02-16 Canon&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;rule&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;cve&quot;</span>: <span class="string">&quot;CVE-2015-9381&quot;</span> <span class="comment">// none</span></span><br><span class="line">    &#125;,</span><br><span class="line">  	<span class="attr">&quot;vulnerability&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;CVE-2015-9381&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;enumeration&quot;</span>: <span class="string">&quot;CVE&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-ThreatIntel"><a href="#4-ThreatIntel" class="headerlink" title="4. ThreatIntel"></a>4. ThreatIntel</h2><h3 id="Workflow-2"><a href="#Workflow-2" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220221105601713](/Users/canon/Library/Application Support/typora-user-images/image-20220221105601713.png)</p>
+<h3 id="Configure-2"><a href="#Configure-2" class="headerlink" title="Configure"></a>Configure</h3><h4 id="Shodan"><a href="#Shodan" class="headerlink" title="Shodan"></a>Shodan</h4><table>
+<thead>
+<tr>
+<th>No</th>
+<th>File</th>
+<th>Script</th>
+<th>Log</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>85_threatintel-siem-event-1-shodan.conf</td>
+<td>85_threatintel-siem-event-1-shodan.rb</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>Input</strong></p>
+<ul>
+<li>Redis template</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: list spider:&#123;provider&#125;:ioc</span></span><br><span class="line"><span class="comment"># value: str ioc</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; LPUSH spider:shodan:ioc 8.8.8.8 <span class="comment"># Spider Queue</span></span><br><span class="line">localhost:6379&gt; SETEX alert:8.8.8.8 86400 <span class="literal">true</span> <span class="comment"># IoC Cache</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;84.17.52.20&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;hunting&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;details&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;tcp&quot;</span>: [</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;http-simple-new&quot;</span>: <span class="number">81</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https&quot;</span>: <span class="number">443</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;http-simple-new&quot;</span>: <span class="number">8080</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https-simple-new&quot;</span>: <span class="number">8081</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https&quot;</span>: <span class="number">8443</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https-simple-new&quot;</span>: <span class="number">9002</span></span><br><span class="line">                    &#125;</span><br><span class="line">                ],</span><br><span class="line">                <span class="attr">&quot;udp&quot;</span>: []</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">&quot;domains&quot;</span>: <span class="string">&quot;cdn77.com&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;hostnames&quot;</span>: <span class="string">&quot;unn-84-17-52-20.cdn77.com&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ports&quot;</span>: [</span><br><span class="line">                <span class="number">8443</span>,</span><br><span class="line">                <span class="number">8081</span>,</span><br><span class="line">                <span class="number">9002</span>,</span><br><span class="line">                <span class="number">8080</span>,</span><br><span class="line">                <span class="number">81</span>,</span><br><span class="line">                <span class="number">443</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;services&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;https&quot;</span>,</span><br><span class="line">                <span class="string">&quot;https-simple-new&quot;</span>,</span><br><span class="line">                <span class="string">&quot;http-simple-new&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3-Filter"><a href="#3-Filter" class="headerlink" title="3. Filter"></a>3. Filter</h2><h3 id="3-1-Whitelist"><a href="#3-1-Whitelist" class="headerlink" title="3.1 Whitelist"></a>3.1 Whitelist</h3><h4 id="3-1-1-IP"><a href="#3-1-1-IP" class="headerlink" title="3.1.1 IP"></a>3.1.1 IP</h4><ul>
+<li>Redis template</li>
+</ul>
+<p><strong>Input</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;ip&#125;</span></span><br><span class="line"><span class="comment"># value: json str &#123;&quot;type&quot;: &quot;cdn&quot;, &quot;action&quot;: &quot;pass|drop&quot;&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> whitelist:ip:8.8.8.8 <span class="string">&#x27;&#123;&quot;type&quot;: &quot;cdn&quot;, &quot;action&quot;: &quot;pass&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;whitelist&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cdn&quot;</span>, <span class="comment">// 描述白名单类型，如：CDN、红队测试IP、办公网出口IP</span></span><br><span class="line">        <span class="attr">&quot;action&quot;</span>: <span class="string">&quot;drop&quot;</span>, <span class="comment">// drop|pass 事件是否需要进入SIEM消费</span></span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;source&quot;</span> <span class="comment">// source|destination 描述实际匹配到白名单来源是&quot;source&quot;还是&quot;destination&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span> <span class="comment">// 仅作为筛选条件</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Differences</strong></p>
+<ul>
+<li>v0.2</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span>,</span><br><span class="line">      	<span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">      	<span class="attr">&quot;whitelistType&quot;</span>: <span class="string">&quot;exit_whitelist&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;destination.&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;y.y.y.y&quot;</span>,</span><br><span class="line">      	<span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">      	<span class="attr">&quot;whitelistType&quot;</span>: <span class="string">&quot;exit_whitelist&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>v0.3</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;whitelist&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cdn&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;action&quot;</span>: <span class="string">&quot;drop&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;source&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3-1-2-Rule"><a href="#3-1-2-Rule" class="headerlink" title="3.1.2 Rule"></a>3.1.2 Rule</h4><h5 id="3-1-2-1-SID"><a href="#3-1-2-1-SID" class="headerlink" title="3.1.2.1 SID"></a>3.1.2.1 SID</h5><ul>
+<li>Redis template</li>
+</ul>
+<p><strong>Input</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;provider&#125;:&#123;rule id&#125;</span></span><br><span class="line"><span class="comment"># value: str &#123;rule name&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> whitelist:sid:suricata:2101201 <span class="string">&quot;GPLWEB_SERVER_403_Forbidden&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Workflow</strong></p>
+<p>![image-20220224143316558](/Users/canon/Library/Application Support/typora-user-images/image-20220224143316558.png)</p>
+<p><strong>Input</strong></p>
+<ul>
+<li>Redis template</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;provider&#125;:&#123;rule name&#125;</span></span><br><span class="line"><span class="comment"># value: str add by &#123;user&#125; &#123;date&#125; &#123;sid&#125; # default</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Suricata</span></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> <span class="string">&quot;whitelist:rule:suricata:GPLWEB_SERVER_403_Forbidden&quot;</span> <span class="string">&quot;add by Canon 2022.02.24 2101201&quot;</span></span><br><span class="line"><span class="comment"># Imperva</span></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> <span class="string">&quot;whitelist:rule:imperva:Suspicious Response Code&quot;</span> <span class="string">&quot;add by Canon 2022.02.24&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Workflow</strong></p>
+<p>![image-20220224150916372](/Users/canon/Library/Application Support/typora-user-images/image-20220224150916372.png)</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
     <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/02/SIEM%EF%BC%88%E4%B8%80%EF%BC%89/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1594,308 +1896,6 @@
 <h2 id="3-仪表盘"><a href="#3-仪表盘" class="headerlink" title="3. 仪表盘"></a>3. 仪表盘</h2><h3 id="SIEM的告警仪表盘"><a href="#SIEM的告警仪表盘" class="headerlink" title="SIEM的告警仪表盘"></a>SIEM的告警仪表盘</h3><p><img src="/2021/02/02/SIEM%EF%BC%88%E4%B8%80%EF%BC%89/SIEM-Alarm.png" alt="SIEM-Alarm"></p>
 <h3 id="安全事件仪表盘-安全溯源"><a href="#安全事件仪表盘-安全溯源" class="headerlink" title="安全事件仪表盘 (安全溯源)"></a>安全事件仪表盘 (安全溯源)</h3><p><img src="/2021/02/02/SIEM%EF%BC%88%E4%B8%80%EF%BC%89/SIEM-Alert.png" alt="SIEM Alert"></p>
 <h3 id="敏感接口监控"><a href="#敏感接口监控" class="headerlink" title="敏感接口监控"></a>敏感接口监控</h3><p><img src="/2021/02/02/SIEM%EF%BC%88%E4%B8%80%EF%BC%89/login_audit.png" alt="image-20201214112856076"></p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/02/SIEM%EF%BC%88%E4%BA%8C%EF%BC%89/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Canon">
-      <meta itemprop="description" content="一个热爱健身的安全分析师">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Canon's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/02/02/SIEM%EF%BC%88%E4%BA%8C%EF%BC%89/" class="post-title-link" itemprop="url">致我心中的 “散装”（开源）SIEM（二）</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2021-02-02 16:55:52" itemprop="dateCreated datePublished" datetime="2021-02-02T16:55:52+08:00">2021-02-02</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2022-03-30 17:50:56" itemprop="dateModified" datetime="2022-03-30T17:50:56+08:00">2022-03-30</time>
-      </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/SIEM/" itemprop="url" rel="index"><span itemprop="name">SIEM</span></a>
-        </span>
-    </span>
-
-  
-      </div>
-      <div class="post-meta">
-    <span class="post-meta-item" title="本文字数">
-      <span class="post-meta-item-icon">
-        <i class="far fa-file-word"></i>
-      </span>
-      <span class="post-meta-item-text">本文字数：</span>
-      <span>5.6k</span>
-    </span>
-    <span class="post-meta-item" title="阅读时长">
-      <span class="post-meta-item-icon">
-        <i class="far fa-clock"></i>
-      </span>
-      <span class="post-meta-item-text">阅读时长 &asymp;</span>
-      <span>5 分钟</span>
-    </span>
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>XXX</p>
-<hr>
-<h1 id="SIEM-v0-2-的不足"><a href="#SIEM-v0-2-的不足" class="headerlink" title="SIEM v0.2 的不足"></a>SIEM v0.2 的不足</h1><p>XXX</p>
-<hr>
-<h1 id="SIEM-v0-3-的改进"><a href="#SIEM-v0-3-的改进" class="headerlink" title="SIEM v0.3 的改进"></a>SIEM v0.3 的改进</h1><h2 id="1-Workflow"><a href="#1-Workflow" class="headerlink" title="1. Workflow"></a>1. Workflow</h2><p>XXX</p>
-<hr>
-<h2 id="2-Normalized"><a href="#2-Normalized" class="headerlink" title="2. Normalized"></a>2. Normalized</h2><h3 id="Workflow"><a href="#Workflow" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220218183243830](/Users/canon/Library/Application Support/typora-user-images/image-20220218183243830.png)</p>
-<h3 id="Configure"><a href="#Configure" class="headerlink" title="Configure"></a>Configure</h3><table>
-<thead>
-<tr>
-<th>No</th>
-<th>File</th>
-<th>Script</th>
-<th>Log</th>
-<th>Note</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>60_normalized-general.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>2</td>
-<td>61_normalized-alert.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>3</td>
-<td>62_normalized-flow.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>4</td>
-<td>63_normalized-fileinfo.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>5</td>
-<td>64_normalized-http.conf</td>
-<td>64_normalized-http.rb</td>
-<td>64_normalized-http.log</td>
-<td></td>
-</tr>
-<tr>
-<td>6</td>
-<td>65_normalized-tls.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody></table>
-<h2 id="3-Enrichment"><a href="#3-Enrichment" class="headerlink" title="3. Enrichment"></a>3. Enrichment</h2><h3 id="Workflow-1"><a href="#Workflow-1" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220221134544143](/Users/canon/Library/Application Support/typora-user-images/image-20220221134544143.png)</p>
-<h3 id="Configure-1"><a href="#Configure-1" class="headerlink" title="Configure"></a>Configure</h3><table>
-<thead>
-<tr>
-<th>No</th>
-<th>File</th>
-<th>Script</th>
-<th>Log</th>
-<th>Note</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>70_enrichment-general-geo-1-private_ip.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>2</td>
-<td>70_enrichment-general-geo-2-public_ip.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>3</td>
-<td>71_enrichment-alert-1-direction.conf</td>
-<td>71_enrichment-alert-1-direction.rb</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>4</td>
-<td>71_enrichment-alert-2-killChain.conf</td>
-<td>71_enrichment-alert-2-killChain.rb</td>
-<td>71_enrichment-alert-2-killChain.log</td>
-<td></td>
-</tr>
-<tr>
-<td>5</td>
-<td>71_enrichment-alert-3-cve.conf</td>
-<td>71_enrichment-alert-3-cve.rb</td>
-<td>71_enrichment-alert-3-cve.log</td>
-<td></td>
-</tr>
-<tr>
-<td>6</td>
-<td>71_enrichment-alert-4-whitelist_ip.conf</td>
-<td>71_enrichment-alert-4-whitelist_ip.rb</td>
-<td>71_enrichment-alert-4-whitelist_ip.log</td>
-<td>****</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody></table>
-<h4 id="KillChain"><a href="#KillChain" class="headerlink" title="KillChain"></a>KillChain</h4><h5 id="Suricata"><a href="#Suricata" class="headerlink" title="Suricata"></a>Suricata</h5><p><strong>Imput</strong></p>
-<ul>
-<li>Redis template</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str killchain:&#123;provider&#125;:&#123;rule id&#125;</span></span><br><span class="line"><span class="comment"># value: json str &#123;&quot;steps&quot;=&gt;&#123;KillChain steps&#125;, &quot;description&quot;=&gt;&#123;KillChain description&#125;, &quot;class&quot;=&gt;&#123;rule class&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> killchain:suricata:2028933 <span class="string">&#x27;&#123;&quot;steps&quot;: 4, &quot;description&quot;: &quot;Exploitation&quot;, &quot;class&quot;=&gt;exploit&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Output</strong></p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;killchain&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;steps&quot;</span>: <span class="number">1</span>,</span><br><span class="line">            <span class="attr">&quot;description&quot;</span>: <span class="string">&quot;侦查跟踪&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;class&quot;</span>: <span class="string">&quot;scan&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Imperva"><a href="#Imperva" class="headerlink" title="Imperva"></a>Imperva</h5><h4 id="Vulnerability"><a href="#Vulnerability" class="headerlink" title="Vulnerability"></a>Vulnerability</h4><p><strong>Input</strong></p>
-<ul>
-<li>Redis template</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str enrichment:&#123;class&#125;:&#123;cve&#125;</span></span><br><span class="line"><span class="comment"># value: str &#123;create time create user&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> enrichment:cve:CVE-2016-8618 <span class="string">&#x27;2022-02-16 Canon&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Output</strong></p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;rule&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;cve&quot;</span>: <span class="string">&quot;CVE-2015-9381&quot;</span> <span class="comment">// none</span></span><br><span class="line">    &#125;,</span><br><span class="line">  	<span class="attr">&quot;vulnerability&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;CVE-2015-9381&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;enumeration&quot;</span>: <span class="string">&quot;CVE&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="4-ThreatIntel"><a href="#4-ThreatIntel" class="headerlink" title="4. ThreatIntel"></a>4. ThreatIntel</h2><h3 id="Workflow-2"><a href="#Workflow-2" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220221105601713](/Users/canon/Library/Application Support/typora-user-images/image-20220221105601713.png)</p>
-<h3 id="Configure-2"><a href="#Configure-2" class="headerlink" title="Configure"></a>Configure</h3><h4 id="Shodan"><a href="#Shodan" class="headerlink" title="Shodan"></a>Shodan</h4><table>
-<thead>
-<tr>
-<th>No</th>
-<th>File</th>
-<th>Script</th>
-<th>Log</th>
-<th>Note</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>85_threatintel-siem-event-1-shodan.conf</td>
-<td>85_threatintel-siem-event-1-shodan.rb</td>
-<td></td>
-<td></td>
-</tr>
-</tbody></table>
-<p><strong>Input</strong></p>
-<ul>
-<li>Redis template</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: list spider:&#123;provider&#125;:ioc</span></span><br><span class="line"><span class="comment"># value: str ioc</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; LPUSH spider:shodan:ioc 8.8.8.8 <span class="comment"># Spider Queue</span></span><br><span class="line">localhost:6379&gt; SETEX alert:8.8.8.8 86400 <span class="literal">true</span> <span class="comment"># IoC Cache</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Output</strong></p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;84.17.52.20&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;hunting&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;details&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;tcp&quot;</span>: [</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;http-simple-new&quot;</span>: <span class="number">81</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https&quot;</span>: <span class="number">443</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;http-simple-new&quot;</span>: <span class="number">8080</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https-simple-new&quot;</span>: <span class="number">8081</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https&quot;</span>: <span class="number">8443</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https-simple-new&quot;</span>: <span class="number">9002</span></span><br><span class="line">                    &#125;</span><br><span class="line">                ],</span><br><span class="line">                <span class="attr">&quot;udp&quot;</span>: []</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">&quot;domains&quot;</span>: <span class="string">&quot;cdn77.com&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;hostnames&quot;</span>: <span class="string">&quot;unn-84-17-52-20.cdn77.com&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ports&quot;</span>: [</span><br><span class="line">                <span class="number">8443</span>,</span><br><span class="line">                <span class="number">8081</span>,</span><br><span class="line">                <span class="number">9002</span>,</span><br><span class="line">                <span class="number">8080</span>,</span><br><span class="line">                <span class="number">81</span>,</span><br><span class="line">                <span class="number">443</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;services&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;https&quot;</span>,</span><br><span class="line">                <span class="string">&quot;https-simple-new&quot;</span>,</span><br><span class="line">                <span class="string">&quot;http-simple-new&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="3-Filter"><a href="#3-Filter" class="headerlink" title="3. Filter"></a>3. Filter</h2><h3 id="3-1-Whitelist"><a href="#3-1-Whitelist" class="headerlink" title="3.1 Whitelist"></a>3.1 Whitelist</h3><h4 id="3-1-1-IP"><a href="#3-1-1-IP" class="headerlink" title="3.1.1 IP"></a>3.1.1 IP</h4><ul>
-<li>Redis template</li>
-</ul>
-<p><strong>Input</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;ip&#125;</span></span><br><span class="line"><span class="comment"># value: json str &#123;&quot;type&quot;: &quot;cdn&quot;, &quot;action&quot;: &quot;pass|drop&quot;&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> whitelist:ip:8.8.8.8 <span class="string">&#x27;&#123;&quot;type&quot;: &quot;cdn&quot;, &quot;action&quot;: &quot;pass&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Output</strong></p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;whitelist&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cdn&quot;</span>, <span class="comment">// 描述白名单类型，如：CDN、红队测试IP、办公网出口IP</span></span><br><span class="line">        <span class="attr">&quot;action&quot;</span>: <span class="string">&quot;drop&quot;</span>, <span class="comment">// drop|pass 事件是否需要进入SIEM消费</span></span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;source&quot;</span> <span class="comment">// source|destination 描述实际匹配到白名单来源是&quot;source&quot;还是&quot;destination&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span> <span class="comment">// 仅作为筛选条件</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>Differences</strong></p>
-<ul>
-<li>v0.2</li>
-</ul>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span>,</span><br><span class="line">      	<span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">      	<span class="attr">&quot;whitelistType&quot;</span>: <span class="string">&quot;exit_whitelist&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;destination.&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;y.y.y.y&quot;</span>,</span><br><span class="line">      	<span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">      	<span class="attr">&quot;whitelistType&quot;</span>: <span class="string">&quot;exit_whitelist&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>v0.3</li>
-</ul>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;whitelist&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cdn&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;action&quot;</span>: <span class="string">&quot;drop&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;source&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="3-1-2-Rule"><a href="#3-1-2-Rule" class="headerlink" title="3.1.2 Rule"></a>3.1.2 Rule</h4><h5 id="3-1-2-1-SID"><a href="#3-1-2-1-SID" class="headerlink" title="3.1.2.1 SID"></a>3.1.2.1 SID</h5><ul>
-<li>Redis template</li>
-</ul>
-<p><strong>Input</strong></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;provider&#125;:&#123;rule id&#125;</span></span><br><span class="line"><span class="comment"># value: str &#123;rule name&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> whitelist:sid:suricata:2101201 <span class="string">&quot;GPLWEB_SERVER_403_Forbidden&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Workflow</strong></p>
-<p>![image-20220224143316558](/Users/canon/Library/Application Support/typora-user-images/image-20220224143316558.png)</p>
-<p><strong>Input</strong></p>
-<ul>
-<li>Redis template</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;provider&#125;:&#123;rule name&#125;</span></span><br><span class="line"><span class="comment"># value: str add by &#123;user&#125; &#123;date&#125; &#123;sid&#125; # default</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Suricata</span></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> <span class="string">&quot;whitelist:rule:suricata:GPLWEB_SERVER_403_Forbidden&quot;</span> <span class="string">&quot;add by Canon 2022.02.24 2101201&quot;</span></span><br><span class="line"><span class="comment"># Imperva</span></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> <span class="string">&quot;whitelist:rule:imperva:Suspicious Response Code&quot;</span> <span class="string">&quot;add by Canon 2022.02.24&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Workflow</strong></p>
-<p>![image-20220224150916372](/Users/canon/Library/Application Support/typora-user-images/image-20220224150916372.png)</p>
 
       
     </div>

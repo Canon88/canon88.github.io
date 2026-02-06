@@ -212,315 +212,221 @@
       </tags>
   </entry>
   <entry>
-    <title>自动化之后，SOC 该如何迈向智能化？</title>
-    <url>/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<h2 id="引言：从自动化到智能化，SOC-正在经历什么？"><a href="#引言：从自动化到智能化，SOC-正在经历什么？" class="headerlink" title="引言：从自动化到智能化，SOC 正在经历什么？"></a>引言：从自动化到智能化，SOC 正在经历什么？</h2><p>如果你的 SOC 正在经历从 <strong>自动化</strong> 走向 <strong>智能化</strong> 的阶段，那么下面这些思考，或许会对你有所帮助。</p>
-<p><img src="/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/1.png" alt="1"></p>
+    <title>致我心中的 “散装”（开源）SIEM（二）</title>
+    <url>/2021/02/02/SIEM%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
+    <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>XXX</p>
 <hr>
-<p>在 SOC 的自动化阶段，我们做的事情其实非常清晰：</p>
-<p>将个人经验沉淀为 <strong>SOP</strong>，再通过 <strong>SOAR</strong> 将 SOP 转换为可执行的「剧本」。</p>
-<p>这些剧本对 <strong>入参、出参以及执行路径</strong> 都有严格约束——这正是自动化最核心的优势所在：</p>
-<blockquote>
-<p>自动化擅长解决「<strong>已知问题 + 已知路径</strong>」。</p>
-<p>一旦条件满足，执行高效、稳定且可规模化。</p>
-</blockquote>
+<h1 id="SIEM-v0-2-的不足"><a href="#SIEM-v0-2-的不足" class="headerlink" title="SIEM v0.2 的不足"></a>SIEM v0.2 的不足</h1><p>XXX</p>
 <hr>
-<p>但随着剧本数量不断增加，问题也逐渐显现。</p>
-<p>一方面，自动化天然依赖 <strong>确定性输入</strong>。只要告警或事件稍微偏离预期路径，剧本就无法命中，最终仍需要人工介入。久而久之，便会出现一种并不陌生的现象：</p>
-<blockquote>
-<p>剧本在不断沉淀，但真正被高频使用的却越来越少。</p>
-</blockquote>
-<p>另一方面，当面对 <strong>跨系统、跨阶段、信息不完整</strong> 的复杂安全事件时，我们会发现，问题本身已经不再是”流程是否完整”，而是：</p>
-<blockquote>
-<p>如何在不确定的信息中完成研判与调查。</p>
-</blockquote>
-<p>而这，恰恰是传统自动化最不擅长的部分。</p>
+<h1 id="SIEM-v0-3-的改进"><a href="#SIEM-v0-3-的改进" class="headerlink" title="SIEM v0.3 的改进"></a>SIEM v0.3 的改进</h1><h2 id="1-Workflow"><a href="#1-Workflow" class="headerlink" title="1. Workflow"></a>1. Workflow</h2><p>XXX</p>
 <hr>
-<p>也正是在这样的背景下，近几年 <strong>AI，尤其是 LLM</strong> 的快速发展，为处于「<strong>重度自动化阶段</strong>」的 SOC 团队提供了一个新的契机。</p>
-<p>通过引入 AI 的 <strong>推理与判断能力</strong>，SOC 开始有机会在 <strong>研判</strong> 与 <strong>调查</strong> 这两个高度依赖经验的环节中，弥补自动化在不确定性场景下的天然短板，从而迈向真正意义上的智能化阶段。</p>
-<hr>
-<p>需要强调的是，这并不意味着 SOC 可以跳过”自动化”阶段，直接进入所谓的「AI SOC」。</p>
-<p>恰恰相反：</p>
-<blockquote>
-<p><strong>自动化，是智能化 SOC 不可或缺的基础层。</strong></p>
-</blockquote>
-<p>在引入 AI 之后，SOC 面临的并不是”是否还需要自动化”，而是：</p>
-<blockquote>
-<p><strong>如何重新定义自动化在整个运营体系中的角色！</strong></p>
-</blockquote>
-<hr>
-<h2 id="AI-不是替代自动化，而是“消耗自动化沉淀”的上层能力"><a href="#AI-不是替代自动化，而是“消耗自动化沉淀”的上层能力" class="headerlink" title="AI 不是替代自动化，而是“消耗自动化沉淀”的上层能力"></a>AI 不是替代自动化，而是“消耗自动化沉淀”的上层能力</h2><p>AI 并不是直接解决安全问题的能力。它本质上是建立在自动化之上的一种 <strong>能力放大器。</strong>用于<strong>消化、调用并放大既有能力。</strong></p>
-<p>AI 本身并不具备执行力。真正决定 AI 能走多远的，始终是 SOC 在自动化阶段已经沉淀下来的能力基础。</p>
-<h3 id="1-没有自动化，AI-只能停留在“建议”"><a href="#1-没有自动化，AI-只能停留在“建议”" class="headerlink" title="1. 没有自动化，AI 只能停留在“建议”"></a>1. 没有自动化，AI 只能停留在“建议”</h3><p>AI 并不能直接作用于真实环境。它需要 <strong>可调用、可执行、可审计</strong> 的底层能力作为支撑。这意味着，在自动化阶段沉淀下来的原子能力，需要以 MCP Tools 的形式暴露给 AI 使用。</p>
-<p>如果缺乏这些原子能力：</p>
+<h2 id="2-Normalized"><a href="#2-Normalized" class="headerlink" title="2. Normalized"></a>2. Normalized</h2><h3 id="Workflow"><a href="#Workflow" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220218183243830](/Users/canon/Library/Application Support/typora-user-images/image-20220218183243830.png)</p>
+<h3 id="Configure"><a href="#Configure" class="headerlink" title="Configure"></a>Configure</h3><table>
+<thead>
+<tr>
+<th>No</th>
+<th>File</th>
+<th>Script</th>
+<th>Log</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>60_normalized-general.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>61_normalized-alert.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>62_normalized-flow.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>63_normalized-fileinfo.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>64_normalized-http.conf</td>
+<td>64_normalized-http.rb</td>
+<td>64_normalized-http.log</td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>65_normalized-tls.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="3-Enrichment"><a href="#3-Enrichment" class="headerlink" title="3. Enrichment"></a>3. Enrichment</h2><h3 id="Workflow-1"><a href="#Workflow-1" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220221134544143](/Users/canon/Library/Application Support/typora-user-images/image-20220221134544143.png)</p>
+<h3 id="Configure-1"><a href="#Configure-1" class="headerlink" title="Configure"></a>Configure</h3><table>
+<thead>
+<tr>
+<th>No</th>
+<th>File</th>
+<th>Script</th>
+<th>Log</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>70_enrichment-general-geo-1-private_ip.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>2</td>
+<td>70_enrichment-general-geo-2-public_ip.conf</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>3</td>
+<td>71_enrichment-alert-1-direction.conf</td>
+<td>71_enrichment-alert-1-direction.rb</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>4</td>
+<td>71_enrichment-alert-2-killChain.conf</td>
+<td>71_enrichment-alert-2-killChain.rb</td>
+<td>71_enrichment-alert-2-killChain.log</td>
+<td></td>
+</tr>
+<tr>
+<td>5</td>
+<td>71_enrichment-alert-3-cve.conf</td>
+<td>71_enrichment-alert-3-cve.rb</td>
+<td>71_enrichment-alert-3-cve.log</td>
+<td></td>
+</tr>
+<tr>
+<td>6</td>
+<td>71_enrichment-alert-4-whitelist_ip.conf</td>
+<td>71_enrichment-alert-4-whitelist_ip.rb</td>
+<td>71_enrichment-alert-4-whitelist_ip.log</td>
+<td>****</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h4 id="KillChain"><a href="#KillChain" class="headerlink" title="KillChain"></a>KillChain</h4><h5 id="Suricata"><a href="#Suricata" class="headerlink" title="Suricata"></a>Suricata</h5><p><strong>Imput</strong></p>
 <ul>
-<li>AI 无法真正调用真实世界的能力；</li>
-<li>只能停留在分析、推理和“给建议”的层面；</li>
-<li>无法形成闭环，更谈不上规模化落地。</li>
+<li>Redis template</li>
 </ul>
-<h3 id="2-没有-SOP，AI-的判断无法落地"><a href="#2-没有-SOP，AI-的判断无法落地" class="headerlink" title="2. 没有 SOP，AI 的判断无法落地"></a>2. 没有 SOP，AI 的判断无法落地</h3><p>在自动化阶段我们努力让 SOP 不被“<strong>挂在墙上</strong>”。在智能化阶段，SOP 不会消失，反而变得更加重要。SOP 不再只是给人看的操作说明，而是一种：<strong>约束</strong>与<strong>引导</strong>机制。它为 AI 提供 符合真实环境、组织策略与安全边界的处理路径。</p>
-<blockquote>
-<p>换句话说：SOP 决定了 AI「<strong>可以怎么做</strong>」，而不仅仅是「<strong>应该怎么想</strong>」。</p>
-</blockquote>
-<p>此外，在实际运行中，自动化往往还承担着一个容易被忽视的角色：<strong>信息准备层</strong>。通过自动化手段对告警进行<strong>上下文补充</strong>、<strong>资产关联</strong>、<strong>情报拉取</strong>与<strong>数据聚合</strong>，可以在进入 AI 研判之前，就将信息尽可能 结构化、丰富化：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: str killchain:&#123;provider&#125;:&#123;rule id&#125;</span></span><br><span class="line"><span class="comment"># value: json str &#123;&quot;steps&quot;=&gt;&#123;KillChain steps&#125;, &quot;description&quot;=&gt;&#123;KillChain description&#125;, &quot;class&quot;=&gt;&#123;rule class&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> killchain:suricata:2028933 <span class="string">&#x27;&#123;&quot;steps&quot;: 4, &quot;description&quot;: &quot;Exploitation&quot;, &quot;class&quot;=&gt;exploit&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;killchain&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;steps&quot;</span>: <span class="number">1</span>,</span><br><span class="line">            <span class="attr">&quot;description&quot;</span>: <span class="string">&quot;侦查跟踪&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;class&quot;</span>: <span class="string">&quot;scan&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Imperva"><a href="#Imperva" class="headerlink" title="Imperva"></a>Imperva</h5><h4 id="Vulnerability"><a href="#Vulnerability" class="headerlink" title="Vulnerability"></a>Vulnerability</h4><p><strong>Input</strong></p>
 <ul>
-<li>减少 AI 的重复调用；</li>
-<li>降低整体运行成本；</li>
-<li>提升研判稳定性与一致性。</li>
+<li>Redis template</li>
 </ul>
-<p>因此，在迈向智能化 SOC 的过程中，自动化并没有被削弱，而是完成了一次角色转变：</p>
-<blockquote>
-<p>从<strong>「流程执行者」转变为「能力提供者」和「信息放大器」</strong>。</p>
-</blockquote>
-<hr>
-<h2 id="为什么研判与调查，才是-AI-最适合介入的环节？"><a href="#为什么研判与调查，才是-AI-最适合介入的环节？" class="headerlink" title="为什么研判与调查，才是 AI 最适合介入的环节？"></a>为什么研判与调查，才是 AI 最适合介入的环节？</h2><p>研判与调查，是 SOC 中 <strong>不确定性最高、规则最难穷举、却又高度依赖经验</strong> 的环节。</p>
-<p>而这，恰恰是 AI 最擅长、也是传统自动化最”<strong>无能为力</strong>“的地方。</p>
-<h3 id="1-研判与调查的本质，是在不完整信息中做判断"><a href="#1-研判与调查的本质，是在不完整信息中做判断" class="headerlink" title="1. 研判与调查的本质，是在不完整信息中做判断"></a>1. 研判与调查的本质，是在不完整信息中做判断</h3><p>与检测规则或自动化处置不同，研判与调查面对的，往往并不是”条件是否满足”，而是：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: str enrichment:&#123;class&#125;:&#123;cve&#125;</span></span><br><span class="line"><span class="comment"># value: str &#123;create time create user&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> enrichment:cve:CVE-2016-8618 <span class="string">&#x27;2022-02-16 Canon&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;rule&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;cve&quot;</span>: <span class="string">&quot;CVE-2015-9381&quot;</span> <span class="comment">// none</span></span><br><span class="line">    &#125;,</span><br><span class="line">  	<span class="attr">&quot;vulnerability&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;CVE-2015-9381&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;enumeration&quot;</span>: <span class="string">&quot;CVE&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-ThreatIntel"><a href="#4-ThreatIntel" class="headerlink" title="4. ThreatIntel"></a>4. ThreatIntel</h2><h3 id="Workflow-2"><a href="#Workflow-2" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220221105601713](/Users/canon/Library/Application Support/typora-user-images/image-20220221105601713.png)</p>
+<h3 id="Configure-2"><a href="#Configure-2" class="headerlink" title="Configure"></a>Configure</h3><h4 id="Shodan"><a href="#Shodan" class="headerlink" title="Shodan"></a>Shodan</h4><table>
+<thead>
+<tr>
+<th>No</th>
+<th>File</th>
+<th>Script</th>
+<th>Log</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>85_threatintel-siem-event-1-shodan.conf</td>
+<td>85_threatintel-siem-event-1-shodan.rb</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong>Input</strong></p>
 <ul>
-<li>告警信息不完整，甚至存在噪声；</li>
-<li>数据分散在多个系统中，需要横向关联；</li>
-<li>事件是否构成风险，依赖上下文而非单一指标；</li>
-<li>同一类告警，在不同业务、不同资产背景下，结论可能完全不同。</li>
+<li>Redis template</li>
 </ul>
-<p>这类问题，很难通过固定规则或条件穷举来解决，却高度依赖：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: list spider:&#123;provider&#125;:ioc</span></span><br><span class="line"><span class="comment"># value: str ioc</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; LPUSH spider:shodan:ioc 8.8.8.8 <span class="comment"># Spider Queue</span></span><br><span class="line">localhost:6379&gt; SETEX alert:8.8.8.8 86400 <span class="literal">true</span> <span class="comment"># IoC Cache</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;84.17.52.20&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;hunting&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;details&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;tcp&quot;</span>: [</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;http-simple-new&quot;</span>: <span class="number">81</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https&quot;</span>: <span class="number">443</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;http-simple-new&quot;</span>: <span class="number">8080</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https-simple-new&quot;</span>: <span class="number">8081</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https&quot;</span>: <span class="number">8443</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https-simple-new&quot;</span>: <span class="number">9002</span></span><br><span class="line">                    &#125;</span><br><span class="line">                ],</span><br><span class="line">                <span class="attr">&quot;udp&quot;</span>: []</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">&quot;domains&quot;</span>: <span class="string">&quot;cdn77.com&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;hostnames&quot;</span>: <span class="string">&quot;unn-84-17-52-20.cdn77.com&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ports&quot;</span>: [</span><br><span class="line">                <span class="number">8443</span>,</span><br><span class="line">                <span class="number">8081</span>,</span><br><span class="line">                <span class="number">9002</span>,</span><br><span class="line">                <span class="number">8080</span>,</span><br><span class="line">                <span class="number">81</span>,</span><br><span class="line">                <span class="number">443</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;services&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;https&quot;</span>,</span><br><span class="line">                <span class="string">&quot;https-simple-new&quot;</span>,</span><br><span class="line">                <span class="string">&quot;http-simple-new&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3-Filter"><a href="#3-Filter" class="headerlink" title="3. Filter"></a>3. Filter</h2><h3 id="3-1-Whitelist"><a href="#3-1-Whitelist" class="headerlink" title="3.1 Whitelist"></a>3.1 Whitelist</h3><h4 id="3-1-1-IP"><a href="#3-1-1-IP" class="headerlink" title="3.1.1 IP"></a>3.1.1 IP</h4><ul>
+<li>Redis template</li>
+</ul>
+<p><strong>Input</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;ip&#125;</span></span><br><span class="line"><span class="comment"># value: json str &#123;&quot;type&quot;: &quot;cdn&quot;, &quot;action&quot;: &quot;pass|drop&quot;&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> whitelist:ip:8.8.8.8 <span class="string">&#x27;&#123;&quot;type&quot;: &quot;cdn&quot;, &quot;action&quot;: &quot;pass&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Output</strong></p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;whitelist&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cdn&quot;</span>, <span class="comment">// 描述白名单类型，如：CDN、红队测试IP、办公网出口IP</span></span><br><span class="line">        <span class="attr">&quot;action&quot;</span>: <span class="string">&quot;drop&quot;</span>, <span class="comment">// drop|pass 事件是否需要进入SIEM消费</span></span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;source&quot;</span> <span class="comment">// source|destination 描述实际匹配到白名单来源是&quot;source&quot;还是&quot;destination&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span> <span class="comment">// 仅作为筛选条件</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Differences</strong></p>
 <ul>
-<li>经验积累；</li>
-<li>模式识别；</li>
-<li>对业务与环境上下文的理解。</li>
+<li>v0.2</li>
 </ul>
-<p>而这，正是 <strong>LLM 最擅长的！</strong></p>
-<h3 id="2-自动化擅长”执行”，但不擅长”判断”"><a href="#2-自动化擅长”执行”，但不擅长”判断”" class="headerlink" title="2. 自动化擅长”执行”，但不擅长”判断”"></a>2. 自动化擅长”执行”，但不擅长”判断”</h3><p>自动化在 SOC 中的价值非常明确：<strong>路径清晰、条件明确、结果可预期</strong>。</p>
-<p>它非常适合处理：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span>,</span><br><span class="line">      	<span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">      	<span class="attr">&quot;whitelistType&quot;</span>: <span class="string">&quot;exit_whitelist&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;destination.&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;y.y.y.y&quot;</span>,</span><br><span class="line">      	<span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">      	<span class="attr">&quot;whitelistType&quot;</span>: <span class="string">&quot;exit_whitelist&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 <ul>
-<li>批量化、重复性任务；</li>
-<li>明确的处置流程；</li>
-<li>可被标准化的操作动作。</li>
+<li>v0.3</li>
 </ul>
-<p>但研判与调查恰恰相反：</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;whitelist&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cdn&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;action&quot;</span>: <span class="string">&quot;drop&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;source&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3-1-2-Rule"><a href="#3-1-2-Rule" class="headerlink" title="3.1.2 Rule"></a>3.1.2 Rule</h4><h5 id="3-1-2-1-SID"><a href="#3-1-2-1-SID" class="headerlink" title="3.1.2.1 SID"></a>3.1.2.1 SID</h5><ul>
+<li>Redis template</li>
+</ul>
+<p><strong>Input</strong></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;provider&#125;:&#123;rule id&#125;</span></span><br><span class="line"><span class="comment"># value: str &#123;rule name&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> whitelist:sid:suricata:2101201 <span class="string">&quot;GPLWEB_SERVER_403_Forbidden&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Workflow</strong></p>
+<p>![image-20220224143316558](/Users/canon/Library/Application Support/typora-user-images/image-20220224143316558.png)</p>
+<p><strong>Input</strong></p>
 <ul>
-<li>很多判断不是”是否满足条件”，而是”是否合理”；</li>
-<li>很多结论不是二元判断，而是带概率与置信度的判断；</li>
-<li>调查路径需要根据中间结果不断调整，具有明显的动态性。</li>
+<li>Redis template</li>
 </ul>
-<p>如果强行用剧本去覆盖研判与调查阶段，通常只会出现两个结果：</p>
-<ul>
-<li>剧本复杂度不断上升，却依然无法覆盖所有场景；</li>
-<li>分析师开始绕过自动化，回到完全依赖人工的分析模式。</li>
-</ul>
-<blockquote>
-<p>AI 的引入，本质上是：填补自动化在「判断层」的 <strong>空白</strong>。</p>
-</blockquote>
-<h3 id="3-从落地角度看，这是-AI-最容易”真正落地”的切入口"><a href="#3-从落地角度看，这是-AI-最容易”真正落地”的切入口" class="headerlink" title="3. 从落地角度看，这是 AI 最容易”真正落地”的切入口"></a>3. 从落地角度看，这是 AI 最容易”真正落地”的切入口</h3><p>在”真实世界”的 SOC 工作中，引入 AI 往往面临两个非常现实、且不可回避的约束：</p>
-<ul>
-<li>不能影响生产稳定性；</li>
-<li>不能引入不可控的误操作风险。</li>
-</ul>
-<p>这意味着，AI 很难一开始就参与”处置”。在此阶段我们需要与 AI 建立”信任”。</p>
-<p>相比之下，将 AI <strong>优先引入研判与调查阶段</strong>，是一个更现实、也更稳妥的切入口：</p>
-<ul>
-<li><strong>不直接接管处置权</strong>，最终决策仍由人完成；</li>
-<li><strong>不改变既有检测链路</strong>，避免对生产环境产生影响；</li>
-<li><strong>不引入破坏性操作风险</strong>，即便判断失误，代价也可控。</li>
-</ul>
-<p>但与此同时，它可以带来非常直接、可量化的收益：</p>
-<ul>
-<li>显著降低人工分析的时间成本；</li>
-<li>提升告警研判的一致性与稳定性；</li>
-<li>缓解 Tier 1 分析师的人力瓶颈。</li>
-</ul>
-<p>这使得 AI 在 SOC 中的角色，更像是一个：</p>
-<blockquote>
-<p>可逐步放权、可持续验证价值的”增强型分析能力”，而不是一次性、大规模替换人的”黑盒系统”。</p>
-</blockquote>
-<p>也正因为如此，研判与调查，往往成为 AI 在 SOC 中 <strong>最先真正跑起来、且最容易跑稳的场景</strong>。</p>
-<hr>
-<h2 id="为什么要优先从告警研判入手？"><a href="#为什么要优先从告警研判入手？" class="headerlink" title="为什么要优先从告警研判入手？"></a>为什么要优先从告警研判入手？</h2><p>在 SOC 的日常运行中，大量工作并不是在处理「已确认的安全事件」，而是在对 <strong>源源不断的告警进行研判</strong>，确保它们被 <strong>正确分流和处置</strong>。</p>
-<p>现实中，这部分工作通常由 Tier 1 分析师承担，而在国内环境下，很少存在”<strong>只做研判</strong>“的纯 Tier 1 角色。更多时候，分析师需要在告警研判、日常运营、规则优化甚至项目支持之间反复切换。这使得 <strong>告警研判成为最消耗人力、同时也最容易成为瓶颈的环节</strong>。</p>
-<p><img src="/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/2.jpg" alt="2"></p>
-<hr>
-<p>因此，将 AI 优先引入告警研判阶段，往往可以在 <strong>不改变 SOC 整体架构</strong> 的前提下，显著释放分析师的时间与精力。</p>
-<p>通过 <strong>SOAR + AI</strong> 的组合：</p>
-<ul>
-<li>自动化负责信息收集、上下文补全与初步归并；</li>
-<li>AI 在已有信息基础上完成快速分析与定性建议；</li>
-<li>人只需对关键告警进行最终确认。</li>
-</ul>
-<p>优先选择告警研判，并不是因为它”简单”，而是因为它决定了 SOC 是否能把有限的人力，用在 <strong>更具研究价值的工作上</strong>：检测工程、威胁狩猎或安全研究。</p>
-<hr>
-<h2 id="研判与调查：是必须被严格区分的两件事！"><a href="#研判与调查：是必须被严格区分的两件事！" class="headerlink" title="研判与调查：是必须被严格区分的两件事！"></a>研判与调查：是必须被严格区分的两件事！</h2><blockquote>
-<p>研判决定是否升级，调查决定如何响应。</p>
-<p>两者边界越清晰，AI 才越容易安全落地。</p>
-</blockquote>
-<p>在实践中，<strong>一个常见且”危险”的误区</strong>，是 <strong>将”告警研判”和”事件调查”混为一谈</strong>。这不仅会拉高研判阶段的复杂度，也会让 AI 的使用边界变得模糊甚至 <strong>失控</strong>。</p>
-<h3 id="告警研判（Alert-Triage）"><a href="#告警研判（Alert-Triage）" class="headerlink" title="告警研判（Alert Triage）"></a>告警研判（Alert Triage）</h3><ul>
-<li><strong>核心问题</strong>：这是真的攻击，还是误报？</li>
-<li><strong>目标</strong>：降噪与定性</li>
-<li><strong>关注点</strong>：速度、一致性、可解释性</li>
-<li><strong>SOC 视角</strong>：分诊台</li>
-</ul>
-<h3 id="事件调查（Incident-Investigation）"><a href="#事件调查（Incident-Investigation）" class="headerlink" title="事件调查（Incident Investigation）"></a>事件调查（Incident Investigation）</h3><ul>
-<li><strong>核心问题</strong>：攻击者是谁？影响了什么？如何进入？</li>
-<li><strong>目标</strong>：溯源与定损</li>
-<li><strong>关注点</strong>：深度、完整性、可复现性</li>
-<li><strong>SOC 视角</strong>：手术室</li>
-</ul>
-<hr>
-<h2 id="AI-撕开了运营的”遮羞布”"><a href="#AI-撕开了运营的”遮羞布”" class="headerlink" title="AI 撕开了运营的”遮羞布”"></a>AI 撕开了运营的”遮羞布”</h2><p>过去一年，我们在 SOC 运营中全面引入 AI，并将其与既有的自动化体系（SOAR）深度融合。</p>
-<p>从指标上看，这是一场”<strong>胜利</strong>“：Tier 1 分析师从重复劳动中被解放出来，复杂 Case 的吞吐量提升，整体 <strong>MTTR 明显改善</strong>。</p>
-<p><img src="/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/3.png" alt="3"></p>
-<p>但当 AI 真正进入 <strong>日常、高频、规模化</strong> 的研判流程后，我们很快意识到一件事：</p>
-<blockquote>
-<p>AI 并没有自动让研判变得更稳定，反而像一面 <strong>放大镜</strong>，撕开了 SOC 运营体系中原本被掩盖的问题。</p>
-</blockquote>
-<p>最先暴露出来的，并不是检测能力、数据质量，甚至也不是模型能力，而是一个长期被忽视的基础问题：</p>
-<blockquote>
-<p>告警研判的 <strong>一致性</strong> 与 <strong>可复用性</strong>。</p>
-</blockquote>
-<h3 id="在没有-AI-的时代，这些问题是被”默许”的"><a href="#在没有-AI-的时代，这些问题是被”默许”的" class="headerlink" title="在没有 AI 的时代，这些问题是被”默许”的"></a>在没有 AI 的时代，这些问题是被”默许”的</h3><p>在传统 SOC 运营模式下，研判质量高度依赖个人经验：</p>
-<ul>
-<li>不同分析师对同一类告警，结论可能并不一致；</li>
-<li>资深分析师往往能快速给出 <strong>“正确但难以解释”</strong> 的判断；</li>
-<li>这些差异被默认为”经验差距”，并被组织所接受。</li>
-</ul>
-<p>从结果上看，这种状态虽然低效，但仍处于一种 <strong>“软性可控”</strong> 的状态 —— <strong>因为问题只存在于个体之间，而不是被系统性放大</strong>。</p>
-<h3 id="进入-AI-时代后，问题被系统性放大"><a href="#进入-AI-时代后，问题被系统性放大" class="headerlink" title="进入 AI 时代后，问题被系统性放大"></a>进入 AI 时代后，问题被系统性放大</h3><p>当 AI 介入研判之后，情况发生了变化。</p>
-<p>如果缺乏 <strong>清晰</strong> 的 <strong>SOP</strong> 与经验约束，AI 会对同一类告警：</p>
-<ul>
-<li>给出风格差异极大的分析结论；</li>
-<li>采用逻辑路径不一致的判断方式；</li>
-<li>甚至在不同时间，对同一问题给出 <strong>相互矛盾</strong> 的结论。</li>
-</ul>
-<p>处在自动化阶段的 SOC，可以通过 SOAR 做很多事。但 SOAR 始终只能提供 “<strong>冷冰冰的数据上下文</strong>“：</p>
-<ul>
-<li>字段</li>
-<li>日志</li>
-<li>关联关系</li>
-<li>历史次数</li>
-</ul>
-<p>但它无法回答一个关键问题：</p>
-<blockquote>
-<p><strong>“在我们这个组织里，这类告警通常是如何被理解和处理的？”</strong></p>
-</blockquote>
-<p>也正是在这个阶段，我们逐渐意识到：</p>
-<blockquote>
-<p>如果没有经验约束，AI 只会把研判差异放大成系统性风险。</p>
-</blockquote>
-<h3 id="SOP，决定了-AI-研判的”下限”"><a href="#SOP，决定了-AI-研判的”下限”" class="headerlink" title="SOP，决定了 AI 研判的”下限”"></a>SOP，决定了 AI 研判的”下限”</h3><p>在告警研判与事件处理中，AI 并不是凭空做判断。</p>
-<p>它所采用的分析路径、检查步骤与决策逻辑，本质上来源于两类资产：</p>
-<ul>
-<li><strong>SOP</strong></li>
-<li><strong>历史 Case</strong></li>
-</ul>
-<p>如果这两者本身是模糊的、不完整的，那么 AI 的输出只会显得 “<strong>看起来合理</strong>“，却无法保证 <strong>一致性</strong> 与 <strong>可复用性</strong>。</p>
-<h3 id="一个直观的对比（SOP）：国内-vs-海外"><a href="#一个直观的对比（SOP）：国内-vs-海外" class="headerlink" title="一个直观的对比（SOP）：国内 vs 海外"></a>一个直观的对比（SOP）：国内 vs 海外</h3><p>从我的个人观察来看，<strong>海外团队</strong> 在 SOP 的标准化与细化程度上，整体要优于国内。</p>
-<p>我看过不少海外分析师留下的 Case 记录和 SOP，从国内的视角来看，这些内容往往显得：</p>
-<ul>
-<li>很繁琐；</li>
-<li>很基础；</li>
-<li>甚至有些”笨笨的”。</li>
-</ul>
-<p>但他们会非常明确地写出：</p>
-<ul>
-<li>每一步具体要查什么数据；</li>
-<li>为什么查这个数据；</li>
-<li>在什么条件下得出什么结论；</li>
-<li>哪些情况可以直接终止分析。</li>
-</ul>
-<p>而在国内 SOC 的现实环境中，我们更常见的是另一种写法：</p>
-<ul>
-<li>“检查日志确认无异常”</li>
-<li>“确认资产为测试环境”</li>
-<li>“综合判断为误报”</li>
-</ul>
-<p>这些描述方向未必是错的，但它们存在一个致命问题：</p>
-<blockquote>
-<p><strong>无法被直接执行。无论是给新人，还是给 AI。</strong></p>
-</blockquote>
-<p>这一点我感触很深，我的新加坡团队成员就曾和我反馈过，为什么国内的小伙伴处理的Case，总是”轻描淡写”的写一句：”综合判断误判 或 运维正常操作”，并不会写明判断过程和附上判断依据。</p>
-<p>这背后当然有现实原因：</p>
-<ul>
-<li>国内更强调效率，要求一人身兼多职</li>
-<li>日常运营压力大，很难抽出时间系统性沉淀文档</li>
-<li>能偶尔写一篇 Blog，已经算是”幸运”</li>
-</ul>
-<p>在这样的环境下，很少能够有时间对历史 Case 做标准化抽象，再进一步整理为 <strong>可复用、可传承的 SOP</strong>。这是需要分析师有专注的时间去打磨的。</p>
-<p>当 AI 进入研判流程后，这种差距会被迅速放大。</p>
-<p>这听起来 <strong>非常基础</strong>，但这正是大多数 SOC 团队不愿面对的”<strong>运营债</strong>“—— <strong>知识库与 SOP</strong>。</p>
-<h3 id="列举2个常见的场景"><a href="#列举2个常见的场景" class="headerlink" title="列举2个常见的场景"></a>列举2个常见的场景</h3><h4 id="场景一：模糊历史的「族谱索引」"><a href="#场景一：模糊历史的「族谱索引」" class="headerlink" title="场景一：模糊历史的「族谱索引」"></a>场景一：模糊历史的「族谱索引」</h4><p>这是资深分析师最难被传承的一类直觉能力：</p>
-<blockquote>
-<p><strong>“这个告警，我好像半年前见过。”</strong></p>
-</blockquote>
-<p>现实中的典型场景包括：</p>
-<ul>
-<li>某个业务系统存在罕见 Bug，会周期性触发异常请求；</li>
-<li>半年前曾有分析师深入排查，并在工单中留下明确结论；</li>
-<li>由于特征不稳定，无法通过规则或白名单彻底解决。</li>
-</ul>
-<p>在这种场景下：</p>
-<ul>
-<li>SOAR 能提供的是 <strong>数据</strong>：相似字段、历史出现次数、时间分布；</li>
-<li>却给不出 <strong>经验</strong>：当时是如何判断的？为什么最终被忽略？</li>
-</ul>
-<p>如果没有知识库或结构化的历史 Case，这类经验只能停留在个人脑海中。</p>
-<p>而当 <strong>SOP 与历史 Case 被系统化沉淀</strong> 后，AI 可以在研判阶段明确指出：</p>
-<blockquote>
-<p>“这类告警在我们组织内部，历史上是如何被理解和处理的。”</p>
-</blockquote>
-<p><strong>❗️温馨提示：</strong><br>这并不是让 AI “拍板”，而是让 AI <strong>继承组织的集体经验</strong>。</p>
-<h4 id="场景二：研判质量的「下限固化」"><a href="#场景二：研判质量的「下限固化」" class="headerlink" title="场景二：研判质量的「下限固化」"></a>场景二：研判质量的「下限固化」</h4><p>另一个在真实运营中反复出现的问题是：</p>
-<ul>
-<li>同一类告警，不同分析师的研判质量差异极大；</li>
-<li>某些分析师的处理方式被公认为”教科书级别”；</li>
-<li>但这种高质量研判，无法被稳定复用。</li>
-</ul>
-<p>在没有 AI 的情况下，这种差异虽然存在，但影响范围有限。</p>
-<p>而在引入 AI 之后，如果缺乏 SOP 约束，这种问题会演变为：</p>
-<ul>
-<li>研判逻辑过度发散；</li>
-<li>输出风格不断漂移；</li>
-<li>甚至出现 <strong>“逻辑自洽，但结论错误”</strong> 的幻觉。</li>
-</ul>
-<p>在这一场景下，<strong>SOP 的价值恰恰不是提升 AI 的上限，而是：固化分析路径，保证研判质量的下限</strong>。</p>
-<p>SOP 在这里扮演的角色，并不是”告诉 AI 答案”，而是：</p>
-<ul>
-<li>明确哪些检查是 <strong>必须做的</strong>；</li>
-<li>哪些结论是 <strong>不能轻易给出的</strong>；</li>
-<li>哪些判断需要满足 <strong>明确前提</strong>。</li>
-</ul>
-<h3 id="SOP-是-AI-分析研判阶段的”安全护栏”"><a href="#SOP-是-AI-分析研判阶段的”安全护栏”" class="headerlink" title="SOP 是 AI 分析研判阶段的”安全护栏”"></a>SOP 是 AI 分析研判阶段的”安全护栏”</h3><p>在 AI 时代，那些看起来 “<strong>笨笨的 SOP</strong>“，反而成了最有价值的资产：</p>
-<ul>
-<li>为 AI 提供明确、可执行的分析路径；</li>
-<li>天然适合作为知识库与高质量 Case 的来源；</li>
-<li>让 AI 始终运行在一个 <strong>稳定、可控的判断框架</strong> 之内。</li>
-</ul>
-<p><strong>在实践中你会发现</strong>：</p>
-<ul>
-<li>自动化越成熟，AI 的建议越容易落地</li>
-<li>SOP 越清晰，AI 的研判越稳定可控</li>
-</ul>
-<p><strong>反之</strong>：</p>
-<ul>
-<li>自动化混乱，AI 的判断无法执行</li>
-<li>SOP 模糊，AI 的判断无法复用</li>
-</ul>
-<p><strong>所以</strong>：</p>
-<blockquote>
-<p>往往并不是”AI 不行”，而是 <strong>AI 把 SOC 的基础问题照得更清楚了</strong>。</p>
-<p>SOP 不是为了让 AI 更聪明，而是为了让它不犯低级错误，守住研判的下限。</p>
-</blockquote>
-<hr>
-<h2 id="结束语：用好-AI，本质上是在”逼迫”-SOC-回归基础"><a href="#结束语：用好-AI，本质上是在”逼迫”-SOC-回归基础" class="headerlink" title="结束语：用好 AI，本质上是在”逼迫” SOC 回归基础"></a>结束语：用好 AI，本质上是在”逼迫” SOC 回归基础</h2><p>AI 无法替代清晰的 SOP，也不会替你补齐基础能力，它只会非常诚实地放大你已经具备的能力。</p>
-<p>当你觉得 AI 不好用时，真正的问题往往不是 AI，而是：</p>
-<blockquote>
-<p><strong>AI 把 SOC 的基础问题照得更清楚了。</strong></p>
-</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;provider&#125;:&#123;rule name&#125;</span></span><br><span class="line"><span class="comment"># value: str add by &#123;user&#125; &#123;date&#125; &#123;sid&#125; # default</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Suricata</span></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> <span class="string">&quot;whitelist:rule:suricata:GPLWEB_SERVER_403_Forbidden&quot;</span> <span class="string">&quot;add by Canon 2022.02.24 2101201&quot;</span></span><br><span class="line"><span class="comment"># Imperva</span></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> <span class="string">&quot;whitelist:rule:imperva:Suspicious Response Code&quot;</span> <span class="string">&quot;add by Canon 2022.02.24&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Workflow</strong></p>
+<p>![image-20220224150916372](/Users/canon/Library/Application Support/typora-user-images/image-20220224150916372.png)</p>
 ]]></content>
       <categories>
-        <category>SOC</category>
+        <category>SIEM</category>
       </categories>
       <tags>
-        <tag>SOC</tag>
-        <tag>AI</tag>
+        <tag>SIEM</tag>
       </tags>
   </entry>
   <entry>
@@ -877,6 +783,318 @@
       </tags>
   </entry>
   <entry>
+    <title>自动化之后，SOC 该如何迈向智能化？</title>
+    <url>/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<h2 id="引言：从自动化到智能化，SOC-正在经历什么？"><a href="#引言：从自动化到智能化，SOC-正在经历什么？" class="headerlink" title="引言：从自动化到智能化，SOC 正在经历什么？"></a>引言：从自动化到智能化，SOC 正在经历什么？</h2><p>如果你的 SOC 正在经历从 <strong>自动化</strong> 走向 <strong>智能化</strong> 的阶段，那么下面这些思考，或许会对你有所帮助。</p>
+<p><img src="/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/1.png" alt="1"></p>
+<hr>
+<p>在 SOC 的自动化阶段，我们做的事情其实非常清晰：</p>
+<p>将个人经验沉淀为 <strong>SOP</strong>，再通过 <strong>SOAR</strong> 将 SOP 转换为可执行的「剧本」。</p>
+<p>这些剧本对 <strong>入参、出参以及执行路径</strong> 都有严格约束——这正是自动化最核心的优势所在：</p>
+<blockquote>
+<p>自动化擅长解决「<strong>已知问题 + 已知路径</strong>」。</p>
+<p>一旦条件满足，执行高效、稳定且可规模化。</p>
+</blockquote>
+<hr>
+<p>但随着剧本数量不断增加，问题也逐渐显现。</p>
+<p>一方面，自动化天然依赖 <strong>确定性输入</strong>。只要告警或事件稍微偏离预期路径，剧本就无法命中，最终仍需要人工介入。久而久之，便会出现一种并不陌生的现象：</p>
+<blockquote>
+<p>剧本在不断沉淀，但真正被高频使用的却越来越少。</p>
+</blockquote>
+<p>另一方面，当面对 <strong>跨系统、跨阶段、信息不完整</strong> 的复杂安全事件时，我们会发现，问题本身已经不再是”流程是否完整”，而是：</p>
+<blockquote>
+<p>如何在不确定的信息中完成研判与调查。</p>
+</blockquote>
+<p>而这，恰恰是传统自动化最不擅长的部分。</p>
+<hr>
+<p>也正是在这样的背景下，近几年 <strong>AI，尤其是 LLM</strong> 的快速发展，为处于「<strong>重度自动化阶段</strong>」的 SOC 团队提供了一个新的契机。</p>
+<p>通过引入 AI 的 <strong>推理与判断能力</strong>，SOC 开始有机会在 <strong>研判</strong> 与 <strong>调查</strong> 这两个高度依赖经验的环节中，弥补自动化在不确定性场景下的天然短板，从而迈向真正意义上的智能化阶段。</p>
+<hr>
+<p>需要强调的是，这并不意味着 SOC 可以跳过”自动化”阶段，直接进入所谓的「AI SOC」。</p>
+<p>恰恰相反：</p>
+<blockquote>
+<p><strong>自动化，是智能化 SOC 不可或缺的基础层。</strong></p>
+</blockquote>
+<p>在引入 AI 之后，SOC 面临的并不是”是否还需要自动化”，而是：</p>
+<blockquote>
+<p><strong>如何重新定义自动化在整个运营体系中的角色！</strong></p>
+</blockquote>
+<hr>
+<h2 id="AI-不是替代自动化，而是“消耗自动化沉淀”的上层能力"><a href="#AI-不是替代自动化，而是“消耗自动化沉淀”的上层能力" class="headerlink" title="AI 不是替代自动化，而是“消耗自动化沉淀”的上层能力"></a>AI 不是替代自动化，而是“消耗自动化沉淀”的上层能力</h2><p>AI 并不是直接解决安全问题的能力。它本质上是建立在自动化之上的一种 <strong>能力放大器。</strong>用于<strong>消化、调用并放大既有能力。</strong></p>
+<p>AI 本身并不具备执行力。真正决定 AI 能走多远的，始终是 SOC 在自动化阶段已经沉淀下来的能力基础。</p>
+<h3 id="1-没有自动化，AI-只能停留在“建议”"><a href="#1-没有自动化，AI-只能停留在“建议”" class="headerlink" title="1. 没有自动化，AI 只能停留在“建议”"></a>1. 没有自动化，AI 只能停留在“建议”</h3><p>AI 并不能直接作用于真实环境。它需要 <strong>可调用、可执行、可审计</strong> 的底层能力作为支撑。这意味着，在自动化阶段沉淀下来的原子能力，需要以 MCP Tools 的形式暴露给 AI 使用。</p>
+<p>如果缺乏这些原子能力：</p>
+<ul>
+<li>AI 无法真正调用真实世界的能力；</li>
+<li>只能停留在分析、推理和“给建议”的层面；</li>
+<li>无法形成闭环，更谈不上规模化落地。</li>
+</ul>
+<h3 id="2-没有-SOP，AI-的判断无法落地"><a href="#2-没有-SOP，AI-的判断无法落地" class="headerlink" title="2. 没有 SOP，AI 的判断无法落地"></a>2. 没有 SOP，AI 的判断无法落地</h3><p>在自动化阶段我们努力让 SOP 不被“<strong>挂在墙上</strong>”。在智能化阶段，SOP 不会消失，反而变得更加重要。SOP 不再只是给人看的操作说明，而是一种：<strong>约束</strong>与<strong>引导</strong>机制。它为 AI 提供 符合真实环境、组织策略与安全边界的处理路径。</p>
+<blockquote>
+<p>换句话说：SOP 决定了 AI「<strong>可以怎么做</strong>」，而不仅仅是「<strong>应该怎么想</strong>」。</p>
+</blockquote>
+<p>此外，在实际运行中，自动化往往还承担着一个容易被忽视的角色：<strong>信息准备层</strong>。通过自动化手段对告警进行<strong>上下文补充</strong>、<strong>资产关联</strong>、<strong>情报拉取</strong>与<strong>数据聚合</strong>，可以在进入 AI 研判之前，就将信息尽可能 结构化、丰富化：</p>
+<ul>
+<li>减少 AI 的重复调用；</li>
+<li>降低整体运行成本；</li>
+<li>提升研判稳定性与一致性。</li>
+</ul>
+<p>因此，在迈向智能化 SOC 的过程中，自动化并没有被削弱，而是完成了一次角色转变：</p>
+<blockquote>
+<p>从<strong>「流程执行者」转变为「能力提供者」和「信息放大器」</strong>。</p>
+</blockquote>
+<hr>
+<h2 id="为什么研判与调查，才是-AI-最适合介入的环节？"><a href="#为什么研判与调查，才是-AI-最适合介入的环节？" class="headerlink" title="为什么研判与调查，才是 AI 最适合介入的环节？"></a>为什么研判与调查，才是 AI 最适合介入的环节？</h2><p>研判与调查，是 SOC 中 <strong>不确定性最高、规则最难穷举、却又高度依赖经验</strong> 的环节。</p>
+<p>而这，恰恰是 AI 最擅长、也是传统自动化最”<strong>无能为力</strong>“的地方。</p>
+<h3 id="1-研判与调查的本质，是在不完整信息中做判断"><a href="#1-研判与调查的本质，是在不完整信息中做判断" class="headerlink" title="1. 研判与调查的本质，是在不完整信息中做判断"></a>1. 研判与调查的本质，是在不完整信息中做判断</h3><p>与检测规则或自动化处置不同，研判与调查面对的，往往并不是”条件是否满足”，而是：</p>
+<ul>
+<li>告警信息不完整，甚至存在噪声；</li>
+<li>数据分散在多个系统中，需要横向关联；</li>
+<li>事件是否构成风险，依赖上下文而非单一指标；</li>
+<li>同一类告警，在不同业务、不同资产背景下，结论可能完全不同。</li>
+</ul>
+<p>这类问题，很难通过固定规则或条件穷举来解决，却高度依赖：</p>
+<ul>
+<li>经验积累；</li>
+<li>模式识别；</li>
+<li>对业务与环境上下文的理解。</li>
+</ul>
+<p>而这，正是 <strong>LLM 最擅长的！</strong></p>
+<h3 id="2-自动化擅长”执行”，但不擅长”判断”"><a href="#2-自动化擅长”执行”，但不擅长”判断”" class="headerlink" title="2. 自动化擅长”执行”，但不擅长”判断”"></a>2. 自动化擅长”执行”，但不擅长”判断”</h3><p>自动化在 SOC 中的价值非常明确：<strong>路径清晰、条件明确、结果可预期</strong>。</p>
+<p>它非常适合处理：</p>
+<ul>
+<li>批量化、重复性任务；</li>
+<li>明确的处置流程；</li>
+<li>可被标准化的操作动作。</li>
+</ul>
+<p>但研判与调查恰恰相反：</p>
+<ul>
+<li>很多判断不是”是否满足条件”，而是”是否合理”；</li>
+<li>很多结论不是二元判断，而是带概率与置信度的判断；</li>
+<li>调查路径需要根据中间结果不断调整，具有明显的动态性。</li>
+</ul>
+<p>如果强行用剧本去覆盖研判与调查阶段，通常只会出现两个结果：</p>
+<ul>
+<li>剧本复杂度不断上升，却依然无法覆盖所有场景；</li>
+<li>分析师开始绕过自动化，回到完全依赖人工的分析模式。</li>
+</ul>
+<blockquote>
+<p>AI 的引入，本质上是：填补自动化在「判断层」的 <strong>空白</strong>。</p>
+</blockquote>
+<h3 id="3-从落地角度看，这是-AI-最容易”真正落地”的切入口"><a href="#3-从落地角度看，这是-AI-最容易”真正落地”的切入口" class="headerlink" title="3. 从落地角度看，这是 AI 最容易”真正落地”的切入口"></a>3. 从落地角度看，这是 AI 最容易”真正落地”的切入口</h3><p>在”真实世界”的 SOC 工作中，引入 AI 往往面临两个非常现实、且不可回避的约束：</p>
+<ul>
+<li>不能影响生产稳定性；</li>
+<li>不能引入不可控的误操作风险。</li>
+</ul>
+<p>这意味着，AI 很难一开始就参与”处置”。在此阶段我们需要与 AI 建立”信任”。</p>
+<p>相比之下，将 AI <strong>优先引入研判与调查阶段</strong>，是一个更现实、也更稳妥的切入口：</p>
+<ul>
+<li><strong>不直接接管处置权</strong>，最终决策仍由人完成；</li>
+<li><strong>不改变既有检测链路</strong>，避免对生产环境产生影响；</li>
+<li><strong>不引入破坏性操作风险</strong>，即便判断失误，代价也可控。</li>
+</ul>
+<p>但与此同时，它可以带来非常直接、可量化的收益：</p>
+<ul>
+<li>显著降低人工分析的时间成本；</li>
+<li>提升告警研判的一致性与稳定性；</li>
+<li>缓解 Tier 1 分析师的人力瓶颈。</li>
+</ul>
+<p>这使得 AI 在 SOC 中的角色，更像是一个：</p>
+<blockquote>
+<p>可逐步放权、可持续验证价值的”增强型分析能力”，而不是一次性、大规模替换人的”黑盒系统”。</p>
+</blockquote>
+<p>也正因为如此，研判与调查，往往成为 AI 在 SOC 中 <strong>最先真正跑起来、且最容易跑稳的场景</strong>。</p>
+<hr>
+<h2 id="为什么要优先从告警研判入手？"><a href="#为什么要优先从告警研判入手？" class="headerlink" title="为什么要优先从告警研判入手？"></a>为什么要优先从告警研判入手？</h2><p>在 SOC 的日常运行中，大量工作并不是在处理「已确认的安全事件」，而是在对 <strong>源源不断的告警进行研判</strong>，确保它们被 <strong>正确分流和处置</strong>。</p>
+<p>现实中，这部分工作通常由 Tier 1 分析师承担，而在国内环境下，很少存在”<strong>只做研判</strong>“的纯 Tier 1 角色。更多时候，分析师需要在告警研判、日常运营、规则优化甚至项目支持之间反复切换。这使得 <strong>告警研判成为最消耗人力、同时也最容易成为瓶颈的环节</strong>。</p>
+<p><img src="/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/2.jpg" alt="2"></p>
+<hr>
+<p>因此，将 AI 优先引入告警研判阶段，往往可以在 <strong>不改变 SOC 整体架构</strong> 的前提下，显著释放分析师的时间与精力。</p>
+<p>通过 <strong>SOAR + AI</strong> 的组合：</p>
+<ul>
+<li>自动化负责信息收集、上下文补全与初步归并；</li>
+<li>AI 在已有信息基础上完成快速分析与定性建议；</li>
+<li>人只需对关键告警进行最终确认。</li>
+</ul>
+<p>优先选择告警研判，并不是因为它”简单”，而是因为它决定了 SOC 是否能把有限的人力，用在 <strong>更具研究价值的工作上</strong>：检测工程、威胁狩猎或安全研究。</p>
+<hr>
+<h2 id="研判与调查：是必须被严格区分的两件事！"><a href="#研判与调查：是必须被严格区分的两件事！" class="headerlink" title="研判与调查：是必须被严格区分的两件事！"></a>研判与调查：是必须被严格区分的两件事！</h2><blockquote>
+<p>研判决定是否升级，调查决定如何响应。</p>
+<p>两者边界越清晰，AI 才越容易安全落地。</p>
+</blockquote>
+<p>在实践中，<strong>一个常见且”危险”的误区</strong>，是 <strong>将”告警研判”和”事件调查”混为一谈</strong>。这不仅会拉高研判阶段的复杂度，也会让 AI 的使用边界变得模糊甚至 <strong>失控</strong>。</p>
+<h3 id="告警研判（Alert-Triage）"><a href="#告警研判（Alert-Triage）" class="headerlink" title="告警研判（Alert Triage）"></a>告警研判（Alert Triage）</h3><ul>
+<li><strong>核心问题</strong>：这是真的攻击，还是误报？</li>
+<li><strong>目标</strong>：降噪与定性</li>
+<li><strong>关注点</strong>：速度、一致性、可解释性</li>
+<li><strong>SOC 视角</strong>：分诊台</li>
+</ul>
+<h3 id="事件调查（Incident-Investigation）"><a href="#事件调查（Incident-Investigation）" class="headerlink" title="事件调查（Incident Investigation）"></a>事件调查（Incident Investigation）</h3><ul>
+<li><strong>核心问题</strong>：攻击者是谁？影响了什么？如何进入？</li>
+<li><strong>目标</strong>：溯源与定损</li>
+<li><strong>关注点</strong>：深度、完整性、可复现性</li>
+<li><strong>SOC 视角</strong>：手术室</li>
+</ul>
+<hr>
+<h2 id="AI-撕开了运营的”遮羞布”"><a href="#AI-撕开了运营的”遮羞布”" class="headerlink" title="AI 撕开了运营的”遮羞布”"></a>AI 撕开了运营的”遮羞布”</h2><p>过去一年，我们在 SOC 运营中全面引入 AI，并将其与既有的自动化体系（SOAR）深度融合。</p>
+<p>从指标上看，这是一场”<strong>胜利</strong>“：Tier 1 分析师从重复劳动中被解放出来，复杂 Case 的吞吐量提升，整体 <strong>MTTR 明显改善</strong>。</p>
+<p><img src="/2026/02/03/SOC-%E4%BB%8E%E8%87%AA%E5%8A%A8%E5%8C%96%E5%88%B0%E6%99%BA%E8%83%BD%E5%8C%96%EF%BC%8C%E6%88%91%E4%BB%AC%E7%9C%9F%E6%AD%A3%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/3.png" alt="3"></p>
+<p>但当 AI 真正进入 <strong>日常、高频、规模化</strong> 的研判流程后，我们很快意识到一件事：</p>
+<blockquote>
+<p>AI 并没有自动让研判变得更稳定，反而像一面 <strong>放大镜</strong>，撕开了 SOC 运营体系中原本被掩盖的问题。</p>
+</blockquote>
+<p>最先暴露出来的，并不是检测能力、数据质量，甚至也不是模型能力，而是一个长期被忽视的基础问题：</p>
+<blockquote>
+<p>告警研判的 <strong>一致性</strong> 与 <strong>可复用性</strong>。</p>
+</blockquote>
+<h3 id="在没有-AI-的时代，这些问题是被”默许”的"><a href="#在没有-AI-的时代，这些问题是被”默许”的" class="headerlink" title="在没有 AI 的时代，这些问题是被”默许”的"></a>在没有 AI 的时代，这些问题是被”默许”的</h3><p>在传统 SOC 运营模式下，研判质量高度依赖个人经验：</p>
+<ul>
+<li>不同分析师对同一类告警，结论可能并不一致；</li>
+<li>资深分析师往往能快速给出 <strong>“正确但难以解释”</strong> 的判断；</li>
+<li>这些差异被默认为”经验差距”，并被组织所接受。</li>
+</ul>
+<p>从结果上看，这种状态虽然低效，但仍处于一种 <strong>“软性可控”</strong> 的状态 —— <strong>因为问题只存在于个体之间，而不是被系统性放大</strong>。</p>
+<h3 id="进入-AI-时代后，问题被系统性放大"><a href="#进入-AI-时代后，问题被系统性放大" class="headerlink" title="进入 AI 时代后，问题被系统性放大"></a>进入 AI 时代后，问题被系统性放大</h3><p>当 AI 介入研判之后，情况发生了变化。</p>
+<p>如果缺乏 <strong>清晰</strong> 的 <strong>SOP</strong> 与经验约束，AI 会对同一类告警：</p>
+<ul>
+<li>给出风格差异极大的分析结论；</li>
+<li>采用逻辑路径不一致的判断方式；</li>
+<li>甚至在不同时间，对同一问题给出 <strong>相互矛盾</strong> 的结论。</li>
+</ul>
+<p>处在自动化阶段的 SOC，可以通过 SOAR 做很多事。但 SOAR 始终只能提供 “<strong>冷冰冰的数据上下文</strong>“：</p>
+<ul>
+<li>字段</li>
+<li>日志</li>
+<li>关联关系</li>
+<li>历史次数</li>
+</ul>
+<p>但它无法回答一个关键问题：</p>
+<blockquote>
+<p><strong>“在我们这个组织里，这类告警通常是如何被理解和处理的？”</strong></p>
+</blockquote>
+<p>也正是在这个阶段，我们逐渐意识到：</p>
+<blockquote>
+<p>如果没有经验约束，AI 只会把研判差异放大成系统性风险。</p>
+</blockquote>
+<h3 id="SOP，决定了-AI-研判的”下限”"><a href="#SOP，决定了-AI-研判的”下限”" class="headerlink" title="SOP，决定了 AI 研判的”下限”"></a>SOP，决定了 AI 研判的”下限”</h3><p>在告警研判与事件处理中，AI 并不是凭空做判断。</p>
+<p>它所采用的分析路径、检查步骤与决策逻辑，本质上来源于两类资产：</p>
+<ul>
+<li><strong>SOP</strong></li>
+<li><strong>历史 Case</strong></li>
+</ul>
+<p>如果这两者本身是模糊的、不完整的，那么 AI 的输出只会显得 “<strong>看起来合理</strong>“，却无法保证 <strong>一致性</strong> 与 <strong>可复用性</strong>。</p>
+<h3 id="一个直观的对比（SOP）：国内-vs-海外"><a href="#一个直观的对比（SOP）：国内-vs-海外" class="headerlink" title="一个直观的对比（SOP）：国内 vs 海外"></a>一个直观的对比（SOP）：国内 vs 海外</h3><p>从我的个人观察来看，<strong>海外团队</strong> 在 SOP 的标准化与细化程度上，整体要优于国内。</p>
+<p>我看过不少海外分析师留下的 Case 记录和 SOP，从国内的视角来看，这些内容往往显得：</p>
+<ul>
+<li>很繁琐；</li>
+<li>很基础；</li>
+<li>甚至有些”笨笨的”。</li>
+</ul>
+<p>但他们会非常明确地写出：</p>
+<ul>
+<li>每一步具体要查什么数据；</li>
+<li>为什么查这个数据；</li>
+<li>在什么条件下得出什么结论；</li>
+<li>哪些情况可以直接终止分析。</li>
+</ul>
+<p>而在国内 SOC 的现实环境中，我们更常见的是另一种写法：</p>
+<ul>
+<li>“检查日志确认无异常”</li>
+<li>“确认资产为测试环境”</li>
+<li>“综合判断为误报”</li>
+</ul>
+<p>这些描述方向未必是错的，但它们存在一个致命问题：</p>
+<blockquote>
+<p><strong>无法被直接执行。无论是给新人，还是给 AI。</strong></p>
+</blockquote>
+<p>这一点我感触很深，我的新加坡团队成员就曾和我反馈过，为什么国内的小伙伴处理的Case，总是”轻描淡写”的写一句：”综合判断误判 或 运维正常操作”，并不会写明判断过程和附上判断依据。</p>
+<p>这背后当然有现实原因：</p>
+<ul>
+<li>国内更强调效率，要求一人身兼多职</li>
+<li>日常运营压力大，很难抽出时间系统性沉淀文档</li>
+<li>能偶尔写一篇 Blog，已经算是”幸运”</li>
+</ul>
+<p>在这样的环境下，很少能够有时间对历史 Case 做标准化抽象，再进一步整理为 <strong>可复用、可传承的 SOP</strong>。这是需要分析师有专注的时间去打磨的。</p>
+<p>当 AI 进入研判流程后，这种差距会被迅速放大。</p>
+<p>这听起来 <strong>非常基础</strong>，但这正是大多数 SOC 团队不愿面对的”<strong>运营债</strong>“—— <strong>知识库与 SOP</strong>。</p>
+<h3 id="列举2个常见的场景"><a href="#列举2个常见的场景" class="headerlink" title="列举2个常见的场景"></a>列举2个常见的场景</h3><h4 id="场景一：模糊历史的「族谱索引」"><a href="#场景一：模糊历史的「族谱索引」" class="headerlink" title="场景一：模糊历史的「族谱索引」"></a>场景一：模糊历史的「族谱索引」</h4><p>这是资深分析师最难被传承的一类直觉能力：</p>
+<blockquote>
+<p><strong>“这个告警，我好像半年前见过。”</strong></p>
+</blockquote>
+<p>现实中的典型场景包括：</p>
+<ul>
+<li>某个业务系统存在罕见 Bug，会周期性触发异常请求；</li>
+<li>半年前曾有分析师深入排查，并在工单中留下明确结论；</li>
+<li>由于特征不稳定，无法通过规则或白名单彻底解决。</li>
+</ul>
+<p>在这种场景下：</p>
+<ul>
+<li>SOAR 能提供的是 <strong>数据</strong>：相似字段、历史出现次数、时间分布；</li>
+<li>却给不出 <strong>经验</strong>：当时是如何判断的？为什么最终被忽略？</li>
+</ul>
+<p>如果没有知识库或结构化的历史 Case，这类经验只能停留在个人脑海中。</p>
+<p>而当 <strong>SOP 与历史 Case 被系统化沉淀</strong> 后，AI 可以在研判阶段明确指出：</p>
+<blockquote>
+<p>“这类告警在我们组织内部，历史上是如何被理解和处理的。”</p>
+</blockquote>
+<p><strong>❗️温馨提示：</strong><br>这并不是让 AI “拍板”，而是让 AI <strong>继承组织的集体经验</strong>。</p>
+<h4 id="场景二：研判质量的「下限固化」"><a href="#场景二：研判质量的「下限固化」" class="headerlink" title="场景二：研判质量的「下限固化」"></a>场景二：研判质量的「下限固化」</h4><p>另一个在真实运营中反复出现的问题是：</p>
+<ul>
+<li>同一类告警，不同分析师的研判质量差异极大；</li>
+<li>某些分析师的处理方式被公认为”教科书级别”；</li>
+<li>但这种高质量研判，无法被稳定复用。</li>
+</ul>
+<p>在没有 AI 的情况下，这种差异虽然存在，但影响范围有限。</p>
+<p>而在引入 AI 之后，如果缺乏 SOP 约束，这种问题会演变为：</p>
+<ul>
+<li>研判逻辑过度发散；</li>
+<li>输出风格不断漂移；</li>
+<li>甚至出现 <strong>“逻辑自洽，但结论错误”</strong> 的幻觉。</li>
+</ul>
+<p>在这一场景下，<strong>SOP 的价值恰恰不是提升 AI 的上限，而是：固化分析路径，保证研判质量的下限</strong>。</p>
+<p>SOP 在这里扮演的角色，并不是”告诉 AI 答案”，而是：</p>
+<ul>
+<li>明确哪些检查是 <strong>必须做的</strong>；</li>
+<li>哪些结论是 <strong>不能轻易给出的</strong>；</li>
+<li>哪些判断需要满足 <strong>明确前提</strong>。</li>
+</ul>
+<h3 id="SOP-是-AI-分析研判阶段的”安全护栏”"><a href="#SOP-是-AI-分析研判阶段的”安全护栏”" class="headerlink" title="SOP 是 AI 分析研判阶段的”安全护栏”"></a>SOP 是 AI 分析研判阶段的”安全护栏”</h3><p>在 AI 时代，那些看起来 “<strong>笨笨的 SOP</strong>“，反而成了最有价值的资产：</p>
+<ul>
+<li>为 AI 提供明确、可执行的分析路径；</li>
+<li>天然适合作为知识库与高质量 Case 的来源；</li>
+<li>让 AI 始终运行在一个 <strong>稳定、可控的判断框架</strong> 之内。</li>
+</ul>
+<p><strong>在实践中你会发现</strong>：</p>
+<ul>
+<li>自动化越成熟，AI 的建议越容易落地</li>
+<li>SOP 越清晰，AI 的研判越稳定可控</li>
+</ul>
+<p><strong>反之</strong>：</p>
+<ul>
+<li>自动化混乱，AI 的判断无法执行</li>
+<li>SOP 模糊，AI 的判断无法复用</li>
+</ul>
+<p><strong>所以</strong>：</p>
+<blockquote>
+<p>往往并不是”AI 不行”，而是 <strong>AI 把 SOC 的基础问题照得更清楚了</strong>。</p>
+<p>SOP 不是为了让 AI 更聪明，而是为了让它不犯低级错误，守住研判的下限。</p>
+</blockquote>
+<hr>
+<h2 id="结束语：用好-AI，本质上是在”逼迫”-SOC-回归基础"><a href="#结束语：用好-AI，本质上是在”逼迫”-SOC-回归基础" class="headerlink" title="结束语：用好 AI，本质上是在”逼迫” SOC 回归基础"></a>结束语：用好 AI，本质上是在”逼迫” SOC 回归基础</h2><p>AI 无法替代清晰的 SOP，也不会替你补齐基础能力，它只会非常诚实地放大你已经具备的能力。</p>
+<p>当你觉得 AI 不好用时，真正的问题往往不是 AI，而是：</p>
+<blockquote>
+<p><strong>AI 把 SOC 的基础问题照得更清楚了。</strong></p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>SOC</category>
+      </categories>
+      <tags>
+        <tag>SOC</tag>
+        <tag>AI</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Scrapy 多个item对应一个pipeline</title>
     <url>/2019/12/30/Scrapy-%E5%A4%9A%E4%B8%AAitem%E5%AF%B9%E5%BA%94%E4%B8%80%E4%B8%AApipeline/</url>
     <content><![CDATA[<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>​        在利用<strong>Scrapy</strong>编写爬虫时,经常会遇到同一个爬虫中包含多个item classes, 并且需要在同一个<code>pipelines.py</code>中根据不同的item classes进行逻辑的处理。</p>
@@ -894,224 +1112,6 @@
       </categories>
       <tags>
         <tag>Scrapy</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>致我心中的 “散装”（开源）SIEM（二）</title>
-    <url>/2021/02/02/SIEM%EF%BC%88%E4%BA%8C%EF%BC%89/</url>
-    <content><![CDATA[<h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>XXX</p>
-<hr>
-<h1 id="SIEM-v0-2-的不足"><a href="#SIEM-v0-2-的不足" class="headerlink" title="SIEM v0.2 的不足"></a>SIEM v0.2 的不足</h1><p>XXX</p>
-<hr>
-<h1 id="SIEM-v0-3-的改进"><a href="#SIEM-v0-3-的改进" class="headerlink" title="SIEM v0.3 的改进"></a>SIEM v0.3 的改进</h1><h2 id="1-Workflow"><a href="#1-Workflow" class="headerlink" title="1. Workflow"></a>1. Workflow</h2><p>XXX</p>
-<hr>
-<h2 id="2-Normalized"><a href="#2-Normalized" class="headerlink" title="2. Normalized"></a>2. Normalized</h2><h3 id="Workflow"><a href="#Workflow" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220218183243830](/Users/canon/Library/Application Support/typora-user-images/image-20220218183243830.png)</p>
-<h3 id="Configure"><a href="#Configure" class="headerlink" title="Configure"></a>Configure</h3><table>
-<thead>
-<tr>
-<th>No</th>
-<th>File</th>
-<th>Script</th>
-<th>Log</th>
-<th>Note</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>60_normalized-general.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>2</td>
-<td>61_normalized-alert.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>3</td>
-<td>62_normalized-flow.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>4</td>
-<td>63_normalized-fileinfo.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>5</td>
-<td>64_normalized-http.conf</td>
-<td>64_normalized-http.rb</td>
-<td>64_normalized-http.log</td>
-<td></td>
-</tr>
-<tr>
-<td>6</td>
-<td>65_normalized-tls.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody></table>
-<h2 id="3-Enrichment"><a href="#3-Enrichment" class="headerlink" title="3. Enrichment"></a>3. Enrichment</h2><h3 id="Workflow-1"><a href="#Workflow-1" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220221134544143](/Users/canon/Library/Application Support/typora-user-images/image-20220221134544143.png)</p>
-<h3 id="Configure-1"><a href="#Configure-1" class="headerlink" title="Configure"></a>Configure</h3><table>
-<thead>
-<tr>
-<th>No</th>
-<th>File</th>
-<th>Script</th>
-<th>Log</th>
-<th>Note</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>70_enrichment-general-geo-1-private_ip.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>2</td>
-<td>70_enrichment-general-geo-2-public_ip.conf</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>3</td>
-<td>71_enrichment-alert-1-direction.conf</td>
-<td>71_enrichment-alert-1-direction.rb</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>4</td>
-<td>71_enrichment-alert-2-killChain.conf</td>
-<td>71_enrichment-alert-2-killChain.rb</td>
-<td>71_enrichment-alert-2-killChain.log</td>
-<td></td>
-</tr>
-<tr>
-<td>5</td>
-<td>71_enrichment-alert-3-cve.conf</td>
-<td>71_enrichment-alert-3-cve.rb</td>
-<td>71_enrichment-alert-3-cve.log</td>
-<td></td>
-</tr>
-<tr>
-<td>6</td>
-<td>71_enrichment-alert-4-whitelist_ip.conf</td>
-<td>71_enrichment-alert-4-whitelist_ip.rb</td>
-<td>71_enrichment-alert-4-whitelist_ip.log</td>
-<td>****</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody></table>
-<h4 id="KillChain"><a href="#KillChain" class="headerlink" title="KillChain"></a>KillChain</h4><h5 id="Suricata"><a href="#Suricata" class="headerlink" title="Suricata"></a>Suricata</h5><p><strong>Imput</strong></p>
-<ul>
-<li>Redis template</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: str killchain:&#123;provider&#125;:&#123;rule id&#125;</span></span><br><span class="line"><span class="comment"># value: json str &#123;&quot;steps&quot;=&gt;&#123;KillChain steps&#125;, &quot;description&quot;=&gt;&#123;KillChain description&#125;, &quot;class&quot;=&gt;&#123;rule class&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> killchain:suricata:2028933 <span class="string">&#x27;&#123;&quot;steps&quot;: 4, &quot;description&quot;: &quot;Exploitation&quot;, &quot;class&quot;=&gt;exploit&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Output</strong></p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;killchain&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;steps&quot;</span>: <span class="number">1</span>,</span><br><span class="line">            <span class="attr">&quot;description&quot;</span>: <span class="string">&quot;侦查跟踪&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;class&quot;</span>: <span class="string">&quot;scan&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Imperva"><a href="#Imperva" class="headerlink" title="Imperva"></a>Imperva</h5><h4 id="Vulnerability"><a href="#Vulnerability" class="headerlink" title="Vulnerability"></a>Vulnerability</h4><p><strong>Input</strong></p>
-<ul>
-<li>Redis template</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: str enrichment:&#123;class&#125;:&#123;cve&#125;</span></span><br><span class="line"><span class="comment"># value: str &#123;create time create user&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> enrichment:cve:CVE-2016-8618 <span class="string">&#x27;2022-02-16 Canon&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Output</strong></p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;rule&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;cve&quot;</span>: <span class="string">&quot;CVE-2015-9381&quot;</span> <span class="comment">// none</span></span><br><span class="line">    &#125;,</span><br><span class="line">  	<span class="attr">&quot;vulnerability&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;CVE-2015-9381&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;enumeration&quot;</span>: <span class="string">&quot;CVE&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h2 id="4-ThreatIntel"><a href="#4-ThreatIntel" class="headerlink" title="4. ThreatIntel"></a>4. ThreatIntel</h2><h3 id="Workflow-2"><a href="#Workflow-2" class="headerlink" title="Workflow"></a>Workflow</h3><p>![image-20220221105601713](/Users/canon/Library/Application Support/typora-user-images/image-20220221105601713.png)</p>
-<h3 id="Configure-2"><a href="#Configure-2" class="headerlink" title="Configure"></a>Configure</h3><h4 id="Shodan"><a href="#Shodan" class="headerlink" title="Shodan"></a>Shodan</h4><table>
-<thead>
-<tr>
-<th>No</th>
-<th>File</th>
-<th>Script</th>
-<th>Log</th>
-<th>Note</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>1</td>
-<td>85_threatintel-siem-event-1-shodan.conf</td>
-<td>85_threatintel-siem-event-1-shodan.rb</td>
-<td></td>
-<td></td>
-</tr>
-</tbody></table>
-<p><strong>Input</strong></p>
-<ul>
-<li>Redis template</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: list spider:&#123;provider&#125;:ioc</span></span><br><span class="line"><span class="comment"># value: str ioc</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; LPUSH spider:shodan:ioc 8.8.8.8 <span class="comment"># Spider Queue</span></span><br><span class="line">localhost:6379&gt; SETEX alert:8.8.8.8 86400 <span class="literal">true</span> <span class="comment"># IoC Cache</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Output</strong></p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;84.17.52.20&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;threat&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;hunting&quot;</span>: &#123;</span><br><span class="line">            <span class="attr">&quot;details&quot;</span>: &#123;</span><br><span class="line">                <span class="attr">&quot;tcp&quot;</span>: [</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;http-simple-new&quot;</span>: <span class="number">81</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https&quot;</span>: <span class="number">443</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;http-simple-new&quot;</span>: <span class="number">8080</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https-simple-new&quot;</span>: <span class="number">8081</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https&quot;</span>: <span class="number">8443</span></span><br><span class="line">                    &#125;,</span><br><span class="line">                    &#123;</span><br><span class="line">                        <span class="attr">&quot;https-simple-new&quot;</span>: <span class="number">9002</span></span><br><span class="line">                    &#125;</span><br><span class="line">                ],</span><br><span class="line">                <span class="attr">&quot;udp&quot;</span>: []</span><br><span class="line">            &#125;,</span><br><span class="line">            <span class="attr">&quot;domains&quot;</span>: <span class="string">&quot;cdn77.com&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;hostnames&quot;</span>: <span class="string">&quot;unn-84-17-52-20.cdn77.com&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;ports&quot;</span>: [</span><br><span class="line">                <span class="number">8443</span>,</span><br><span class="line">                <span class="number">8081</span>,</span><br><span class="line">                <span class="number">9002</span>,</span><br><span class="line">                <span class="number">8080</span>,</span><br><span class="line">                <span class="number">81</span>,</span><br><span class="line">                <span class="number">443</span></span><br><span class="line">            ],</span><br><span class="line">            <span class="attr">&quot;services&quot;</span>: [</span><br><span class="line">                <span class="string">&quot;https&quot;</span>,</span><br><span class="line">                <span class="string">&quot;https-simple-new&quot;</span>,</span><br><span class="line">                <span class="string">&quot;http-simple-new&quot;</span></span><br><span class="line">            ]</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="3-Filter"><a href="#3-Filter" class="headerlink" title="3. Filter"></a>3. Filter</h2><h3 id="3-1-Whitelist"><a href="#3-1-Whitelist" class="headerlink" title="3.1 Whitelist"></a>3.1 Whitelist</h3><h4 id="3-1-1-IP"><a href="#3-1-1-IP" class="headerlink" title="3.1.1 IP"></a>3.1.1 IP</h4><ul>
-<li>Redis template</li>
-</ul>
-<p><strong>Input</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;ip&#125;</span></span><br><span class="line"><span class="comment"># value: json str &#123;&quot;type&quot;: &quot;cdn&quot;, &quot;action&quot;: &quot;pass|drop&quot;&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> whitelist:ip:8.8.8.8 <span class="string">&#x27;&#123;&quot;type&quot;: &quot;cdn&quot;, &quot;action&quot;: &quot;pass&quot;&#125;&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Output</strong></p>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;whitelist&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cdn&quot;</span>, <span class="comment">// 描述白名单类型，如：CDN、红队测试IP、办公网出口IP</span></span><br><span class="line">        <span class="attr">&quot;action&quot;</span>: <span class="string">&quot;drop&quot;</span>, <span class="comment">// drop|pass 事件是否需要进入SIEM消费</span></span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;source&quot;</span> <span class="comment">// source|destination 描述实际匹配到白名单来源是&quot;source&quot;还是&quot;destination&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span> <span class="comment">// 仅作为筛选条件</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>Differences</strong></p>
-<ul>
-<li>v0.2</li>
-</ul>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span>,</span><br><span class="line">      	<span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">      	<span class="attr">&quot;whitelistType&quot;</span>: <span class="string">&quot;exit_whitelist&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;destination.&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;y.y.y.y&quot;</span>,</span><br><span class="line">      	<span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span>,</span><br><span class="line">      	<span class="attr">&quot;whitelistType&quot;</span>: <span class="string">&quot;exit_whitelist&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>v0.3</li>
-</ul>
-<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;source&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;ip&quot;</span>: <span class="string">&quot;x.x.x.x&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;whitelist&quot;</span>: &#123;</span><br><span class="line">        <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;cdn&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;action&quot;</span>: <span class="string">&quot;drop&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;origin&quot;</span>: <span class="string">&quot;source&quot;</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">&quot;isWhitelist&quot;</span>: <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="3-1-2-Rule"><a href="#3-1-2-Rule" class="headerlink" title="3.1.2 Rule"></a>3.1.2 Rule</h4><h5 id="3-1-2-1-SID"><a href="#3-1-2-1-SID" class="headerlink" title="3.1.2.1 SID"></a>3.1.2.1 SID</h5><ul>
-<li>Redis template</li>
-</ul>
-<p><strong>Input</strong></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;provider&#125;:&#123;rule id&#125;</span></span><br><span class="line"><span class="comment"># value: str &#123;rule name&#125;</span></span><br><span class="line"></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> whitelist:sid:suricata:2101201 <span class="string">&quot;GPLWEB_SERVER_403_Forbidden&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Workflow</strong></p>
-<p>![image-20220224143316558](/Users/canon/Library/Application Support/typora-user-images/image-20220224143316558.png)</p>
-<p><strong>Input</strong></p>
-<ul>
-<li>Redis template</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># key: str whitelist:&#123;class&#125;:&#123;provider&#125;:&#123;rule name&#125;</span></span><br><span class="line"><span class="comment"># value: str add by &#123;user&#125; &#123;date&#125; &#123;sid&#125; # default</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Suricata</span></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> <span class="string">&quot;whitelist:rule:suricata:GPLWEB_SERVER_403_Forbidden&quot;</span> <span class="string">&quot;add by Canon 2022.02.24 2101201&quot;</span></span><br><span class="line"><span class="comment"># Imperva</span></span><br><span class="line">localhost:6379&gt; <span class="built_in">set</span> <span class="string">&quot;whitelist:rule:imperva:Suspicious Response Code&quot;</span> <span class="string">&quot;add by Canon 2022.02.24&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>Workflow</strong></p>
-<p>![image-20220224150916372](/Users/canon/Library/Application Support/typora-user-images/image-20220224150916372.png)</p>
-]]></content>
-      <categories>
-        <category>SIEM</category>
-      </categories>
-      <tags>
-        <tag>SIEM</tag>
       </tags>
   </entry>
   <entry>
@@ -1350,6 +1350,50 @@
       </categories>
       <tags>
         <tag>Suricata</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Wazuh - 黑名单匹配告警(CDB list)</title>
+    <url>/2019/10/18/Wazuh-Using-CDB-lists/</url>
+    <content><![CDATA[<p><strong>需求:</strong></p>
+<p>​        现有一批高危用户, 需要实时关注该账号的登录情况。由于之前已经写好了一个针对用户登录账号的审计规则, 因此, 这里需要用到**<a href="https://documentation.wazuh.com/3.10/user-manual/ruleset/cdb-list.html">Wazuh CDB list</a>**这个功能(<em>此功能主要用例是创建用户，IP或域名的白/黑列表。</em>)消费审计规则数据即可。</p>
+<hr>
+<ol>
+<li><strong>新建列表</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more blacklist</span><br><span class="line"></span><br><span class="line">admin:</span><br><span class="line">root:</span><br><span class="line">administrator:</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><strong>将列表文件添加到<code>ossec.conf</code></strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more ossec.conf</span><br><span class="line"></span><br><span class="line">&lt;ossec_config&gt;</span><br><span class="line">	&lt;ruleset&gt;</span><br><span class="line">    &lt;!-- User-defined CDB list --&gt;</span><br><span class="line">    &lt;list&gt;etc/lists/blacklist&lt;/list&gt;</span><br><span class="line">	&lt;/ruleset&gt;</span><br><span class="line">&lt;/ossec_config&gt;</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li><strong>编译列表</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /var/ossec/bin/ossec-makelists</span><br><span class="line"></span><br><span class="line"> * File etc/lists/blacklist.cdb needs to be updated</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li><strong>重启进程</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo systemctl restart wazuh-manager</span><br></pre></td></tr></table></figure>
+
+<ol start="5">
+<li><strong>配置规则</strong></li>
+</ol>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">group</span> <span class="attr">name</span>=<span class="string">&quot;local,blacklist,&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- Defind blacklist Rules --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- ID: 100150 - 100199 --&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule</span> <span class="attr">id</span>=<span class="string">&quot;100163&quot;</span> <span class="attr">level</span>=<span class="string">&quot;12&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if_sid</span>&gt;</span>100303<span class="tag">&lt;/<span class="name">if_sid</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">list</span> <span class="attr">field</span>=<span class="string">&quot;http.email&quot;</span> <span class="attr">lookup</span>=<span class="string">&quot;match_key&quot;</span>&gt;</span>etc/lists/blacklist<span class="tag">&lt;/<span class="name">list</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>Wazuh Rules - High-risk user login detected. $(src_ip) -&gt; $(http.email) -&gt; $(http.hostname) -&gt; $(http.url) = $(http.results).<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">options</span>&gt;</span>no_full_log<span class="tag">&lt;/<span class="name">options</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">group</span>&gt;</span>blacklist,<span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">rule</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<ol start="6">
+<li><strong>测试规则</strong></li>
+</ol>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./ossec-logtest</span><br><span class="line">2019/10/18 15:06:47 ossec-testrule: INFO: Started (pid: 2184).</span><br><span class="line">ossec-testrule: Type one <span class="built_in">log</span> per line.</span><br><span class="line"></span><br><span class="line">**Phase 3: Completed filtering (rules).</span><br><span class="line">       Rule id: <span class="string">&#x27;100163&#x27;</span></span><br><span class="line">       Level: <span class="string">&#x27;12&#x27;</span></span><br><span class="line">       Description: <span class="string">&#x27;Wazuh Rules - High-risk user login detected. 1.1.1.1 -&gt; admin -&gt; canon88.github.io -&gt; /user/login = success.&#x27;</span></span><br><span class="line">**Alert to be generated.</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>HIDS</category>
+      </categories>
+      <tags>
+        <tag>Wazuh</tag>
       </tags>
   </entry>
   <entry>
@@ -1650,50 +1694,6 @@
       <tags>
         <tag>Zeek</tag>
         <tag>NTA</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Wazuh - 黑名单匹配告警(CDB list)</title>
-    <url>/2019/10/18/Wazuh-Using-CDB-lists/</url>
-    <content><![CDATA[<p><strong>需求:</strong></p>
-<p>​        现有一批高危用户, 需要实时关注该账号的登录情况。由于之前已经写好了一个针对用户登录账号的审计规则, 因此, 这里需要用到**<a href="https://documentation.wazuh.com/3.10/user-manual/ruleset/cdb-list.html">Wazuh CDB list</a>**这个功能(<em>此功能主要用例是创建用户，IP或域名的白/黑列表。</em>)消费审计规则数据即可。</p>
-<hr>
-<ol>
-<li><strong>新建列表</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more blacklist</span><br><span class="line"></span><br><span class="line">admin:</span><br><span class="line">root:</span><br><span class="line">administrator:</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li><strong>将列表文件添加到<code>ossec.conf</code></strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ more ossec.conf</span><br><span class="line"></span><br><span class="line">&lt;ossec_config&gt;</span><br><span class="line">	&lt;ruleset&gt;</span><br><span class="line">    &lt;!-- User-defined CDB list --&gt;</span><br><span class="line">    &lt;list&gt;etc/lists/blacklist&lt;/list&gt;</span><br><span class="line">	&lt;/ruleset&gt;</span><br><span class="line">&lt;/ossec_config&gt;</span><br></pre></td></tr></table></figure>
-
-<ol start="3">
-<li><strong>编译列表</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ /var/ossec/bin/ossec-makelists</span><br><span class="line"></span><br><span class="line"> * File etc/lists/blacklist.cdb needs to be updated</span><br></pre></td></tr></table></figure>
-
-<ol start="4">
-<li><strong>重启进程</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo systemctl restart wazuh-manager</span><br></pre></td></tr></table></figure>
-
-<ol start="5">
-<li><strong>配置规则</strong></li>
-</ol>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">group</span> <span class="attr">name</span>=<span class="string">&quot;local,blacklist,&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- Defind blacklist Rules --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- ID: 100150 - 100199 --&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">rule</span> <span class="attr">id</span>=<span class="string">&quot;100163&quot;</span> <span class="attr">level</span>=<span class="string">&quot;12&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if_sid</span>&gt;</span>100303<span class="tag">&lt;/<span class="name">if_sid</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">list</span> <span class="attr">field</span>=<span class="string">&quot;http.email&quot;</span> <span class="attr">lookup</span>=<span class="string">&quot;match_key&quot;</span>&gt;</span>etc/lists/blacklist<span class="tag">&lt;/<span class="name">list</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">description</span>&gt;</span>Wazuh Rules - High-risk user login detected. $(src_ip) -&gt; $(http.email) -&gt; $(http.hostname) -&gt; $(http.url) = $(http.results).<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">options</span>&gt;</span>no_full_log<span class="tag">&lt;/<span class="name">options</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">group</span>&gt;</span>blacklist,<span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">rule</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">group</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<ol start="6">
-<li><strong>测试规则</strong></li>
-</ol>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ ./ossec-logtest</span><br><span class="line">2019/10/18 15:06:47 ossec-testrule: INFO: Started (pid: 2184).</span><br><span class="line">ossec-testrule: Type one <span class="built_in">log</span> per line.</span><br><span class="line"></span><br><span class="line">**Phase 3: Completed filtering (rules).</span><br><span class="line">       Rule id: <span class="string">&#x27;100163&#x27;</span></span><br><span class="line">       Level: <span class="string">&#x27;12&#x27;</span></span><br><span class="line">       Description: <span class="string">&#x27;Wazuh Rules - High-risk user login detected. 1.1.1.1 -&gt; admin -&gt; canon88.github.io -&gt; /user/login = success.&#x27;</span></span><br><span class="line">**Alert to be generated.</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>HIDS</category>
-      </categories>
-      <tags>
-        <tag>Wazuh</tag>
       </tags>
   </entry>
   <entry>
@@ -2058,6 +2058,69 @@
       </tags>
   </entry>
   <entry>
+    <title>How to use Zeek Detect Suspicious DNS traffic</title>
+    <url>/2024/08/10/Zeek-Detect-Suspicious-DNS-traffic/</url>
+    <content><![CDATA[<h4 id="写在前面："><a href="#写在前面：" class="headerlink" title="写在前面："></a>写在前面：</h4><p>​    我嘞个去！小不在意都已经到了2024的下半年了，近期花了一些时间研究了DNS异常流量的检测模型。老样子依旧是放在Zeek上来实现，Zeek作为网络流量的“瑞士军刀”可玩性还是很大的。由于现在写Blog时间太少了，这里将会通过分期的形式进行更新。</p>
+<p>​    本期主题是：如何通过 Zeek <a href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 实现<strong>动态基线</strong>，检测 DNS Payload 请求长度上的异常。</p>
+<h4 id="检测维度"><a href="#检测维度" class="headerlink" title="检测维度"></a>检测维度</h4><h5 id="1-请求包长度异常"><a href="#1-请求包长度异常" class="headerlink" title="1. 请求包长度异常"></a>1. 请求包长度异常</h5><p>​    通常最简单粗暴的方式就是通过手动指定一个<strong>『长度』</strong>作为告警阈值。但是难点就是<strong>『长度』</strong>设置为多少才算合适？长度设置较小，告警量多，误报率就会增加。长度设置较大，告警量少，但不一定会有告警。所以最好的方式就是能够动态计算一段时间内的<strong>『长度』</strong>作为阈值，以这个为基线去计算标准差和平均值再进行比对。</p>
+<ul>
+<li><p>定义一个动态基线时间窗口</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"># Global variable <span class="keyword">for</span> baseline interval</span><br><span class="line"><span class="keyword">const</span> baseline_interval: interval = <span class="number">300</span>sec &amp;redef; # Baseline interval <span class="keyword">for</span> SumStats collection</span><br></pre></td></tr></table></figure></li>
+<li><p>由于DNS在不同的请求类型下Payload长度也会有明显的差异，所以为了避免这类“干扰项”我们将按照DNS请求类型进行聚合来计算动态基线</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    # Define a record type to store the average <span class="keyword">and</span> standard deviation</span><br><span class="line">    type Stats: record &#123;</span><br><span class="line">        prev_avg: count; # Previous average payload size</span><br><span class="line">        prev_sd: count;  # Previous standard deviation of payload size</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    # Define a table to store the data</span><br><span class="line">    option data: table[string] of Stats;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>考虑到实际环境中DNS的请求数量会非常的多，我们也需要考虑代码在上线后对集群负载带来的影响。所以，这里将会通过<code>local_domain</code>、<code>ignore_qtypes</code>、<code>ignore_querys</code>、<code>ignore_subdomains</code>、<code>ignore_domains</code>、<code>ignore_tlds</code>等多个条件进行控制。</p>
+<ul>
+<li><strong>local_domian</strong>：代表实际环境中的内部域名，这些域名通常用于企业内网或者内部业务系统之间的通讯和API调用。通常这些域名不需要被列入到动态基线的计算范围内，因为它们在多数情况下都是在内部网络环境中使用，而非公开互联网访问。这有助于减少不必要的噪音和误报，提高基线计算的准确性。</li>
+<li><strong>ignore_qtypes</strong>：代表你需要忽略的DNS请求类型。</li>
+<li><strong>ignore_querys</strong>：代表你需要忽略的完整DNS请求。如：<code>canon88.github.io</code> 就是一个完整的域名请求</li>
+<li><strong>ignore_subdomains</strong>：代表你需要忽略的子域名。例如：在 <code>canon88.github.io</code> 中，<code>canon88</code> 就是子域名</li>
+<li><strong>ignore_domains</strong>：代表你需要忽略的主域名或二级域名。例如：在 <code>canon88.github.io</code> 中，<code>github.io</code> 是主域</li>
+<li><strong>ignore_tlds</strong>：代表你需要忽略的顶级域名（TLD）。例如：在 <code>canon88.github.io</code> 中，<code>io</code> 就是顶级域名。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123; </span><br><span class="line">		# Return early if the domain is local</span><br><span class="line">    if (c$dns$is_local_domain)</span><br><span class="line">        return;</span><br><span class="line">  </span><br><span class="line">    # Filter out queries of types that should be ignored</span><br><span class="line">    if (c$dns$qtype_name in SuspiciousDNSTraffic::ignore_qtypes)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted queries</span><br><span class="line">    if (c$dns$query in SuspiciousDNSTraffic::ignore_querys)</span><br><span class="line">        return;</span><br><span class="line">    </span><br><span class="line">    #  Ignore trusted subdomains</span><br><span class="line">    if ( (c$dns?$subdomain) &amp;&amp; (c$dns$subdomain in SuspiciousDNSTraffic::ignore_subdomains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted domains</span><br><span class="line">    if ( (c$dns?$domain) &amp;&amp; (c$dns$domain in SuspiciousDNSTraffic::ignore_domains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted top-level domains</span><br><span class="line">    if ( (c$dns?$tld) &amp;&amp; ( (c$dns$tld in SuspiciousDNSTraffic::ignore_tlds) || (SuspiciousDNSTraffic::ignore_tlds_regex in c$dns$tld) ) )</span><br><span class="line">        return;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>下面开始进入“正题”，通过Zeek <a href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 进行 DNS Payload 动态基线的计算。</p>
+<ul>
+<li><p><strong>计算基线数据</strong>：使用 <code>SumStats</code> 模块每隔 <code>baseline_interval</code>（300秒） 计算一次 DNS 负载大小的平均值和标准差，并将这些数据存储在 <code>data</code> 表中。</p>
+</li>
+<li><p><strong>比对当前负载大小</strong>：在处理每个 DNS 消息时，当前负载大小（<code>len</code>）会与数据表中的先前平均值（<code>prev_avg</code>）和标准差（<code>prev_sd</code>）进行比对。</p>
+</li>
+<li><p><strong>比对阈值计算</strong>：</p>
+<ul>
+<li><p>最大平均值阈值：<code>avg * multiplier_threshold</code></p>
+</li>
+<li><p>最小平均值阈值：<code>avg / multiplier_threshold</code></p>
+</li>
+<li><p>最大标准差阈值：<code>avg + sd * deviation_threshold</code></p>
+</li>
+<li><p>最小标准差阈值：<code>avg - sd * deviation_threshold</code></p>
+</li>
+</ul>
+</li>
+<li><p><strong>确定可疑负载</strong>：</p>
+<ul>
+<li><p>如果当前负载大小超过最大平均值阈值或小于最小平均值阈值，则标记为可疑。</p>
+</li>
+<li><p>如果当前负载大小超过最大标准差阈值或小于最小标准差阈值，则标记为可疑。</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Event handler for DNS messages</span><br><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123;</span><br><span class="line">    # Store the payload size in the DNS::Info record</span><br><span class="line">    c$dns$payload_len = len;</span><br><span class="line"></span><br><span class="line">    # Observe the payload size for SumStats calculations</span><br><span class="line">    SumStats::observe(&quot;dns_payload_len&quot;, SumStats::Key($str=c$dns$qtype_name), SumStats::Observation($num=len));</span><br><span class="line"></span><br><span class="line">    if (c$dns$qtype_name in data) &#123;</span><br><span class="line">        local avg = data[c$dns$qtype_name]$prev_avg;</span><br><span class="line">        local sd = data[c$dns$qtype_name]$prev_sd;</span><br><span class="line"></span><br><span class="line">        local max_avg_threshold = avg * SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local min_avg_threshold = avg / SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local max_sd_threshold = avg + sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line">        local min_sd_threshold = avg - sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line"></span><br><span class="line">        # Compare the current payload size with the calculated average and standard deviation</span><br><span class="line">        if ( avg != 0.0 ) &#123;</span><br><span class="line">            local alert_reason: set[string] = set();</span><br><span class="line">            if ( len &gt; max_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = max_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; avg_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = min_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; avg_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( len &gt; max_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = max_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; sd_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = min_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; sd_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( |alert_reason| &gt; 0 ) &#123;</span><br><span class="line">                c$dns$alert_reason = alert_reason;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        # c$dns$payload_prev_avg = avg;</span><br><span class="line">        # c$dns$payload_prev_sd = sd;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Initialize the event handler for analyzing DNS requests</span><br><span class="line">event zeek_init() &#123;</span><br><span class="line">    # Define a reducer to calculate the standard deviation of DNS payload sizes</span><br><span class="line">    local r_std_dev = SumStats::Reducer($stream=&quot;dns_payload_len&quot;, $apply=set(SumStats::STD_DEV));</span><br><span class="line"></span><br><span class="line">    # Create a SumStats object to collect data every baseline_interval (e.g. 5 minutes)</span><br><span class="line">    SumStats::create([</span><br><span class="line">        $name = &quot;dns_payload_len.std_dev&quot;,</span><br><span class="line">        $epoch = baseline_interval,</span><br><span class="line">        $reducers = set(r_std_dev),</span><br><span class="line">        $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = &#123; </span><br><span class="line">            local current_avg = double_to_count(result[&quot;dns_payload_len&quot;]$average);</span><br><span class="line">            local current_std_dev = double_to_count(result[&quot;dns_payload_len&quot;]$std_dev);</span><br><span class="line"></span><br><span class="line">            # Initialize the table with the given data</span><br><span class="line">            data[key$str] = [$prev_avg = current_avg, $prev_sd = current_std_dev];</span><br><span class="line"></span><br><span class="line">            # Update the data table with the new values</span><br><span class="line">            Config::set_value(&quot;SuspiciousDNSTraffic::data&quot;, data);</span><br><span class="line">        &#125;</span><br><span class="line">    ]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://pic.vjshi.com/2021-12-23/33ac8590ed1844d5bf0251349ea6da19/online/main.jpg?x-oss-process=style/video_cover_20231101" alt="未完待续视频素材下载, 未完待续AE模板下载_光厂(VJ师网)"></p>
+<h5 id="2-请求域名长度异常"><a href="#2-请求域名长度异常" class="headerlink" title="2. 请求域名长度异常"></a>2. 请求域名长度异常</h5><h5 id="3-非常见域名监控"><a href="#3-非常见域名监控" class="headerlink" title="3. 非常见域名监控"></a>3. 非常见域名监控</h5><h5 id="4-Fast-Flux"><a href="#4-Fast-Flux" class="headerlink" title="4. Fast Flux"></a>4. Fast Flux</h5><h5 id="5-非常见请求类型"><a href="#5-非常见请求类型" class="headerlink" title="5. 非常见请求类型"></a>5. 非常见请求类型</h5><h5 id="6-域名信誉度"><a href="#6-域名信誉度" class="headerlink" title="6. 域名信誉度"></a>6. 域名信誉度</h5>]]></content>
+      <categories>
+        <category>NTA</category>
+      </categories>
+      <tags>
+        <tag>Zeek</tag>
+        <tag>NTA</tag>
+        <tag>NIDS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Zeek - File Extraction Plus</title>
     <url>/2021/12/31/Zeek-File-Extraction-Plus/</url>
     <content><![CDATA[<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p>最近在研究如何将Wazuh与YARA整合，也就是当触发Wazuh FIM事件时通过使用Wazuh主动响应模块自动执行YARA扫描。该功能将扫描集中在新文件或最近修改过的文件上，从而优化了被监控端点的资源消耗。由于我司的业务特性，最先想到的场景就是WebShell的检测了。</p>
@@ -2303,69 +2366,6 @@
       </tags>
   </entry>
   <entry>
-    <title>How to use Zeek Detect Suspicious DNS traffic</title>
-    <url>/2024/08/10/Zeek-Detect-Suspicious-DNS-traffic/</url>
-    <content><![CDATA[<h4 id="写在前面："><a href="#写在前面：" class="headerlink" title="写在前面："></a>写在前面：</h4><p>​    我嘞个去！小不在意都已经到了2024的下半年了，近期花了一些时间研究了DNS异常流量的检测模型。老样子依旧是放在Zeek上来实现，Zeek作为网络流量的“瑞士军刀”可玩性还是很大的。由于现在写Blog时间太少了，这里将会通过分期的形式进行更新。</p>
-<p>​    本期主题是：如何通过 Zeek <a href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 实现<strong>动态基线</strong>，检测 DNS Payload 请求长度上的异常。</p>
-<h4 id="检测维度"><a href="#检测维度" class="headerlink" title="检测维度"></a>检测维度</h4><h5 id="1-请求包长度异常"><a href="#1-请求包长度异常" class="headerlink" title="1. 请求包长度异常"></a>1. 请求包长度异常</h5><p>​    通常最简单粗暴的方式就是通过手动指定一个<strong>『长度』</strong>作为告警阈值。但是难点就是<strong>『长度』</strong>设置为多少才算合适？长度设置较小，告警量多，误报率就会增加。长度设置较大，告警量少，但不一定会有告警。所以最好的方式就是能够动态计算一段时间内的<strong>『长度』</strong>作为阈值，以这个为基线去计算标准差和平均值再进行比对。</p>
-<ul>
-<li><p>定义一个动态基线时间窗口</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"># Global variable <span class="keyword">for</span> baseline interval</span><br><span class="line"><span class="keyword">const</span> baseline_interval: interval = <span class="number">300</span>sec &amp;redef; # Baseline interval <span class="keyword">for</span> SumStats collection</span><br></pre></td></tr></table></figure></li>
-<li><p>由于DNS在不同的请求类型下Payload长度也会有明显的差异，所以为了避免这类“干扰项”我们将按照DNS请求类型进行聚合来计算动态基线</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">export</span> &#123;</span><br><span class="line">    # Define a record type to store the average <span class="keyword">and</span> standard deviation</span><br><span class="line">    type Stats: record &#123;</span><br><span class="line">        prev_avg: count; # Previous average payload size</span><br><span class="line">        prev_sd: count;  # Previous standard deviation of payload size</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    # Define a table to store the data</span><br><span class="line">    option data: table[string] of Stats;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li><p>考虑到实际环境中DNS的请求数量会非常的多，我们也需要考虑代码在上线后对集群负载带来的影响。所以，这里将会通过<code>local_domain</code>、<code>ignore_qtypes</code>、<code>ignore_querys</code>、<code>ignore_subdomains</code>、<code>ignore_domains</code>、<code>ignore_tlds</code>等多个条件进行控制。</p>
-<ul>
-<li><strong>local_domian</strong>：代表实际环境中的内部域名，这些域名通常用于企业内网或者内部业务系统之间的通讯和API调用。通常这些域名不需要被列入到动态基线的计算范围内，因为它们在多数情况下都是在内部网络环境中使用，而非公开互联网访问。这有助于减少不必要的噪音和误报，提高基线计算的准确性。</li>
-<li><strong>ignore_qtypes</strong>：代表你需要忽略的DNS请求类型。</li>
-<li><strong>ignore_querys</strong>：代表你需要忽略的完整DNS请求。如：<code>canon88.github.io</code> 就是一个完整的域名请求</li>
-<li><strong>ignore_subdomains</strong>：代表你需要忽略的子域名。例如：在 <code>canon88.github.io</code> 中，<code>canon88</code> 就是子域名</li>
-<li><strong>ignore_domains</strong>：代表你需要忽略的主域名或二级域名。例如：在 <code>canon88.github.io</code> 中，<code>github.io</code> 是主域</li>
-<li><strong>ignore_tlds</strong>：代表你需要忽略的顶级域名（TLD）。例如：在 <code>canon88.github.io</code> 中，<code>io</code> 就是顶级域名。</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123; </span><br><span class="line">		# Return early if the domain is local</span><br><span class="line">    if (c$dns$is_local_domain)</span><br><span class="line">        return;</span><br><span class="line">  </span><br><span class="line">    # Filter out queries of types that should be ignored</span><br><span class="line">    if (c$dns$qtype_name in SuspiciousDNSTraffic::ignore_qtypes)</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted queries</span><br><span class="line">    if (c$dns$query in SuspiciousDNSTraffic::ignore_querys)</span><br><span class="line">        return;</span><br><span class="line">    </span><br><span class="line">    #  Ignore trusted subdomains</span><br><span class="line">    if ( (c$dns?$subdomain) &amp;&amp; (c$dns$subdomain in SuspiciousDNSTraffic::ignore_subdomains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted domains</span><br><span class="line">    if ( (c$dns?$domain) &amp;&amp; (c$dns$domain in SuspiciousDNSTraffic::ignore_domains) )</span><br><span class="line">        return;</span><br><span class="line"></span><br><span class="line">    # Ignore trusted top-level domains</span><br><span class="line">    if ( (c$dns?$tld) &amp;&amp; ( (c$dns$tld in SuspiciousDNSTraffic::ignore_tlds) || (SuspiciousDNSTraffic::ignore_tlds_regex in c$dns$tld) ) )</span><br><span class="line">        return;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-<li><p>下面开始进入“正题”，通过Zeek <a href="https://docs.zeek.org/en/master/frameworks/sumstats.html#summary-statistics">Summary Statistics</a> 进行 DNS Payload 动态基线的计算。</p>
-<ul>
-<li><p><strong>计算基线数据</strong>：使用 <code>SumStats</code> 模块每隔 <code>baseline_interval</code>（300秒） 计算一次 DNS 负载大小的平均值和标准差，并将这些数据存储在 <code>data</code> 表中。</p>
-</li>
-<li><p><strong>比对当前负载大小</strong>：在处理每个 DNS 消息时，当前负载大小（<code>len</code>）会与数据表中的先前平均值（<code>prev_avg</code>）和标准差（<code>prev_sd</code>）进行比对。</p>
-</li>
-<li><p><strong>比对阈值计算</strong>：</p>
-<ul>
-<li><p>最大平均值阈值：<code>avg * multiplier_threshold</code></p>
-</li>
-<li><p>最小平均值阈值：<code>avg / multiplier_threshold</code></p>
-</li>
-<li><p>最大标准差阈值：<code>avg + sd * deviation_threshold</code></p>
-</li>
-<li><p>最小标准差阈值：<code>avg - sd * deviation_threshold</code></p>
-</li>
-</ul>
-</li>
-<li><p><strong>确定可疑负载</strong>：</p>
-<ul>
-<li><p>如果当前负载大小超过最大平均值阈值或小于最小平均值阈值，则标记为可疑。</p>
-</li>
-<li><p>如果当前负载大小超过最大标准差阈值或小于最小标准差阈值，则标记为可疑。</p>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># Event handler for DNS messages</span><br><span class="line">event dns_message(c: connection, is_orig: bool, msg: dns_msg, len: count) &amp;priority=-10 &#123;</span><br><span class="line">    # Store the payload size in the DNS::Info record</span><br><span class="line">    c$dns$payload_len = len;</span><br><span class="line"></span><br><span class="line">    # Observe the payload size for SumStats calculations</span><br><span class="line">    SumStats::observe(&quot;dns_payload_len&quot;, SumStats::Key($str=c$dns$qtype_name), SumStats::Observation($num=len));</span><br><span class="line"></span><br><span class="line">    if (c$dns$qtype_name in data) &#123;</span><br><span class="line">        local avg = data[c$dns$qtype_name]$prev_avg;</span><br><span class="line">        local sd = data[c$dns$qtype_name]$prev_sd;</span><br><span class="line"></span><br><span class="line">        local max_avg_threshold = avg * SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local min_avg_threshold = avg / SuspiciousDNSTraffic::multiplier_threshold;</span><br><span class="line">        local max_sd_threshold = avg + sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line">        local min_sd_threshold = avg - sd * SuspiciousDNSTraffic::deviation_threshold;</span><br><span class="line"></span><br><span class="line">        # Compare the current payload size with the calculated average and standard deviation</span><br><span class="line">        if ( avg != 0.0 ) &#123;</span><br><span class="line">            local alert_reason: set[string] = set();</span><br><span class="line">            if ( len &gt; max_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = max_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; avg_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_avg_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$avg_threshold = min_avg_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; avg_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( len &gt; max_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = max_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &gt; sd_threshold&quot;];</span><br><span class="line">            &#125; else if ( len &lt; min_sd_threshold ) &#123;</span><br><span class="line">                c$dns$is_oversize_payload = T;</span><br><span class="line">                c$dns$sd_threshold = min_sd_threshold;</span><br><span class="line">                add alert_reason[&quot;payload_len &lt; sd_threshold&quot;];</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            if ( |alert_reason| &gt; 0 ) &#123;</span><br><span class="line">                c$dns$alert_reason = alert_reason;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        # c$dns$payload_prev_avg = avg;</span><br><span class="line">        # c$dns$payload_prev_sd = sd;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># Initialize the event handler for analyzing DNS requests</span><br><span class="line">event zeek_init() &#123;</span><br><span class="line">    # Define a reducer to calculate the standard deviation of DNS payload sizes</span><br><span class="line">    local r_std_dev = SumStats::Reducer($stream=&quot;dns_payload_len&quot;, $apply=set(SumStats::STD_DEV));</span><br><span class="line"></span><br><span class="line">    # Create a SumStats object to collect data every baseline_interval (e.g. 5 minutes)</span><br><span class="line">    SumStats::create([</span><br><span class="line">        $name = &quot;dns_payload_len.std_dev&quot;,</span><br><span class="line">        $epoch = baseline_interval,</span><br><span class="line">        $reducers = set(r_std_dev),</span><br><span class="line">        $epoch_result(ts: time, key: SumStats::Key, result: SumStats::Result) = &#123; </span><br><span class="line">            local current_avg = double_to_count(result[&quot;dns_payload_len&quot;]$average);</span><br><span class="line">            local current_std_dev = double_to_count(result[&quot;dns_payload_len&quot;]$std_dev);</span><br><span class="line"></span><br><span class="line">            # Initialize the table with the given data</span><br><span class="line">            data[key$str] = [$prev_avg = current_avg, $prev_sd = current_std_dev];</span><br><span class="line"></span><br><span class="line">            # Update the data table with the new values</span><br><span class="line">            Config::set_value(&quot;SuspiciousDNSTraffic::data&quot;, data);</span><br><span class="line">        &#125;</span><br><span class="line">    ]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://pic.vjshi.com/2021-12-23/33ac8590ed1844d5bf0251349ea6da19/online/main.jpg?x-oss-process=style/video_cover_20231101" alt="未完待续视频素材下载, 未完待续AE模板下载_光厂(VJ师网)"></p>
-<h5 id="2-请求域名长度异常"><a href="#2-请求域名长度异常" class="headerlink" title="2. 请求域名长度异常"></a>2. 请求域名长度异常</h5><h5 id="3-非常见域名监控"><a href="#3-非常见域名监控" class="headerlink" title="3. 非常见域名监控"></a>3. 非常见域名监控</h5><h5 id="4-Fast-Flux"><a href="#4-Fast-Flux" class="headerlink" title="4. Fast Flux"></a>4. Fast Flux</h5><h5 id="5-非常见请求类型"><a href="#5-非常见请求类型" class="headerlink" title="5. 非常见请求类型"></a>5. 非常见请求类型</h5><h5 id="6-域名信誉度"><a href="#6-域名信誉度" class="headerlink" title="6. 域名信誉度"></a>6. 域名信誉度</h5>]]></content>
-      <categories>
-        <category>NTA</category>
-      </categories>
-      <tags>
-        <tag>Zeek</tag>
-        <tag>NTA</tag>
-        <tag>NIDS</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>How to Use Zeek ThreatHunting?</title>
     <url>/2024/02/25/Zeek-ThreatHunting/</url>
     <content><![CDATA[<h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><p>春节期间，我利用课余时间将之前的一些想法付诸实践。我们都知道，网络威胁分析(NTA)除了具备网络入侵检测系统(NIDS)功能外，还有一个重要特性就是强大的协议解析能力，这对于安全事件的溯源提供了极大的帮助。然而，并非所有的企业都能充分利用这个能力，主要原因有两个方面：</p>
@@ -2540,6 +2540,24 @@
         <tag>Zeek</tag>
         <tag>NTA</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <url>/2019/10/04/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/deployment.html">Deployment</a></p>
+]]></content>
   </entry>
   <entry>
     <title>如何“优雅”的设计Playbook</title>
@@ -2777,24 +2795,6 @@
         <tag>应急响应</tag>
         <tag>安全运营</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Hello World</title>
-    <url>/2019/10/04/hello-world/</url>
-    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
-<p>More info: <a href="https://hexo.io/docs/deployment.html">Deployment</a></p>
-]]></content>
   </entry>
   <entry>
     <title>我在&#39;云&#39;上的日子 - Suricata(部署)</title>
@@ -3582,8 +3582,8 @@
         <category>SIEM</category>
       </categories>
       <tags>
-        <tag>SOC</tag>
         <tag>SIEM</tag>
+        <tag>SOC</tag>
         <tag>TheHive</tag>
       </tags>
   </entry>
